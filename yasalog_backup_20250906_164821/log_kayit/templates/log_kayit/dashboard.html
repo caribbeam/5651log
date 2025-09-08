@@ -1,0 +1,529 @@
+{% extends "log_kayit/partials/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Ana Dashboard - {{ company.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        margin-bottom: 30px;
+    }
+    
+    .dashboard-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 10px;
+    }
+    
+    .dashboard-subtitle {
+        color: #6c757d;
+        font-size: 1.1rem;
+    }
+    
+    .stats-overview {
+        margin-bottom: 40px;
+    }
+    
+    .chart-section {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 4px 25px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+    }
+    
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #f8f9fa;
+    }
+    
+    .chart-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+    }
+    
+    .chart-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+    
+    .filter-btn {
+        background: var(--primary-color);
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .filter-btn:hover {
+        background: var(--secondary-color);
+        transform: translateY(-2px);
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 400px;
+    }
+    
+    .top-users-list {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .user-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .user-item:last-child {
+        border-bottom: none;
+    }
+    
+    .user-name {
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .user-count {
+        background: var(--primary-color);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .daily-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+    
+    .daily-stat {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        border: 2px solid #f8f9fa;
+        transition: all 0.3s ease;
+    }
+    
+    .daily-stat:hover {
+        border-color: var(--primary-color);
+        transform: translateY(-2px);
+    }
+    
+    .daily-stat-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 5px;
+    }
+    
+    .daily-stat-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        font-weight: 500;
+    }
+    
+    .suspicious-section {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        color: white;
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 25px rgba(0,0,0,0.15);
+    }
+    
+    .suspicious-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    
+    .suspicious-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin: 0;
+    }
+    
+    .suspicious-count {
+        font-size: 3rem;
+        font-weight: 700;
+        text-align: center;
+        margin: 20px 0;
+    }
+    
+    .suspicious-description {
+        text-align: center;
+        opacity: 0.9;
+        font-size: 0.95rem;
+    }
+    
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .action-card {
+        background: white;
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 4px 25px rgba(0,0,0,0.08);
+        text-align: center;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+    
+    .action-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--primary-color);
+        box-shadow: 0 8px 35px rgba(0,0,0,0.12);
+    }
+    
+    .action-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 15px;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        margin: 0 auto 20px;
+    }
+    
+    .action-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 10px;
+    }
+    
+    .action-description {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-bottom: 20px;
+    }
+    
+    .action-btn {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s ease;
+    }
+    
+    .action-btn:hover {
+        background: var(--secondary-color);
+        color: white;
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="dashboard-header">
+    <h1 class="dashboard-title">
+        <i class="fas fa-tachometer-alt me-3"></i>Kontrol Paneli
+    </h1>
+    <p class="dashboard-subtitle">{{ company.name }} - Sistem Yönetimi ve İzleme</p>
+</div>
+
+<!-- İstatistik Kartları -->
+<div class="stats-overview">
+    <div class="dashboard-grid">
+        <div class="stat-card">
+            <div class="stat-icon primary">
+                <i class="fas fa-sign-in-alt"></i>
+            </div>
+            <div class="stat-number">{{ total_logins|default:0 }}</div>
+            <div class="stat-label">Toplam Giriş</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon info">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-number">{{ total_users|default:0 }}</div>
+            <div class="stat-label">Toplam Kullanıcı</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="fas fa-user-check"></i>
+            </div>
+            <div class="stat-number">{{ active_users|default:0 }}</div>
+            <div class="stat-label">Aktif Kullanıcılar</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon danger">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="stat-number">{{ suspicious_logins|default:0 }}</div>
+            <div class="stat-label">Şüpheli Girişler</div>
+        </div>
+    </div>
+</div>
+
+<!-- Grafik ve Kullanıcı Listesi -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="chart-section">
+            <div class="chart-header">
+                <h3 class="chart-title">
+                    <i class="fas fa-chart-line me-2"></i>Giriş Sayısına Göre İlk 5 Kullanıcı
+                </h3>
+                <div class="chart-actions">
+                    <span class="text-muted me-3">
+                        <i class="fas fa-clock me-1"></i>
+                        Bougi at {{ current_time|date:"d.m.Y H:i" }}
+                    </span>
+                    <button class="filter-btn">
+                        <i class="fas fa-search me-1"></i>Filtrele
+                    </button>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="userActivityChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="chart-section">
+            <div class="chart-header">
+                <h3 class="chart-title">
+                    <i class="fas fa-users me-2"></i>En Aktif Kullanıcılar
+                </h3>
+            </div>
+            
+            <div class="top-users-list">
+                {% for user in top_users %}
+                <div class="user-item">
+                    <span class="user-name">{{ user.username }}</span>
+                    <span class="user-count">{{ user.login_count }} giriş</span>
+                </div>
+                {% empty %}
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-users fa-2x mb-2"></i>
+                    <p>Henüz kullanıcı verisi bulunmuyor</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Günlük İstatistikler -->
+<div class="chart-section">
+    <div class="chart-header">
+        <h3 class="chart-title">
+            <i class="fas fa-calendar-day me-2"></i>Günlük İstatistikler
+        </h3>
+    </div>
+    
+    <div class="daily-stats">
+        <div class="daily-stat">
+            <div class="daily-stat-number">{{ today_logins|default:0 }}</div>
+            <div class="daily-stat-label">Bugünkü Girişler</div>
+        </div>
+        
+        <div class="daily-stat">
+            <div class="daily-stat-number">{{ today_suspicious|default:0 }}</div>
+            <div class="daily-stat-label">Bugünkü Şüpheliler</div>
+        </div>
+        
+        <div class="daily-stat">
+            <div class="daily-stat-number">{{ system_status|default:"Aktif" }}</div>
+            <div class="daily-stat-label">Sistem Durumu</div>
+        </div>
+    </div>
+</div>
+
+<!-- Şüpheli Girişler Uyarısı -->
+{% if suspicious_logins > 0 %}
+<div class="suspicious-section">
+    <div class="suspicious-header">
+        <h3 class="suspicious-title">
+            <i class="fas fa-exclamation-triangle me-2"></i>Güvenlik Uyarısı
+        </h3>
+    </div>
+    
+    <div class="suspicious-count">{{ suspicious_logins }}</div>
+    <div class="suspicious-description">
+        Süpheli veya Geçersiz Girişler tespit edildi. Lütfen güvenlik loglarını kontrol edin.
+    </div>
+</div>
+{% endif %}
+
+<!-- Hızlı Aksiyonlar -->
+<div class="quick-actions">
+    <div class="action-card">
+        <div class="action-icon">
+            <i class="fas fa-network-wired"></i>
+        </div>
+        <h4 class="action-title">Network Monitoring</h4>
+        <p class="action-description">Ağ cihazlarını ve trafiği izleyin</p>
+        <a href="{% url 'network_monitoring:network_dashboard' company.slug %}" class="action-btn">
+            Aç
+        </a>
+    </div>
+    
+    <div class="action-card">
+        <div class="action-icon">
+            <i class="fas fa-shield-alt"></i>
+        </div>
+        <h4 class="action-title">Firewall Management</h4>
+        <p class="action-description">Güvenlik duvarı kurallarını yönetin</p>
+        <a href="{% url 'firewall_management:firewall_dashboard' company.slug %}" class="action-btn">
+            Aç
+        </a>
+    </div>
+    
+    <div class="action-card">
+        <div class="action-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h4 class="action-title">Security Alerts</h4>
+        <p class="action-description">Güvenlik uyarılarını takip edin</p>
+        <a href="{% url 'security_alerts:security_dashboard' company.slug %}" class="action-btn">
+            Aç
+        </a>
+    </div>
+    
+    <div class="action-card">
+        <div class="action-icon">
+            <i class="fas fa-wifi"></i>
+        </div>
+        <h4 class="action-title">Hotspot Management</h4>
+        <p class="action-description">Wi-Fi hotspot yönetimi</p>
+        <a href="{% url 'hotspot_management:hotspot_dashboard' company.slug %}" class="action-btn">
+            Aç
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Kullanıcı Aktivite Grafiği
+const ctx = document.getElementById('userActivityChart').getContext('2d');
+const userActivityChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: ['01:03', '01:05', '01:09', '01:01', '01:07', '01:02'],
+        datasets: [{
+            label: 'Giriş Sayısı',
+            data: [2, 4, 1, 3, 2, 5],
+            borderColor: '#667eea',
+            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#667eea',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 6
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: 'rgba(0,0,0,0.1)',
+                    drawBorder: false
+                },
+                ticks: {
+                    font: {
+                        size: 12
+                    },
+                    color: '#6c757d'
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                },
+                ticks: {
+                    font: {
+                        size: 12
+                    },
+                    color: '#6c757d'
+                }
+            }
+        },
+        elements: {
+            point: {
+                hoverRadius: 8
+            }
+        }
+    }
+});
+
+// Real-time güncelleme (30 saniyede bir)
+setInterval(function() {
+    // AJAX ile veri güncelleme
+    console.log('Dashboard verileri güncelleniyor...');
+}, 30000);
+
+// Filtreleme fonksiyonu
+document.querySelector('.filter-btn').addEventListener('click', function() {
+    // Filtreleme modal'ı açılabilir
+    alert('Filtreleme özelliği yakında eklenecek!');
+});
+
+// Sayfa yüklendiğinde animasyon
+document.addEventListener('DOMContentLoaded', function() {
+    // İstatistik kartlarına animasyon ekle
+    const statCards = document.querySelectorAll('.stat-card');
+    statCards.forEach((card, index) => {
+        setTimeout(() => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'all 0.5s ease';
+            
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 100);
+        }, index * 100);
+    });
+});
+</script>
+{% endblock %} 

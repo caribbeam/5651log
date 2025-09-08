@@ -1,0 +1,258 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Cihaz Sil" %} - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="mirror-dashboard">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-trash me-2"></i>{% trans "Cihaz Sil" %}
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'mirror_port:devices_list' company.slug %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri Dön" %}
+            </a>
+            <a href="{% url 'log_kayit:company_dashboard_slug' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-home me-2"></i>{% trans "Ana Sayfa" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Silme Onayı -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="card-title">
+                        <i class="fas fa-exclamation-triangle"></i> {% trans "Cihaz Silme Onayı" %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <h4 class="alert-heading">
+                            <i class="fas fa-exclamation-triangle"></i> {% trans "Dikkat!" %}
+                        </h4>
+                        <p>{% trans "Bu işlem geri alınamaz. Aşağıdaki cihaz kalıcı olarak silinecektir:" %}</p>
+                    </div>
+
+                    <!-- Cihaz Detayları -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <div class="info-box-content">
+                                    <h5 class="info-box-text">{% trans "Temel Bilgiler" %}</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-borderless">
+                                            <tr>
+                                                <td><strong>{% trans "Cihaz Adı:" %}</strong></td>
+                                                <td>{{ device.name }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Cihaz Tipi:" %}</strong></td>
+                                                <td><span class="badge badge-info">{{ device.get_device_type_display }}</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Model:" %}</strong></td>
+                                                <td>{{ device.model|default:"-" }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Üretici:" %}</strong></td>
+                                                <td>{{ device.manufacturer|default:"-" }}</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <div class="info-box-content">
+                                    <h5 class="info-box-text">{% trans "Network Bilgileri" %}</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-borderless">
+                                            <tr>
+                                                <td><strong>{% trans "IP Adresi:" %}</strong></td>
+                                                <td><code>{{ device.ip_address }}</code></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "MAC Adresi:" %}</strong></td>
+                                                <td>{{ device.mac_address|default:"-" }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Durum:" %}</strong></td>
+                                                <td>
+                                                    {% if device.is_online %}
+                                                        <span class="badge badge-success">{% trans "Çevrimiçi" %}</span>
+                                                    {% else %}
+                                                        <span class="badge badge-secondary">{% trans "Çevrimdışı" %}</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Mirror Desteği:" %}</strong></td>
+                                                <td>
+                                                    {% if device.mirror_supported %}
+                                                        <span class="badge badge-success">{% trans "Destekleniyor" %}</span>
+                                                    {% else %}
+                                                        <span class="badge badge-secondary">{% trans "Desteklenmiyor" %}</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <div class="info-box-content">
+                                    <h5 class="info-box-text">{% trans "Mirror Ayarları" %}</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-borderless">
+                                            <tr>
+                                                <td><strong>{% trans "Maksimum Mirror Port:" %}</strong></td>
+                                                <td><span class="badge badge-info">{{ device.max_mirror_ports }}</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Mevcut Mirror Port:" %}</strong></td>
+                                                <td><span class="badge badge-warning">{{ device.current_mirror_ports }}</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Oluşturulma:" %}</strong></td>
+                                                <td>{{ device.created_at|date:'d.m.Y H:i:s' }}</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <div class="info-box-content">
+                                    <h5 class="info-box-text">{% trans "Son Görülme" %}</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-borderless">
+                                            <tr>
+                                                <td><strong>{% trans "Son Görülme:" %}</strong></td>
+                                                <td>{{ device.last_seen|date:'d.m.Y H:i:s'|default:"-" }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Güncellenme:" %}</strong></td>
+                                                <td>{{ device.updated_at|date:'d.m.Y H:i:s' }}</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Uyarı Mesajı -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="alert alert-warning">
+                                <h5><i class="fas fa-exclamation-triangle"></i> {% trans "Önemli Uyarılar" %}</h5>
+                                <ul class="mb-0">
+                                    <li>{% trans "Bu cihaz silindikten sonra geri getirilemez." %}</li>
+                                    <li>{% trans "Bu cihaza ait tüm mirror konfigürasyonları etkilenebilir." %}</li>
+                                    <li>{% trans "Bu cihaza ait tüm trafik logları etkilenebilir." %}</li>
+                                    <li>{% trans "Bu işlemi yapmadan önce gerekli yedeklemeleri aldığınızdan emin olun." %}</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Onay Formu -->
+                    <form method="post" id="deviceDeleteForm">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="confirmDelete" name="confirmDelete" required>
+                                        <label class="form-check-label" for="confirmDelete">
+                                            <strong>{% trans "Bu cihazı silmek istediğimi onaylıyorum" %}</strong>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Butonlar -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <button type="submit" class="btn btn-danger" id="deleteButton" disabled>
+                                        <i class="fas fa-trash me-2"></i>{% trans "Cihazı Sil" %}
+                                    </button>
+                                    <a href="{% url 'mirror_port:devices_list' company.slug %}" class="btn btn-secondary">
+                                        <i class="fas fa-times me-2"></i>{% trans "İptal" %}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmCheckbox = document.getElementById('confirmDelete');
+    const deleteButton = document.getElementById('deleteButton');
+    const deleteForm = document.getElementById('deviceDeleteForm');
+    
+    // Checkbox kontrolü
+    confirmCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            deleteButton.disabled = false;
+            deleteButton.classList.remove('btn-secondary');
+            deleteButton.classList.add('btn-danger');
+        } else {
+            deleteButton.disabled = true;
+            deleteButton.classList.remove('btn-danger');
+            deleteButton.classList.add('btn-secondary');
+        }
+    });
+    
+    // Form submit kontrolü
+    deleteForm.addEventListener('submit', function(e) {
+        if (!confirmCheckbox.checked) {
+            e.preventDefault();
+            alert('{% trans "Lütfen silme işlemini onaylayın." %}');
+            return false;
+        }
+        
+        // Double confirmation
+        var deviceName = '{{ device.name }}';
+        var confirmMessage = '{% trans "Cihaz" %} "' + deviceName + '" {% trans "kalıcı olarak silinecek. Bu işlem geri alınamaz. Emin misiniz?" %}';
+        
+        if (!confirm(confirmMessage)) {
+            e.preventDefault();
+            return false;
+        }
+        
+        // Button'u disable et
+        deleteButton.disabled = true;
+        deleteButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>{% trans "Siliniyor..." %}';
+    });
+    
+    // Sayfa yüklendiğinde checkbox'ı kontrol et
+    if (!confirmCheckbox.checked) {
+        deleteButton.disabled = true;
+        deleteButton.classList.remove('btn-danger');
+        deleteButton.classList.add('btn-secondary');
+    }
+});
+</script>
+{% endblock %}

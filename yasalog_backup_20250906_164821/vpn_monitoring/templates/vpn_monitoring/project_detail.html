@@ -1,0 +1,359 @@
+{% extends "log_kayit/partials/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}VPN Proje Detayı - {{ project.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .vpn-project-detail-header {
+        text-align: center;
+        margin-bottom: 40px;
+        padding: 30px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        color: white;
+    }
+    
+    .vpn-project-detail-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+    
+    .vpn-project-detail-subtitle {
+        font-size: 1.2rem;
+        opacity: 0.9;
+    }
+    
+    .vpn-project-info-section {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 4px 25px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+    }
+    
+    .vpn-project-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .vpn-project-info-card {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 20px;
+        border-left: 4px solid #667eea;
+    }
+    
+    .vpn-project-info-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+    }
+    
+    .vpn-project-info-value {
+        font-size: 1.2rem;
+        color: #333;
+        font-weight: 600;
+    }
+    
+    .vpn-project-status-badge {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .vpn-project-status-badge.online {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .vpn-project-status-badge.maintenance {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .vpn-project-status-badge.offline {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .vpn-connections-section {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 4px 25px rgba(0,0,0,0.08);
+    }
+    
+    .vpn-connection-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px solid #f1f3f4;
+    }
+    
+    .vpn-connection-item:last-child {
+        border-bottom: none;
+    }
+    
+    .vpn-connection-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .vpn-connection-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+    
+    .vpn-connection-details h5 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .vpn-connection-details p {
+        margin: 0;
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    .vpn-connection-status {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .vpn-connection-indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #28a745;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+    
+    .vpn-connection-ip {
+        font-size: 0.8rem;
+        color: #6c757d;
+        font-family: monospace;
+    }
+    
+    .vpn-project-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 20px;
+    }
+    
+    .vpn-project-btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .vpn-project-btn.primary {
+        background: #667eea;
+        color: white;
+    }
+    
+    .vpn-project-btn.primary:hover {
+        background: #5a6fd8;
+        transform: translateY(-2px);
+    }
+    
+    .vpn-project-btn.secondary {
+        background: #6c757d;
+        color: white;
+    }
+    
+    .vpn-project-btn.secondary:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+    }
+    
+    .vpn-project-btn.danger {
+        background: #dc3545;
+        color: white;
+    }
+    
+    .vpn-project-btn.danger:hover {
+        background: #c82333;
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="vpn-project-detail-header">
+        <h1 class="vpn-project-detail-title">🛡️ {{ project.name }}</h1>
+        <p class="vpn-project-detail-subtitle">VPN Proje Detayları ve Yönetimi</p>
+    </div>
+    
+    <!-- Proje Bilgileri -->
+    <div class="vpn-project-info-section">
+        <div class="section-header">
+            <h2 class="section-title">Proje Bilgileri</h2>
+            <div class="vpn-project-status-badge {{ project.status }}">{{ project.status|title }}</div>
+        </div>
+        
+        <div class="vpn-project-info-grid">
+            <div class="vpn-project-info-card">
+                <div class="vpn-project-info-label">VPN Protokolü</div>
+                <div class="vpn-project-info-value">{{ project.vpn_protocol }}</div>
+            </div>
+            
+            <div class="vpn-project-info-card">
+                <div class="vpn-project-info-label">Sunucu IP</div>
+                <div class="vpn-project-info-value">{{ project.vpn_server_ip }}</div>
+            </div>
+            
+            <div class="vpn-project-info-card">
+                <div class="vpn-project-info-label">Port</div>
+                <div class="vpn-project-info-value">{{ project.vpn_server_port }}</div>
+            </div>
+            
+            <div class="vpn-project-info-card">
+                <div class="vpn-project-info-label">Aktif Bağlantı</div>
+                <div class="vpn-project-info-value">{{ project.active_connections }}</div>
+            </div>
+            
+            <div class="vpn-project-info-card">
+                <div class="vpn-project-info-label">Toplam Kullanıcı</div>
+                <div class="vpn-project-info-value">{{ project.total_users }}</div>
+            </div>
+            
+            <div class="vpn-project-info-card">
+                <div class="vpn-project-info-label">CPU Kullanımı</div>
+                <div class="vpn-project-info-value">{{ project.cpu_usage }}%</div>
+            </div>
+            
+            <div class="vpn-project-info-card">
+                <div class="vpn-project-info-label">RAM Kullanımı</div>
+                <div class="vpn-project-info-value">{{ project.memory_usage }}%</div>
+            </div>
+            
+            <div class="vpn-project-info-card">
+                <div class="vpn-project-info-label">Disk Kullanımı</div>
+                <div class="vpn-project-info-value">{{ project.disk_usage }}%</div>
+            </div>
+            
+            <div class="vpn-project-info-card">
+                <div class="vpn-project-info-label">Gelen Trafik</div>
+                <div class="vpn-project-info-value">{{ project.bandwidth_in }}</div>
+            </div>
+            
+            <div class="vpn-project-info-card">
+                <div class="vpn-project-info-label">Giden Trafik</div>
+                <div class="vpn-project-info-value">{{ project.bandwidth_out }}</div>
+            </div>
+        </div>
+        
+        {% if project.description %}
+        <div class="vpn-project-info-card" style="grid-column: 1 / -1;">
+            <div class="vpn-project-info-label">Açıklama</div>
+            <div class="vpn-project-info-value">{{ project.description }}</div>
+        </div>
+        {% endif %}
+        
+        <div class="vpn-project-actions">
+            <a href="#" class="vpn-project-btn primary">
+                <i class="fas fa-sync"></i> Yenile
+            </a>
+            <a href="#" class="vpn-project-btn secondary">
+                <i class="fas fa-cog"></i> Ayarlar
+            </a>
+            <a href="#" class="vpn-project-btn secondary">
+                <i class="fas fa-download"></i> Backup
+            </a>
+            <a href="#" class="vpn-project-btn danger">
+                <i class="fas fa-power-off"></i> Restart
+            </a>
+        </div>
+    </div>
+    
+    <!-- Aktif Bağlantılar -->
+    <div class="vpn-connections-section">
+        <div class="section-header">
+            <h2 class="section-title">Aktif VPN Bağlantıları</h2>
+            <div class="section-actions">
+                <a href="{% url 'vpn_monitoring:vpn_connections' company.slug %}" class="vpn-project-btn primary">
+                    <i class="fas fa-external-link-alt"></i> Tüm Bağlantılar
+                </a>
+            </div>
+        </div>
+        
+        {% if connections %}
+            {% for connection in connections %}
+            <div class="vpn-connection-item">
+                <div class="vpn-connection-info">
+                    <div class="vpn-connection-avatar">
+                        {{ connection.user|first|upper }}
+                    </div>
+                    <div class="vpn-connection-details">
+                        <h5>{{ connection.user }}</h5>
+                        <p>{{ connection.project }} • {{ connection.duration }}</p>
+                    </div>
+                </div>
+                
+                <div class="vpn-connection-status">
+                    <div class="vpn-connection-indicator"></div>
+                    <div class="vpn-connection-ip">
+                        {{ connection.vpn_ip }} ← {{ connection.real_ip }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                <p class="text-muted">Bu projede aktif VPN bağlantısı bulunmuyor.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // VPN Project Detail için özel JavaScript
+    document.addEventListener('DOMContentLoaded', function() {
+        // Proje durumunu güncelle (her 30 saniyede bir)
+        setInterval(function() {
+            // Burada AJAX ile proje durumu güncellenebilir
+            console.log('Proje durumu güncelleniyor...');
+        }, 30000);
+    });
+</script>
+{% endblock %}

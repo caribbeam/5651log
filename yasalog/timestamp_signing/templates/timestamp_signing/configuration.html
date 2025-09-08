@@ -1,0 +1,347 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Zaman Damgası Konfigürasyonu" %} - {{ company.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.timestamp-dashboard {
+    padding: 20px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-left: 4px solid;
+    transition: transform 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.chart-container {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.form-section {
+    background: white;
+    border-radius: 10px;
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.form-section h5 {
+    color: #333;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f8f9fa;
+}
+
+.form-group {
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 8px;
+    display: block;
+    width: 100%;
+}
+
+.form-control {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px 15px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+    width: 100%;
+    min-height: 45px;
+    display: block;
+}
+
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    outline: none;
+}
+
+select.form-control {
+    background-color: white;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 12px center;
+    background-repeat: no-repeat;
+    background-size: 16px;
+    padding-right: 40px;
+    appearance: none;
+}
+
+.form-check-input {
+    margin-top: 0.3em;
+}
+
+.form-check-label {
+    margin-left: 8px;
+    font-weight: 500;
+}
+
+.help-text {
+    font-size: 12px;
+    color: #6c757d;
+    margin-top: 5px;
+}
+
+.btn-save {
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    border: none;
+    color: white;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-save:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+}
+
+.collapse-section {
+    margin-top: 15px;
+}
+
+.collapse-section .btn-link {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.collapse-section .btn-link:hover {
+    text-decoration: underline;
+}
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="timestamp-dashboard">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-cog me-2"></i>{% trans "Zaman Damgası Konfigürasyonu" %}
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'timestamp_signing:dashboard' company.slug %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri Dön" %}
+            </a>
+            <a href="{% url 'log_kayit:company_dashboard_slug' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-home me-2"></i>{% trans "Ana Sayfa" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Mesajlar -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Konfigürasyon Formu -->
+    <form method="post">
+        {% csrf_token %}
+        
+        <!-- Temel Ayarlar -->
+        <div class="form-section">
+            <h5><i class="fas fa-cog me-2"></i>{% trans "Temel Ayarlar" %}</h5>
+            
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="form-group">
+                        <label for="authority">{% trans "Varsayılan Otorite" %}</label>
+                        <select class="form-control" id="authority" name="authority" required>
+                            <option value="">{% trans "Otorite Seçin" %}</option>
+                            {% for authority in authorities %}
+                                <option value="{{ authority.id }}" {% if config and config.authority.id == authority.id %}selected{% endif %}>
+                                    {{ authority.name }} ({{ authority.get_authority_type_display }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <div class="help-text">{% trans "Zaman damgası imzalama için kullanılacak otorite" %}</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {% if not config or config.is_active %}checked{% endif %}>
+                            <label class="form-check-label" for="is_active">
+                                {% trans "Aktif" %}
+                            </label>
+                        </div>
+                        <div class="help-text">{% trans "Konfigürasyonun aktif olup olmadığını belirler" %}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Otomatik İmzalama -->
+        <div class="form-section">
+            <h5><i class="fas fa-bolt me-2"></i>{% trans "Otomatik İmzalama" %}</h5>
+            
+            <div class="form-group">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="auto_sign" name="auto_sign" {% if config and config.auto_sign %}checked{% endif %}>
+                    <label class="form-check-label" for="auto_sign">
+                        {% trans "Otomatik İmzalama" %}
+                    </label>
+                </div>
+                <div class="help-text">{% trans "Belirlenen aralıklarla otomatik imzalama yapılsın mı?" %}</div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="sign_interval">{% trans "İmzalama Aralığı (dakika)" %}</label>
+                        <input type="number" class="form-control" id="sign_interval" name="sign_interval" 
+                               value="{% if config %}{{ config.sign_interval }}{% else %}60{% endif %}" min="1" max="1440">
+                        <div class="help-text">{% trans "Kaç dakikada bir imzalama yapılacak" %}</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="batch_size">{% trans "Toplu İmzalama Boyutu" %}</label>
+                        <input type="number" class="form-control" id="batch_size" name="batch_size" 
+                               value="{% if config %}{{ config.batch_size }}{% else %}100{% endif %}" min="1" max="1000">
+                        <div class="help-text">{% trans "Bir seferde kaç kayıt imzalanacak" %}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hata Yönetimi -->
+        <div class="form-section">
+            <h5>
+                <i class="fas fa-exclamation-triangle me-2"></i>{% trans "Hata Yönetimi" %}
+                <button type="button" class="btn btn-link btn-sm collapse-section" data-bs-toggle="collapse" data-bs-target="#errorManagement">
+                    {% trans "Göster" %}
+                </button>
+            </h5>
+            
+            <div class="collapse" id="errorManagement">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="max_retries">{% trans "Maksimum Deneme Sayısı" %}</label>
+                            <input type="number" class="form-control" id="max_retries" name="max_retries" 
+                                   value="{% if config %}{{ config.max_retries }}{% else %}3{% endif %}" min="1" max="10">
+                            <div class="help-text">{% trans "Başarısız imzalama denemelerinde kaç kez tekrar denenecek" %}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="retry_delay">{% trans "Tekrar Deneme Gecikmesi (saniye)" %}</label>
+                            <input type="number" class="form-control" id="retry_delay" name="retry_delay" 
+                                   value="{% if config %}{{ config.retry_delay }}{% else %}300{% endif %}" min="60" max="3600">
+                            <div class="help-text">{% trans "Başarısız denemeden sonra ne kadar beklenilecek" %}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bildirimler -->
+        <div class="form-section">
+            <h5>
+                <i class="fas fa-bell me-2"></i>{% trans "Bildirimler" %}
+                <button type="button" class="btn btn-link btn-sm collapse-section" data-bs-toggle="collapse" data-bs-target="#notifications">
+                    {% trans "Göster" %}
+                </button>
+            </h5>
+            
+            <div class="collapse" id="notifications">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="notify_on_success" name="notify_on_success" {% if config and config.notify_on_success %}checked{% endif %}>
+                                <label class="form-check-label" for="notify_on_success">
+                                    {% trans "Başarılı İmzalama Bildirimi" %}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="notify_on_failure" name="notify_on_failure" {% if config and config.notify_on_failure %}checked{% endif %}>
+                                <label class="form-check-label" for="notify_on_failure">
+                                    {% trans "Başarısız İmzalama Bildirimi" %}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="notification_email">{% trans "Bildirim E-posta Adresi" %}</label>
+                    <input type="email" class="form-control" id="notification_email" name="notification_email" 
+                           value="{% if config %}{{ config.notification_email }}{% endif %}" placeholder="admin@example.com">
+                    <div class="help-text">{% trans "Bildirimlerin gönderileceği e-posta adresi" %}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kaydet Butonu -->
+        <div class="form-section text-center">
+            <button type="submit" class="btn btn-save btn-lg">
+                <i class="fas fa-save me-2"></i>
+                {% if config %}
+                    {% trans "Konfigürasyonu Güncelle" %}
+                {% else %}
+                    {% trans "Konfigürasyonu Kaydet" %}
+                {% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+// Form validasyonu
+document.querySelector('form').addEventListener('submit', function(e) {
+    const authority = document.getElementById('authority').value;
+    const signInterval = document.getElementById('sign_interval').value;
+    const batchSize = document.getElementById('batch_size').value;
+    
+    if (!authority) {
+        e.preventDefault();
+        alert('{% trans "Lütfen bir otorite seçin" %}');
+        return;
+    }
+    
+    if (signInterval < 1 || signInterval > 1440) {
+        e.preventDefault();
+        alert('{% trans "İmzalama aralığı 1-1440 dakika arasında olmalıdır" %}');
+        return;
+    }
+    
+    if (batchSize < 1 || batchSize > 1000) {
+        e.preventDefault();
+        alert('{% trans "Toplu imzalama boyutu 1-1000 arasında olmalıdır" %}');
+        return;
+    }
+});
+</script>
+{% endblock %}

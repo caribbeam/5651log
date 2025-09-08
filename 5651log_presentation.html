@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5651log - Çoklu Şirket Wi-Fi Giriş Kayıt Sistemi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        :root {
+            --primary-color: #0d6efd;
+            --secondary-color: #6c757d;
+            --success-color: #198754;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --dark-color: #212529;
+            --light-color: #f8f9fa;
+        }
+        
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 100px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.3);
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .feature-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: 100%;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+        }
+        
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary-color), #0056b3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 2rem;
+        }
+        
+        .stats-section {
+            background: var(--light-color);
+            padding: 80px 0;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            display: block;
+        }
+        
+        .tech-stack {
+            background: var(--dark-color);
+            color: white;
+            padding: 80px 0;
+        }
+        
+        .tech-item {
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.1);
+            margin: 10px 0;
+            transition: background 0.3s ease;
+        }
+        
+        .tech-item:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .screenshot-section {
+            padding: 80px 0;
+        }
+        
+        .screenshot-card {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        
+        .pricing-card {
+            background: white;
+            border-radius: 15px;
+            padding: 40px 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+        
+        .pricing-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .pricing-card.featured {
+            border: 3px solid var(--primary-color);
+            transform: scale(1.05);
+        }
+        
+        .price {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .contact-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 80px 0;
+        }
+        
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--primary-color);
+            transform: translateX(-50%);
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin: 50px 0;
+        }
+        
+        .timeline-content {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            width: 45%;
+        }
+        
+        .timeline-item:nth-child(odd) .timeline-content {
+            margin-left: 55%;
+        }
+        
+        .timeline-item:nth-child(even) .timeline-content {
+            margin-right: 55%;
+        }
+        
+        .timeline-icon {
+            position: absolute;
+            left: 50%;
+            top: 20px;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 50px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+        
+        .security-badge {
+            background: var(--success-color);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            display: inline-block;
+            margin: 5px;
+        }
+        
+        .btn-custom {
+            background: linear-gradient(135deg, var(--primary-color), #0056b3);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(13, 110, 253, 0.3);
+            color: white;
+        }
+        
+        .navbar {
+            background: rgba(255,255,255,0.95) !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 60px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: var(--primary-color);
+            border-radius: 2px;
+        }
+        
+        .demo-section {
+            background: var(--light-color);
+            padding: 80px 0;
+        }
+        
+        .demo-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        
+        .compliance-section {
+            padding: 80px 0;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+        
+        .compliance-item {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin: 15px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid var(--success-color);
+        }
+        
+        @media (max-width: 768px) {
+            .hero-section {
+                padding: 60px 0;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+            
+            .timeline::before {
+                left: 20px;
+            }
+            
+            .timeline-content {
+                width: calc(100% - 60px);
+                margin-left: 60px !important;
+                margin-right: 0 !important;
+            }
+            
+            .timeline-icon {
+                left: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#home">
+                <i class="fas fa-shield-alt text-primary me-2"></i>
+                5651log
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#home">Ana Sayfa</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#features">Özellikler</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#technology">Teknoloji</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#demo">Demo</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#pricing">Fiyatlandırma</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contact">İletişim</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <div class="hero-content">
+                        <h1 class="display-4 fw-bold mb-4">
+                            5651log
+                            <span class="d-block text-warning">Çoklu Şirket Wi-Fi Giriş Kayıt Sistemi</span>
+                        </h1>
+                        <p class="lead mb-4">
+                            5651 sayılı Kanun gereği Wi-Fi erişim noktalarında kullanıcı kimlik doğrulaması ve kayıt tutma zorunluluğunu karşılayan, çoklu şirket desteği olan modern web uygulaması.
+                        </p>
+                        <div class="d-flex flex-wrap gap-3 mb-4">
+                            <span class="security-badge">
+                                <i class="fas fa-check me-2"></i>5651 Kanun Uyumlu
+                            </span>
+                            <span class="security-badge">
+                                <i class="fas fa-check me-2"></i>KVKK Uyumlu
+                            </span>
+                            <span class="security-badge">
+                                <i class="fas fa-check me-2"></i>Çoklu Şirket Desteği
+                            </span>
+                        </div>
+                        <div class="d-flex gap-3">
+                            <a href="#demo" class="btn btn-custom btn-lg">
+                                <i class="fas fa-play me-2"></i>Demo İzle
+                            </a>
+                            <a href="#contact" class="btn btn-outline-light btn-lg">
+                                <i class="fas fa-phone me-2"></i>İletişim
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="text-center">
+                        <i class="fas fa-wifi" style="font-size: 15rem; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <span class="stat-number">100%</span>
+                        <h5>Yasal Uyumluluk</h5>
+                        <p class="text-muted">5651 ve KVKK uyumlu</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <span class="stat-number">∞</span>
+                        <h5>Çoklu Şirket</h5>
+                        <p class="text-muted">Sınırsız şirket desteği</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <span class="stat-number">24/7</span>
+                        <h5>Güvenilir Çalışma</h5>
+                        <p class="text-muted">Kesintisiz hizmet</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <span class="stat-number">2 YIL</span>
+                        <h5>Veri Saklama</h5>
+                        <p class="text-muted">Yasal süre uyumlu</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-5">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title">Özellikler</h2>
+                <p class="lead">Modern, güvenli ve kullanıcı dostu Wi-Fi giriş kayıt sistemi</p>
+            </div>
+            <div class="row">
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <h4 class="text-center mb-3">Çoklu Şirket Desteği</h4>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>Her şirket için ayrı giriş adresi</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Tam veri izolasyonu</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Şirket bazlı tema özelleştirme</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Ayrı KVKK metni ve logo</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h4 class="text-center mb-3">Gelişmiş Dashboard</h4>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>Gerçek zamanlı istatistikler</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Günlük/saatlik analizler</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Şüpheli giriş tespiti</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Excel/PDF raporlama</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h4 class="text-center mb-3">Güvenlik ve Uyumluluk</h4>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>TC Kimlik algoritması</li>
+                            <li><i class="fas fa-check text-success me-2"></i>SHA256 hash koruması</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Yabancı pasaport desteği</li>
+                            <li><i class="fas fa-check text-success me-2"></i>KVKK uyumlu veri işleme</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-wifi"></i>
+                        </div>
+                        <h4 class="text-center mb-3">Wi-Fi Entegrasyonu</h4>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>Captive portal uyumlu</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Cihaz hatırlama (24 saat)</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Otomatik MAC tespiti</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Responsive tasarım</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h4 class="text-center mb-3">Kullanıcı Yönetimi</h4>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>Rol tabanlı yetkilendirme</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Şirket yöneticisi paneli</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Personel erişim kontrolü</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Çoklu kullanıcı desteği</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-globe"></i>
+                        </div>
+                        <h4 class="text-center mb-3">Çoklu Dil Desteği</h4>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>Türkçe ve İngilizce</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Dinamik dil değiştirme</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Çeviri dosyaları</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Yerelleştirme desteği</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technology Stack -->
+    <section id="technology" class="tech-stack">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title text-white">Teknoloji Stack</h2>
+                <p class="lead text-light">Modern ve güvenilir teknolojiler kullanılarak geliştirilmiştir</p>
+            </div>
+            <div class="row">
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <div class="tech-item">
+                        <i class="fab fa-python fa-3x mb-3 text-warning"></i>
+                        <h5>Python 3.8+</h5>
+                        <p>Backend geliştirme dili</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <div class="tech-item">
+                        <i class="fab fa-django fa-3x mb-3 text-success"></i>
+                        <h5>Django 4.x</h5>
+                        <p>Web framework</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <div class="tech-item">
+                        <i class="fas fa-database fa-3x mb-3 text-info"></i>
+                        <h5>PostgreSQL</h5>
+                        <p>Veritabanı yönetimi</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <div class="tech-item">
+                        <i class="fas fa-server fa-3x mb-3 text-primary"></i>
+                        <h5>Nginx</h5>
+                        <p>Web sunucusu</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <div class="tech-item">
+                        <i class="fab fa-bootstrap fa-3x mb-3 text-purple"></i>
+                        <h5>Bootstrap 5</h5>
+                        <p>Frontend framework</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <div class="tech-item">
+                        <i class="fab fa-js fa-3x mb-3 text-warning"></i>
+                        <h5>Chart.js</h5>
+                        <p>Grafik ve istatistikler</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <div class="tech-item">
+                        <i class="fab fa-docker fa-3x mb-3 text-info"></i>
+                        <h5>Docker</h5>
+                        <p>Container desteği</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <div class="tech-item">
+                        <i class="fas fa-cogs fa-3x mb-3 text-secondary"></i>
+                        <h5>Supervisor</h5>
+                        <p>Process yönetimi</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Compliance Section -->
+    <section class="compliance-section">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title">Yasal Uyumluluk</h2>
+                <p class="lead">Türkiye'nin yasal gereksinimlerine tam uyum</p>
+            </div>
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="compliance-item">
+                        <h4><i class="fas fa-gavel text-primary me-3"></i>5651 Sayılı Kanun</h4>
+                        <ul class="list-unstyled mt-3">
+                            <li><i class="fas fa-check text-success me-2"></i>Kullanıcı kimlik doğrulaması</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Giriş kayıtları tutma</li>
+                            <li><i class="fas fa-check text-success me-2"></i>IP ve MAC adresi kayıt</li>
+                            <li><i class="fas fa-check text-success me-2"></i>2 yıl veri saklama</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="compliance-item">
+                        <h4><i class="fas fa-user-shield text-primary me-3"></i>KVKK Uyumluluğu</h4>
+                        <ul class="list-unstyled mt-3">
+                            <li><i class="fas fa-check text-success me-2"></i>Aydınlatma metni</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Veri işleme şartları</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Kullanıcı onayı</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Veri güvenliği</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo Section -->
+    <section id="demo" class="demo-section">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title">Canlı Demo</h2>
+                <p class="lead">Sistemin çalışma şeklini canlı olarak görün</p>
+            </div>
+            <div class="row">
+                <div class="col-lg-4">
+                    <div class="demo-card">
+                        <h4><i class="fas fa-laptop text-primary me-2"></i>Ziyaretçi Girişi</h4>
+                        <p>Wi-Fi'ye bağlanan kullanıcılar otomatik olarak giriş sayfasına yönlendirilir.</p>
+                        <a href="http://213.194.98.98:8880/giris/demo-sirket/" class="btn btn-outline-primary" target="_blank">
+                            <i class="fas fa-external-link-alt me-2"></i>Demo Giriş
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="demo-card">
+                        <h4><i class="fas fa-chart-bar text-primary me-2"></i>Yönetici Paneli</h4>
+                        <p>Gerçek zamanlı istatistikler ve detaylı raporlama özellikleri.</p>
+                        <a href="http://213.194.98.98:8880/yonetici/login/" class="btn btn-outline-primary" target="_blank">
+                            <i class="fas fa-external-link-alt me-2"></i>Yönetici Demo
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="demo-card">
+                        <h4><i class="fas fa-cog text-primary me-2"></i>Admin Paneli</h4>
+                        <p>Sistem yönetimi ve şirket ayarları yapılandırması.</p>
+                        <a href="http://213.194.98.98:8880/admin/" class="btn btn-outline-primary" target="_blank">
+                            <i class="fas fa-external-link-alt me-2"></i>Admin Demo
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Workflow Timeline -->
+    <section class="py-5">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title">Çalışma Akışı</h2>
+                <p class="lead">Sistemin adım adım çalışma mantığı</p>
+            </div>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-icon">
+                        <i class="fas fa-wifi"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <h4>Wi-Fi Bağlantısı</h4>
+                        <p>Kullanıcı Wi-Fi ağına bağlanır ve captive portal tetiklenir.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-icon">
+                        <i class="fas fa-redirect"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <h4>Otomatik Yönlendirme</h4>
+                        <p>Kullanıcı otomatik olarak şirket giriş sayfasına yönlendirilir.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-icon">
+                        <i class="fas fa-id-card"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <h4>Kimlik Doğrulama</h4>
+                        <p>TC Kimlik No veya Pasaport bilgileri ile kimlik doğrulama yapılır.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-icon">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <h4>Veri Kaydı</h4>
+                        <p>Kullanıcı bilgileri güvenli şekilde kaydedilir ve hash oluşturulur.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-icon">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <h4>İnternet Erişimi</h4>
+                        <p>Başarılı kayıt sonrası internet erişimi sağlanır.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="py-5 bg-light">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title">Fiyatlandırma</h2>
+                <p class="lead">İhtiyacınıza uygun paket seçin</p>
+            </div>
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <div class="pricing-card">
+                        <h3>Başlangıç</h3>
+                        <div class="price">₺0,000</div>
+                        <p class="text-muted">Tek seferlik kurulum</p>
+                        <ul class="list-unstyled mt-4">
+                            <li><i class="fas fa-check text-success me-2"></i>1 Şirket</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Temel Dashboard</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Excel/PDF Export</li>
+                            <li><i class="fas fa-check text-success me-2"></i>E-posta Desteği</li>
+                        </ul>
+                        <button class="btn btn-custom w-100 mt-4">Başla</button>
+                    </div>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <div class="pricing-card featured">
+                        <div class="badge bg-primary position-absolute top-0 start-50 translate-middle px-3 py-2">
+                            En Popüler
+                        </div>
+                        <h3>Profesyonel</h3>
+                        <div class="price">₺0,000</div>
+                        <p class="text-muted">Tek seferlik kurulum</p>
+                        <ul class="list-unstyled mt-4">
+                            <li><i class="fas fa-check text-success me-2"></i>5 Şirket</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Gelişmiş Dashboard</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Tüm Export Seçenekleri</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Telefon Desteği</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Özelleştirme</li>
+                        </ul>
+                        <button class="btn btn-custom w-100 mt-4">Başla</button>
+                    </div>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <div class="pricing-card">
+                        <h3>Kurumsal</h3>
+                        <div class="price">₺00,000</div>
+                        <p class="text-muted">Tek seferlik kurulum</p>
+                        <ul class="list-unstyled mt-4">
+                            <li><i class="fas fa-check text-success me-2"></i>Sınırsız Şirket</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Özel Dashboard</li>
+                            <li><i class="fas fa-check text-success me-2"></i>API Entegrasyonu</li>
+                            <li><i class="fas fa-check text-success me-2"></i>7/24 Destek</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Özel Geliştirme</li>
+                        </ul>
+                        <button class="btn btn-custom w-100 mt-4">İletişim</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact-section">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title text-white">İletişim</h2>
+                <p class="lead text-light">Projeleriniz için bizimle iletişime geçin</p>
+            </div>
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <div class="text-center text-white">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <h4>E-posta</h4>
+                        <p>info@5651log.com</p>
+                        <p>destek@5651log.com</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <div class="text-center text-white">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <h4>Telefon</h4>
+                        <p>+90 530 498 95 93</p>
+                        <p>+90 530 498 95 93</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <div class="text-center text-white">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <h4>Adres</h4>
+                        <p>İstanbul, Türkiye</p>
+                        <p>Çalışma Saatleri: 09:00-18:00</p>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-5">
+                <div class="col-lg-8 mx-auto">
+                    <div class="text-center">
+                        <h3 class="text-white mb-4">Hemen Başlayın</h3>
+                        <p class="text-light mb-4">5651log ile yasal uyumlu Wi-Fi giriş sisteminizi kurun</p>
+                        <a href="mailto:info@5651log.com" class="btn btn-custom btn-lg me-3">
+                            <i class="fas fa-envelope me-2"></i>Teklif Al
+                        </a>
+                        <a href="tel:+902121234567" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-phone me-2"></i>Ara
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="fas fa-shield-alt me-2"></i>5651log</h5>
+                    <p>Güvenli ve uyumlu Wi-Fi giriş kayıt sistemi</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>&copy; 2024 5651log. Tüm hakları saklıdır.</p>
+                    <p>
+                        <a href="#" class="text-white-50 me-3">Gizlilik Politikası</a>
+                        <a href="#" class="text-white-50">Kullanım Şartları</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Navbar background change on scroll
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.style.background = 'rgba(255,255,255,0.95)';
+            } else {
+                navbar.style.background = 'rgba(255,255,255,0.95)';
+            }
+        });
+
+        // Counter animation
+        function animateCounters() {
+            const counters = document.querySelectorAll('.stat-number');
+            counters.forEach(counter => {
+                const target = counter.innerText;
+                if (target.includes('%')) {
+                    const num = parseInt(target);
+                    animateNumber(counter, 0, num, '%');
+                } else if (target === '∞') {
+                    // Keep infinity symbol
+                } else if (target.includes('YIL')) {
+                    const num = parseInt(target);
+                    animateNumber(counter, 0, num, ' YIL');
+                } else if (target === '24/7') {
+                    // Keep as is
+                }
+            });
+        }
+
+        function animateNumber(element, start, end, suffix = '') {
+            const range = end - start;
+            const increment = range / 100;
+            let current = start;
+            
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= end) {
+                    current = end;
+                    clearInterval(timer);
+                }
+                element.textContent = Math.floor(current) + suffix;
+            }, 20);
+        }
+
+        // Trigger counter animation when section is visible
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    animateCounters();
+                    observer.unobserve(entry.target);
+                }
+            });
+        });
+
+        const statsSection = document.querySelector('.stats-section');
+        if (statsSection) {
+            observer.observe(statsSection);
+        }
+    </script>
+</body>
+</html> 

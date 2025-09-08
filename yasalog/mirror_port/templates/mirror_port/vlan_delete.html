@@ -1,0 +1,232 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "VLAN Sil" %} - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="mirror-dashboard">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-trash me-2"></i>{% trans "VLAN Sil" %}
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'mirror_port:vlans_list' company.slug %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri Dön" %}
+            </a>
+            <a href="{% url 'log_kayit:company_dashboard_slug' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-home me-2"></i>{% trans "Ana Sayfa" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Silme Onayı -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="card-title">
+                        <i class="fas fa-exclamation-triangle"></i> {% trans "VLAN Silme Onayı" %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <h4 class="alert-heading">
+                            <i class="fas fa-exclamation-triangle"></i> {% trans "Dikkat!" %}
+                        </h4>
+                        <p>{% trans "Bu işlem geri alınamaz. Aşağıdaki VLAN konfigürasyonu kalıcı olarak silinecektir:" %}</p>
+                    </div>
+
+                    <!-- VLAN Detayları -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <div class="info-box-content">
+                                    <h5 class="info-box-text">{% trans "Temel Bilgiler" %}</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-borderless">
+                                            <tr>
+                                                <td><strong>{% trans "VLAN ID:" %}</strong></td>
+                                                <td><span class="badge badge-primary">{{ vlan.vlan_id }}</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "VLAN Adı:" %}</strong></td>
+                                                <td>{{ vlan.name }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Subnet:" %}</strong></td>
+                                                <td><code>{{ vlan.subnet }}</code></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Gateway:" %}</strong></td>
+                                                <td>{{ vlan.gateway|default:"-" }}</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <div class="info-box-content">
+                                    <h5 class="info-box-text">{% trans "Durum Bilgileri" %}</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-borderless">
+                                            <tr>
+                                                <td><strong>{% trans "Durum:" %}</strong></td>
+                                                <td>
+                                                    {% if vlan.is_active %}
+                                                        <span class="badge badge-success">{% trans "Aktif" %}</span>
+                                                    {% else %}
+                                                        <span class="badge badge-secondary">{% trans "Pasif" %}</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Mirror:" %}</strong></td>
+                                                <td>
+                                                    {% if vlan.mirror_enabled %}
+                                                        <span class="badge badge-success">{% trans "Etkin" %}</span>
+                                                    {% else %}
+                                                        <span class="badge badge-secondary">{% trans "Pasif" %}</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Mirror Config:" %}</strong></td>
+                                                <td>
+                                                    {% if vlan.mirror_config %}
+                                                        <span class="badge badge-info">{{ vlan.mirror_config.name }}</span>
+                                                    {% else %}
+                                                        <span class="text-muted">{% trans "Atanmamış" %}</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Oluşturulma:" %}</strong></td>
+                                                <td>{{ vlan.created_at|date:'d.m.Y H:i:s' }}</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Açıklama -->
+                    {% if vlan.description %}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="info-box">
+                                <div class="info-box-content">
+                                    <h5 class="info-box-text">{% trans "Açıklama" %}</h5>
+                                    <p>{{ vlan.description }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Uyarı Mesajı -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="alert alert-warning">
+                                <h5><i class="fas fa-exclamation-triangle"></i> {% trans "Önemli Uyarılar" %}</h5>
+                                <ul class="mb-0">
+                                    <li>{% trans "Bu VLAN konfigürasyonu silindikten sonra geri getirilemez." %}</li>
+                                    <li>{% trans "Bu VLAN'a bağlı tüm cihazlar etkilenebilir." %}</li>
+                                    <li>{% trans "Mirror trafiği bu VLAN için durdurulacaktır." %}</li>
+                                    <li>{% trans "Bu işlemi yapmadan önce gerekli yedeklemeleri aldığınızdan emin olun." %}</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Onay Formu -->
+                    <form method="post" id="vlanDeleteForm">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="confirmDelete" name="confirmDelete" required>
+                                        <label class="form-check-label" for="confirmDelete">
+                                            <strong>{% trans "Bu VLAN konfigürasyonunu silmek istediğimi onaylıyorum" %}</strong>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Butonlar -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <button type="submit" class="btn btn-danger" id="deleteButton" disabled>
+                                        <i class="fas fa-trash me-2"></i>{% trans "VLAN'ı Sil" %}
+                                    </button>
+                                    <a href="{% url 'mirror_port:vlans_list' company.slug %}" class="btn btn-secondary">
+                                        <i class="fas fa-times me-2"></i>{% trans "İptal" %}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmCheckbox = document.getElementById('confirmDelete');
+    const deleteButton = document.getElementById('deleteButton');
+    const deleteForm = document.getElementById('vlanDeleteForm');
+    
+    // Checkbox kontrolü
+    confirmCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            deleteButton.disabled = false;
+            deleteButton.classList.remove('btn-secondary');
+            deleteButton.classList.add('btn-danger');
+        } else {
+            deleteButton.disabled = true;
+            deleteButton.classList.remove('btn-danger');
+            deleteButton.classList.add('btn-secondary');
+        }
+    });
+    
+    // Form submit kontrolü
+    deleteForm.addEventListener('submit', function(e) {
+        if (!confirmCheckbox.checked) {
+            e.preventDefault();
+            alert('{% trans "Lütfen silme işlemini onaylayın." %}');
+            return false;
+        }
+        
+        // Double confirmation
+        var vlanName = '{{ vlan.name }}';
+        var confirmMessage = '{% trans "VLAN" %} "' + vlanName + '" {% trans "kalıcı olarak silinecek. Bu işlem geri alınamaz. Emin misiniz?" %}';
+        
+        if (!confirm(confirmMessage)) {
+            e.preventDefault();
+            return false;
+        }
+        
+        // Button'u disable et
+        deleteButton.disabled = true;
+        deleteButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>{% trans "Siliniyor..." %}';
+    });
+    
+    // Sayfa yüklendiğinde checkbox'ı kontrol et
+    if (!confirmCheckbox.checked) {
+        deleteButton.disabled = true;
+        deleteButton.classList.remove('btn-danger');
+        deleteButton.classList.add('btn-secondary');
+    }
+});
+</script>
+{% endblock %}

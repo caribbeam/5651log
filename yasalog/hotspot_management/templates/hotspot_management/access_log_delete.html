@@ -1,0 +1,323 @@
+{% extends "log_kayit/partials/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Erişim Logu Sil - {{ company.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .delete-form {
+        padding: 20px 0;
+    }
+    
+    .delete-card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border-left: 5px solid #dc3545;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .warning-section {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .warning-icon {
+        color: #856404;
+        font-size: 2rem;
+        margin-bottom: 15px;
+    }
+    
+    .warning-title {
+        color: #856404;
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+    
+    .warning-text {
+        color: #856404;
+        font-size: 1rem;
+        margin-bottom: 0;
+    }
+    
+    .log-details {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 30px;
+        border-left: 4px solid #6f42c1;
+    }
+    
+    .log-details h5 {
+        color: #333;
+        margin-bottom: 15px;
+        font-weight: 600;
+    }
+    
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+    
+    .detail-label {
+        font-weight: 600;
+        color: #495057;
+        min-width: 120px;
+    }
+    
+    .detail-value {
+        color: #6c757d;
+        text-align: right;
+        flex: 1;
+        margin-left: 15px;
+    }
+    
+    .btn-group {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 30px;
+    }
+    
+    .confirmation-section {
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .confirmation-title {
+        color: #721c24;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+    
+    .form-check {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .form-check-input {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .form-check-label {
+        color: #721c24;
+        font-weight: 500;
+        margin: 0;
+    }
+    
+    .info-card {
+        background: #e2e3f0;
+        border: 1px solid #c4c6e8;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .info-card h6 {
+        color: #4a4a6a;
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+    
+    .info-card p {
+        margin: 0;
+        color: #4a4a6a;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="delete-form">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-trash me-2"></i>Erişim Logu Sil
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'hotspot_management:access_logs' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Geri Dön
+            </a>
+            <a href="{% url 'log_kayit:company_dashboard_slug' company.slug %}" class="btn btn-outline-primary ms-2">
+                <i class="fas fa-home me-2"></i>Ana Sayfa
+            </a>
+        </div>
+    </div>
+
+    <!-- Bilgi Kartı -->
+    <div class="info-card">
+        <h6><i class="fas fa-info-circle me-2"></i>Erişim Logu Silme Bilgileri</h6>
+        <p>Bu işlem geri alınamaz. Erişim logu kalıcı olarak silinecektir. Devam etmeden önce aşağıdaki bilgileri kontrol edin.</p>
+    </div>
+
+    <!-- Silme Kartı -->
+    <div class="delete-card">
+        <!-- Uyarı Bölümü -->
+        <div class="warning-section text-center">
+            <div class="warning-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h4 class="warning-title">Dikkat!</h4>
+            <p class="warning-text">
+                Bu erişim logu kalıcı olarak silinecektir. Bu işlem geri alınamaz.
+            </p>
+        </div>
+
+        <!-- Log Detayları -->
+        <div class="log-details">
+            <h5><i class="fas fa-info-circle me-2"></i>Silinecek Log Detayları</h5>
+            
+            <div class="detail-row">
+                <span class="detail-label">URL:</span>
+                <span class="detail-value">{{ access_log.url|truncatechars:50 }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="detail-label">Kullanıcı:</span>
+                <span class="detail-value">{{ access_log.user.username|default:"Anonim" }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="detail-label">Hotspot:</span>
+                <span class="detail-value">{{ access_log.session.hotspot.name|default:"Bilinmeyen" }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="detail-label">Domain:</span>
+                <span class="detail-value">{{ access_log.domain|default:"Bilinmiyor" }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="detail-label">IP Adresi:</span>
+                <span class="detail-value">{{ access_log.ip_address }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="detail-label">Durum:</span>
+                <span class="detail-value">
+                    {% if access_log.was_blocked %}
+                        <span class="badge badge-danger">Engellendi</span>
+                    {% else %}
+                        <span class="badge badge-success">Başarılı</span>
+                    {% endif %}
+                </span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="detail-label">İçerik Filtresi:</span>
+                <span class="detail-value">{{ access_log.content_filter.name|default:"Yok" }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="detail-label">Oluşturulma:</span>
+                <span class="detail-value">{{ access_log.timestamp|date:'d.m.Y H:i:s' }}</span>
+            </div>
+        </div>
+
+        <!-- Onay Bölümü -->
+        <div class="confirmation-section">
+            <h5 class="confirmation-title">
+                <i class="fas fa-shield-alt me-2"></i>Silme Onayı
+            </h5>
+            <p class="mb-3">Bu erişim logunu silmek istediğinizden emin misiniz?</p>
+            
+            <form method="post" id="deleteForm">
+                {% csrf_token %}
+                
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="confirmDelete" name="confirm_delete" required>
+                    <label class="form-check-label" for="confirmDelete">
+                        <strong>Evet, bu erişim logunu kalıcı olarak silmek istiyorum.</strong>
+                    </label>
+                </div>
+            </form>
+        </div>
+
+        <!-- Butonlar -->
+        <div class="btn-group">
+            <a href="{% url 'hotspot_management:access_logs' company.slug %}" class="btn btn-outline-secondary btn-lg">
+                <i class="fas fa-times me-2"></i>İptal Et
+            </a>
+            <button type="submit" form="deleteForm" class="btn btn-danger btn-lg" id="deleteBtn" disabled>
+                <i class="fas fa-trash me-2"></i>Erişim Logunu Sil
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmCheckbox = document.getElementById('confirmDelete');
+    const deleteBtn = document.getElementById('deleteBtn');
+    const deleteForm = document.getElementById('deleteForm');
+    
+    // Checkbox değişikliğini dinle
+    confirmCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            deleteBtn.disabled = false;
+            deleteBtn.classList.remove('btn-secondary');
+            deleteBtn.classList.add('btn-danger');
+        } else {
+            deleteBtn.disabled = true;
+            deleteBtn.classList.remove('btn-danger');
+            deleteBtn.classList.add('btn-secondary');
+        }
+    });
+    
+    // Form submit validation
+    deleteForm.addEventListener('submit', function(e) {
+        if (!confirmCheckbox.checked) {
+            e.preventDefault();
+            alert('Lütfen silme onayını işaretleyin.');
+            return false;
+        }
+        
+        // Son onay
+        const confirmed = confirm('Bu erişim logu kalıcı olarak silinecektir. Bu işlem geri alınamaz.\n\nDevam etmek istediğinizden emin misiniz?');
+        if (!confirmed) {
+            e.preventDefault();
+            return false;
+        }
+        
+        // Buton durumunu güncelle
+        deleteBtn.disabled = true;
+        deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Siliniyor...';
+    });
+    
+    // Sayfa kapatma uyarısı
+    let formChanged = false;
+    confirmCheckbox.addEventListener('change', function() {
+        formChanged = true;
+    });
+    
+    window.addEventListener('beforeunload', function(e) {
+        if (formChanged && confirmCheckbox.checked) {
+            e.preventDefault();
+            e.returnValue = 'Silme işlemi devam ediyor. Sayfadan ayrılmak istediğinizden emin misiniz?';
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,244 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Uyarı Kuralları - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-bell me-2"></i>Uyarı Kuralları
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="/dashboard/{{ company_slug }}/" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Ana Dashboard
+            </a>
+            <a href="/alerts/dashboard/{{ company_slug }}/" class="btn btn-outline-primary">
+                <i class="fas fa-tachometer-alt me-2"></i>Alert Dashboard
+            </a>
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addRuleModal">
+                <i class="fas fa-plus me-2"></i>Yeni Kural Ekle
+            </button>
+        </div>
+    </div>
+
+    <!-- Kurallar Listesi -->
+    <div class="row">
+        {% for rule in rules %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">{{ rule.name }}</h6>
+                    <div>
+                        {% if rule.is_active %}
+                            <span class="badge bg-success">Aktif</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Pasif</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted">{{ rule.description }}</p>
+                    
+                    <div class="mb-2">
+                        <strong>Tip:</strong> 
+                        <span class="badge bg-info">{{ rule.type|title }}</span>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <strong>Önem:</strong> 
+                        {% if rule.severity == 'critical' %}
+                            <span class="badge bg-danger">Kritik</span>
+                        {% elif rule.severity == 'high' %}
+                            <span class="badge bg-warning">Yüksek</span>
+                        {% elif rule.severity == 'medium' %}
+                            <span class="badge bg-primary">Orta</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Düşük</span>
+                        {% endif %}
+                    </div>
+                    
+                    {% if rule.threshold_value %}
+                    <div class="mb-2">
+                        <strong>Eşik Değeri:</strong> {{ rule.threshold_value }}%
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-2">
+                        <strong>Oluşturulma:</strong> {{ rule.created_at|date:"d.m.Y H:i" }}
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            {% if rule.auto_resolve %}
+                                <small class="text-success"><i class="fas fa-check"></i> Otomatik Çözüm</small>
+                            {% endif %}
+                            {% if rule.escalation_enabled %}
+                                <small class="text-warning"><i class="fas fa-exclamation-triangle"></i> Escalation</small>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <button class="btn btn-sm btn-outline-primary" onclick="editRule({{ rule.id }})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteRule({{ rule.id }})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="fas fa-bell fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Henüz uyarı kuralı eklenmemiş</h5>
+                <p class="text-muted">İlk uyarı kuralınızı ekleyerek başlayın.</p>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addRuleModal">
+                    <i class="fas fa-plus me-2"></i>İlk Kuralı Ekle
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Yeni Kural Ekleme Modal -->
+<div class="modal fade" id="addRuleModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus"></i> Yeni Uyarı Kuralı Ekle
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addRuleForm">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="ruleName" class="form-label">Kural Adı <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="ruleName" name="name" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="ruleType" class="form-label">Kural Tipi <span class="text-danger">*</span></label>
+                                <select class="form-select" id="ruleType" name="type" required>
+                                    <option value="">Seçiniz...</option>
+                                    <option value="performance">Performans</option>
+                                    <option value="security">Güvenlik</option>
+                                    <option value="network">Network</option>
+                                    <option value="device">Cihaz</option>
+                                    <option value="user">Kullanıcı</option>
+                                    <option value="system">Sistem</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="ruleSeverity" class="form-label">Önem Seviyesi <span class="text-danger">*</span></label>
+                                <select class="form-select" id="ruleSeverity" name="severity" required>
+                                    <option value="">Seçiniz...</option>
+                                    <option value="low">Düşük</option>
+                                    <option value="medium">Orta</option>
+                                    <option value="high">Yüksek</option>
+                                    <option value="critical">Kritik</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="ruleDescription" class="form-label">Açıklama</label>
+                                <textarea class="form-control" id="ruleDescription" name="description" rows="3"></textarea>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="ruleThreshold" class="form-label">Eşik Değeri (%)</label>
+                                <input type="number" class="form-control" id="ruleThreshold" name="threshold_value" 
+                                       min="0" max="100" step="0.1">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="autoResolve" name="auto_resolve">
+                                    <label class="form-check-label" for="autoResolve">
+                                        Otomatik Çözüm
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="escalationEnabled" name="escalation_enabled">
+                                    <label class="form-check-label" for="escalationEnabled">
+                                        Escalation Etkin
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="isActive" name="is_active" checked>
+                                    <label class="form-check-label" for="isActive">
+                                        Kuralı Aktif Et
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Kaydet
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Form gönderimi
+document.getElementById('addRuleForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Form verilerini topla
+    const formData = new FormData(this);
+    
+    // AJAX ile gönder
+    fetch('/alerts/rules/{{ company_slug }}/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Hata: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Bir hata oluştu!');
+    });
+});
+
+// Kural düzenleme
+function editRule(ruleId) {
+    alert('Kural düzenleme özelliği yakında eklenecek!');
+}
+
+// Kural silme
+function deleteRule(ruleId) {
+    if (confirm('Bu kuralı silmek istediğinizden emin misiniz?')) {
+        alert('Kural silme özelliği yakında eklenecek!');
+    }
+}
+</script>
+{% endblock %}

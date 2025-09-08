@@ -1,0 +1,843 @@
+{% load static %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ company.name }} - {% block title %}{% trans "Panel" %}{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #17a2b8;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --sidebar-width: 280px;
+            --topbar-height: 70px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f6fa;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.1);
+        }
+
+        .sidebar-header {
+            padding: 30px 25px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+
+        .sidebar-header h3 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .sidebar-nav {
+            padding: 20px 0;
+        }
+
+        .nav-section {
+            margin-bottom: 30px;
+        }
+
+        .nav-section-title {
+            padding: 0 25px 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            opacity: 0.7;
+            letter-spacing: 1px;
+        }
+
+        .nav-item {
+            list-style: none;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: rgba(255,255,255,0.9);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-link:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-left-color: white;
+            transform: translateX(5px);
+        }
+
+        .nav-link.active {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border-left-color: white;
+        }
+
+        .nav-icon {
+            width: 20px;
+            margin-right: 15px;
+            font-size: 1.1rem;
+        }
+
+        .nav-text {
+            font-weight: 500;
+        }
+
+        /* Top Bar Styles */
+        .topbar {
+            position: fixed;
+            top: 0;
+            left: var(--sidebar-width);
+            right: 0;
+            height: var(--topbar-height);
+            background: white;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+        }
+
+        .search-container {
+            display: flex;
+            align-items: center;
+            background: #f8f9fa;
+            border-radius: 25px;
+            padding: 8px 20px;
+            width: 300px;
+        }
+
+        .search-container i {
+            color: #6c757d;
+            margin-right: 10px;
+        }
+
+        .search-input {
+            border: none;
+            background: transparent;
+            outline: none;
+            width: 100%;
+            font-size: 0.9rem;
+        }
+
+        .search-input::placeholder {
+            color: #6c757d;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-profile-dropdown {
+            position: relative;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+            margin-left: 10px;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        .user-dropdown-arrow {
+            margin-left: 5px;
+            transition: transform 0.3s ease;
+        }
+
+        .user-dropdown-arrow.rotate {
+            transform: rotate(180deg);
+        }
+
+        .user-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 250px;
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            margin-top: 10px;
+            border: 1px solid #eee;
+        }
+
+        .user-dropdown-menu.active {
+            display: flex;
+        }
+
+        .dropdown-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+
+        .dropdown-user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dropdown-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .dropdown-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dropdown-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        .dropdown-email {
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #333;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            gap: 10px;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f8f9fa;
+            color: var(--primary-color);
+        }
+
+        .dropdown-item i {
+            width: 16px;
+            text-align: center;
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background-color: #eee;
+            margin: 5px 0;
+        }
+
+        .logout-item {
+            color: #dc3545;
+        }
+
+        .logout-item:hover {
+            background-color: #ffeaea;
+            color: #dc3545;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            margin-top: var(--topbar-height);
+            padding: 30px;
+            min-height: calc(100vh - var(--topbar-height));
+        }
+
+        .page-header {
+            margin-bottom: 30px;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .page-subtitle {
+            color: #6c757d;
+            font-size: 1rem;
+        }
+
+        /* Dashboard Cards */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 4px 25px rgba(0,0,0,0.08);
+            border-left: 5px solid var(--primary-color);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 35px rgba(0,0,0,0.12);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-radius: 50%;
+            transform: translate(30px, -30px);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-icon.primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .stat-icon.success { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); }
+        .stat-icon.warning { background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%); }
+        .stat-icon.danger { background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%); }
+        .stat-icon.info { background: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%); }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: #6c757d;
+            font-weight: 500;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Content Sections */
+        .content-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 4px 25px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f8f9fa;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+
+        .section-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .topbar {
+                left: 0;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .topbar {
+                padding: 0 20px;
+            }
+            
+            .search-container {
+                width: 200px;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+            .user-dropdown-menu {
+                right: -50px;
+                width: 200px;
+            }
+        }
+
+        /* Toggle Button for Mobile */
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: var(--primary-color);
+            border: none;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 1200px) {
+            .sidebar-toggle {
+                display: block;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        /* Animation Classes */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Mobile Sidebar Toggle -->
+    <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3>{{ company.name|default:"site" }}</h3>
+        </div>
+        
+        <ul class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Kontrol Paneli</div>
+                <li class="nav-item">
+                    <a href="{% url 'log_kayit:company_dashboard_slug' company.slug %}" class="nav-link {% if request.resolver_match.url_name == 'company_dashboard_slug' %}active{% endif %}">
+                        <i class="nav-icon fas fa-tachometer-alt"></i>
+                        <span class="nav-text">Ana Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/" class="nav-link" target="_blank">
+                        <i class="nav-icon fas fa-user-shield"></i>
+                        <span class="nav-text">Yönetici Paneli</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'log_kayit:user_management_dashboard' company.slug %}" class="nav-link {% if 'user_management' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="nav-icon fas fa-users-cog"></i>
+                        <span class="nav-text">Kullanıcı Yönetimi</span>
+                    </a>
+                </li>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Modüller</div>
+                <li class="nav-item">
+                    <a href="{% url 'network_monitoring:network_dashboard' company.slug %}" class="nav-link {% if 'network_monitoring' in request.resolver_match.namespace %}active{% endif %}">
+                        <i class="nav-icon fas fa-network-wired"></i>
+                        <span class="nav-text">Network Monitoring</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'firewall_management:firewall_dashboard' company.slug %}" class="nav-link {% if 'firewall_management' in request.resolver_match.namespace %}active{% endif %}">
+                        <i class="nav-icon fas fa-shield-alt"></i>
+                        <span class="nav-text">Firewall Management</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'security_alerts:security_dashboard' company.slug %}" class="nav-link {% if 'security_alerts' in request.resolver_match.namespace %}active{% endif %}">
+                        <i class="nav-icon fas fa-exclamation-triangle"></i>
+                        <span class="nav-text">Security Alerts</span>
+                    </a>
+                </li>
+                                        <li class="nav-item">
+                            <a href="{% url 'hotspot_management:hotspot_dashboard' company.slug %}" class="nav-link {% if 'hotspot_management' in request.resolver_match.namespace %}active{% endif %}">
+                                <i class="nav-icon fas fa-wifi"></i>
+                                <span class="nav-text">Hotspot Management</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{% url 'vpn_monitoring:vpn_dashboard' company.slug %}" class="nav-link {% if 'vpn_monitoring' in request.resolver_match.namespace %}active{% endif %}">
+                                <i class="nav-icon fas fa-shield-virus"></i>
+                                <span class="nav-text">VPN Monitoring</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{% url 'device_integrations:device_dashboard' company.slug %}" class="nav-link {% if 'device_integrations' in request.resolver_match.namespace %}active{% endif %}">
+                                <i class="nav-icon fas fa-server"></i>
+                                <span class="nav-text">Device Management</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{% url 'analytics_dashboard:dashboard' company.slug %}" class="nav-link {% if 'analytics_dashboard' in request.resolver_match.namespace %}active{% endif %}">
+                                <i class="nav-icon fas fa-chart-line"></i>
+                                <span class="nav-text">Analytics Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{% url 'alert_system:dashboard' company.slug %}" class="nav-link {% if 'alert_system' in request.resolver_match.namespace %}active{% endif %}">
+                                <i class="nav-icon fas fa-bell"></i>
+                                <span class="nav-text">Alert System</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{% url 'profile_management:dashboard' company.slug %}" class="nav-link {% if 'profile_management' in request.resolver_match.namespace %}active{% endif %}">
+                                <i class="nav-icon fas fa-users"></i>
+                                <span class="nav-text">Profil Yönetimi</span>
+                            </a>
+                        </li>
+            </div>
+
+            <div class="nav-section">
+                <li class="nav-item">
+                    <a href="{% url 'logout' %}" class="nav-link">
+                        <i class="nav-icon fas fa-sign-out-alt"></i>
+                        <span class="nav-text">Çıkış</span>
+                    </a>
+                </li>
+            </div>
+        </ul>
+    </nav>
+
+    <!-- Top Bar -->
+    <header class="topbar">
+        <div class="search-container">
+            <i class="fas fa-search"></i>
+            <input type="text" class="search-input" placeholder="Kontrol Paneli..." id="searchInput">
+        </div>
+        
+        <div class="user-info">
+            <div class="user-profile-dropdown" id="userProfileDropdown">
+                <div class="user-avatar" onclick="toggleUserMenu()">
+                    {% if user.first_name %}
+                        {{ user.first_name|first|upper }}
+                    {% else %}
+                        {{ user.username|first|upper }}
+                    {% endif %}
+                </div>
+                <div class="user-details" onclick="toggleUserMenu()">
+                    <div class="user-name">
+                        {% if user.first_name %}
+                            {{ user.first_name }} {{ user.last_name }}
+                        {% else %}
+                            {{ user.username }}
+                        {% endif %}
+                    </div>
+                    <div class="user-role">
+                        {% if user.is_superuser %}
+                            Botunuz Superuser
+                        {% elif user.is_staff %}
+                            Yönetici
+                        {% else %}
+                            Kullanıcı
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="user-dropdown-arrow" onclick="toggleUserMenu()">
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                
+                <!-- Dropdown Menu -->
+                <div class="user-dropdown-menu" id="userDropdownMenu">
+                    <div class="dropdown-header">
+                        <div class="dropdown-user-info">
+                            <div class="dropdown-avatar">
+                                {% if user.first_name %}
+                                    {{ user.first_name|first|upper }}
+                                {% else %}
+                                    {{ user.username|first|upper }}
+                                {% endif %}
+                            </div>
+                            <div class="dropdown-details">
+                                <div class="dropdown-name">
+                                    {% if user.first_name %}
+                                        {{ user.first_name }} {{ user.last_name }}
+                                    {% else %}
+                                        {{ user.username }}
+                                    {% endif %}
+                                </div>
+                                <div class="dropdown-email">{{ user.email|default:"E-posta yok" }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="dropdown-divider"></div>
+                    
+                    <a href="{% url 'admin:password_change' %}" class="dropdown-item">
+                        <i class="fas fa-key"></i>
+                        <span>Şifre Değiştir</span>
+                    </a>
+                    
+                    <a href="{% url 'admin:index' %}" class="dropdown-item">
+                        <i class="fas fa-cog"></i>
+                        <span>Admin Panel</span>
+                    </a>
+                    
+                    <a href="#" class="dropdown-item" onclick="showUserProfile()">
+                        <i class="fas fa-user-edit"></i>
+                        <span>Profil Düzenle</span>
+                    </a>
+                    
+                    <div class="dropdown-divider"></div>
+                    
+                    <a href="{% url 'logout' %}" class="dropdown-item logout-item">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Çıkış Yap</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block dashboard_content %}
+        {% endblock %}
+    </main>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Sidebar Toggle for Mobile
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        }
+
+        // Search Functionality
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            // Add search functionality here
+            console.log('Searching for:', searchTerm);
+        });
+
+        // Active Navigation Highlighting
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            navLinks.forEach(link => {
+                if (link.href && link.href.includes(currentPath)) {
+                    link.classList.add('active');
+                }
+            });
+        });
+
+        // Smooth Scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add fade-in animation to content
+        document.addEventListener('DOMContentLoaded', function() {
+            const content = document.querySelector('.main-content');
+            content.classList.add('fade-in');
+        });
+
+        // User Profile Dropdown
+        const userProfileDropdown = document.getElementById('userProfileDropdown');
+        const userDropdownMenu = document.getElementById('userDropdownMenu');
+        const userDropdownArrow = userProfileDropdown.querySelector('.user-dropdown-arrow');
+
+        function toggleUserMenu() {
+            userDropdownMenu.classList.toggle('active');
+            userDropdownArrow.classList.toggle('rotate');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!userProfileDropdown.contains(event.target)) {
+                userDropdownMenu.classList.remove('active');
+                userDropdownArrow.classList.remove('rotate');
+            }
+        });
+
+        // Show user profile modal (example, needs actual implementation)
+        function showUserProfile() {
+            alert('Profil düzenleme modalı burada açılacak.');
+            // Implement your modal logic here
+        }
+
+        // Add keyboard support for dropdown
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                userDropdownMenu.classList.remove('active');
+                userDropdownArrow.classList.remove('rotate');
+            }
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 

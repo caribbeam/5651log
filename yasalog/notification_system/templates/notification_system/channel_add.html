@@ -1,0 +1,384 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Bildirim Kanalı Ekle" %} - {{ company.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        margin-bottom: 30px;
+    }
+    
+    .dashboard-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 10px;
+    }
+    
+    .dashboard-subtitle {
+        color: #6c757d;
+        font-size: 1.1rem;
+    }
+    
+    .chart-section {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+        overflow: hidden;
+    }
+    
+    .section-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px 30px;
+        color: white;
+    }
+    
+    .section-title {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+    
+    .section-content {
+        padding: 30px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+        display: block;
+    }
+    
+    .form-control {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 10px 12px;
+        font-size: 14px;
+        transition: border-color 0.3s;
+    }
+    
+    .form-control:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    }
+    
+    .btn-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    
+    .btn {
+        padding: 10px 20px;
+        border-radius: 4px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+    }
+    
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+    }
+    
+    .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background-color: #545b62;
+        border-color: #545b62;
+    }
+    
+    .btn-info {
+        background-color: #17a2b8;
+        border-color: #17a2b8;
+        color: white;
+    }
+    
+    .btn-info:hover {
+        background-color: #138496;
+        border-color: #138496;
+    }
+    
+    .nav-buttons {
+        margin-bottom: 20px;
+        display: flex;
+        gap: 10px;
+    }
+    
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+    
+    .page-header h1 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 600;
+    }
+    
+    .page-header p {
+        margin: 5px 0 0 0;
+        opacity: 0.9;
+    }
+    
+    .channel-type-info {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 15px;
+        margin-top: 10px;
+        display: none;
+    }
+    
+    .channel-type-info.show {
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<!-- Page Header -->
+<div class="dashboard-header">
+    <h1 class="dashboard-title">
+        <i class="fas fa-plus-circle me-3"></i>{% trans "Yeni Bildirim Kanalı" %}
+    </h1>
+    <p class="dashboard-subtitle">{% trans "5651 Loglama için yeni bildirim kanalı oluşturun" %}</p>
+</div>
+
+<!-- Navigation Buttons -->
+<div class="nav-buttons mb-4">
+    <a href="{% url 'notification_system:channels_list' company.slug %}" class="btn btn-outline-secondary me-2">
+        <i class="fas fa-arrow-left me-2"></i>{% trans "Geri Dön" %}
+    </a>
+    <a href="{% url 'log_kayit:company_dashboard_slug' company.slug %}" class="btn btn-outline-primary">
+        <i class="fas fa-home me-2"></i>{% trans "Ana Sayfa" %}
+    </a>
+</div>
+
+<!-- Form Container -->
+<div class="chart-section">
+    <div class="section-header">
+        <h3 class="section-title">
+            <i class="fas fa-cog me-2"></i>{% trans "Kanal Konfigürasyonu" %}
+        </h3>
+    </div>
+    <div class="section-content">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="id_name">{% trans "Kanal Adı" %} *</label>
+                        <input type="text" class="form-control" id="id_name" name="name" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="id_channel_type">{% trans "Kanal Türü" %} *</label>
+                        <select class="form-control" id="id_channel_type" name="channel_type" required>
+                            <option value="">{% trans "Seçiniz" %}</option>
+                            <option value="email">{% trans "E-posta" %}</option>
+                            <option value="sms">{% trans "SMS" %}</option>
+                            <option value="webhook">{% trans "Webhook" %}</option>
+                            <option value="slack">{% trans "Slack" %}</option>
+                            <option value="teams">{% trans "Microsoft Teams" %}</option>
+                            <option value="telegram">{% trans "Telegram" %}</option>
+                            <option value="discord">{% trans "Discord" %}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="id_description">{% trans "Açıklama" %}</label>
+                        <input type="text" class="form-control" id="id_description" name="description">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="id_is_active">{% trans "Aktif" %}</label>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="id_is_active" name="is_active" checked>
+                            <label class="form-check-label" for="id_is_active">
+                                {% trans "Bu kanal aktif olsun" %}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Email Configuration -->
+            <div id="email-config" class="channel-type-info">
+                <h5>{% trans "E-posta Konfigürasyonu" %}</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="id_smtp_host">{% trans "SMTP Sunucusu" %}</label>
+                            <input type="text" class="form-control" id="id_smtp_host" name="smtp_host" placeholder="smtp.gmail.com">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="id_smtp_port">{% trans "SMTP Port" %}</label>
+                            <input type="number" class="form-control" id="id_smtp_port" name="smtp_port" placeholder="587">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="id_smtp_username">{% trans "Kullanıcı Adı" %}</label>
+                            <input type="text" class="form-control" id="id_smtp_username" name="smtp_username">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="id_smtp_password">{% trans "Şifre" %}</label>
+                            <input type="password" class="form-control" id="id_smtp_password" name="smtp_password">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- SMS Configuration -->
+            <div id="sms-config" class="channel-type-info">
+                <h5>{% trans "SMS Konfigürasyonu" %}</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="id_sms_provider">{% trans "SMS Sağlayıcısı" %}</label>
+                            <select class="form-control" id="id_sms_provider" name="sms_provider">
+                                <option value="twilio">Twilio</option>
+                                <option value="netgsm">NetGSM</option>
+                                <option value="iletimerkezi">İleti Merkezi</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="id_sms_api_key">{% trans "API Anahtarı" %}</label>
+                            <input type="text" class="form-control" id="id_sms_api_key" name="sms_api_key">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Webhook Configuration -->
+            <div id="webhook-config" class="channel-type-info">
+                <h5>{% trans "Webhook Konfigürasyonu" %}</h5>
+                <div class="form-group">
+                    <label for="id_webhook_url">{% trans "Webhook URL" %}</label>
+                    <input type="url" class="form-control" id="id_webhook_url" name="webhook_url" placeholder="https://example.com/webhook">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="id_config">{% trans "Ek Konfigürasyon (JSON)" %}</label>
+                <textarea class="form-control" id="id_config" name="config" rows="4" placeholder='{"headers": {"Authorization": "Bearer token"}, "timeout": 30}'></textarea>
+                <small class="form-text text-muted">{% trans "Ek ayarları JSON formatında girin" %}</small>
+            </div>
+            
+            <div class="form-actions mt-4">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="fas fa-save me-2"></i>{% trans "Kaydet" %}
+                </button>
+                <a href="{% url 'notification_system:channels_list' company.slug %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-2"></i>{% trans "İptal" %}
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    var channelTypeSelect = $('#id_channel_type');
+    var emailConfig = $('#email-config');
+    var smsConfig = $('#sms-config');
+    var webhookConfig = $('#webhook-config');
+    
+    function showChannelConfig() {
+        // Hide all configs
+        emailConfig.removeClass('show');
+        smsConfig.removeClass('show');
+        webhookConfig.removeClass('show');
+        
+        // Show relevant config
+        var channelType = channelTypeSelect.val();
+        if (channelType === 'email') {
+            emailConfig.addClass('show');
+        } else if (channelType === 'sms') {
+            smsConfig.addClass('show');
+        } else if (channelType === 'webhook') {
+            webhookConfig.addClass('show');
+        }
+    }
+    
+    channelTypeSelect.on('change', showChannelConfig);
+    
+    // Form validation
+    var form = $('form');
+    var nameInput = $('#id_name');
+    
+    form.on('submit', function(e) {
+        if (!nameInput.val().trim()) {
+            e.preventDefault();
+            alert('{% trans "Kanal adı gereklidir" %}');
+            nameInput.focus();
+            return;
+        }
+        
+        if (!channelTypeSelect.val()) {
+            e.preventDefault();
+            alert('{% trans "Kanal türü seçilmelidir" %}');
+            channelTypeSelect.focus();
+            return;
+        }
+    });
+    
+    // JSON validation for config
+    var configTextarea = $('#id_config');
+    
+    configTextarea.on('blur', function() {
+        var value = $(this).val().trim();
+        if (value) {
+            try {
+                JSON.parse(value);
+                $(this).css('border-color', '#28a745');
+            } catch (e) {
+                $(this).css('border-color', '#dc3545');
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

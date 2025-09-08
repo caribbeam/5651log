@@ -1,0 +1,75 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Hata - Device Management{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Hata Oluştu
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-exclamation-circle fa-4x text-danger"></i>
+                    </div>
+                    
+                    <h4 class="text-danger mb-3">Device Management Hatası</h4>
+                    
+                    <div class="alert alert-danger">
+                        <strong>Hata Detayı:</strong><br>
+                        <code>{{ error }}</code>
+                    </div>
+                    
+                    <p class="text-muted mb-4">
+                        Cihaz yönetimi sayfasında bir hata oluştu. Lütfen sayfayı yenileyin veya 
+                        sistem yöneticisi ile iletişime geçin.
+                    </p>
+                    
+                    <div class="d-flex justify-content-center gap-2">
+                        <button onclick="location.reload()" class="btn btn-primary">
+                            <i class="fas fa-sync me-2"></i>Sayfayı Yenile
+                        </button>
+                        <a href="/dashboard/test-firma/" class="btn btn-outline-secondary">
+                            <i class="fas fa-home me-2"></i>Ana Sayfaya Dön
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Hata Giderme İpuçları -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>Hata Giderme İpuçları
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            <small>Sayfayı yenileyin ve tekrar deneyin</small>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            <small>İnternet bağlantınızı kontrol edin</small>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            <small>Tarayıcı önbelleğini temizleyin</small>
+                        </li>
+                        <li>
+                            <i class="fas fa-check text-success me-2"></i>
+                            <small>Sorun devam ederse sistem yöneticisi ile iletişime geçin</small>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

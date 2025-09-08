@@ -1,0 +1,366 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}{{ device.name }} - Cihaz Detayları{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">
+                <i class="fas fa-server me-2"></i>{{ device.name }}
+                <span class="badge bg-{% if device.status == 'online' %}success{% elif device.status == 'offline' %}danger{% else %}warning{% endif %} ms-2">
+                    {{ device.status|title }}
+                </span>
+            </h1>
+            <p class="text-muted mb-0">{{ device.description }}</p>
+        </div>
+        <div>
+            <a href="{% url 'device_integrations:device_dashboard' company_slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Geri Dön
+            </a>
+            <a href="{% url 'device_integrations:device_edit' company_slug device.id %}" class="btn btn-outline-primary">
+                <i class="fas fa-edit me-2"></i>Düzenle
+            </a>
+            <button onclick="refreshDeviceStatus()" class="btn btn-success">
+                <i class="fas fa-sync me-2"></i>Durumu Yenile
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Cihaz Bilgileri -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Cihaz Bilgileri
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Cihaz Adı:</strong></td>
+                                    <td>{{ device.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Tip:</strong></td>
+                                    <td>{{ device.device_type.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Entegrasyon:</strong></td>
+                                    <td>
+                                        <span class="badge bg-info">{{ device.get_integration_type_display }}</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>IP Adresi:</strong></td>
+                                    <td>
+                                        <code>{{ device.ip_address }}</code>
+                                        <button class="btn btn-sm btn-outline-secondary ms-2" onclick="copyToClipboard('{{ device.ip_address }}')">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Port:</strong></td>
+                                    <td>{{ device.port }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Protokol:</strong></td>
+                                    <td>{{ device.protocol|upper }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Durum:</strong></td>
+                                    <td>
+                                        <span class="badge bg-{% if device.status == 'online' %}success{% elif device.status == 'offline' %}danger{% else %}warning{% endif %}">
+                                            {{ device.get_status_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Son Görülme:</strong></td>
+                                    <td>{{ device.last_seen|date:"d.m.Y H:i:s" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    {% if device.description %}
+                    <div class="mt-3">
+                        <strong>Açıklama:</strong>
+                        <p class="text-muted">{{ device.description }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Performans Metrikleri -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-line me-2"></i>Performans Metrikleri
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-primary">{{ performance_data.cpu_usage }}%</h4>
+                                <small class="text-muted">CPU Kullanımı</small>
+                                <div class="progress mt-2" style="height: 8px;">
+                                    <div class="progress-bar bg-primary" style="width: {{ performance_data.cpu_usage }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-warning">{{ performance_data.memory_usage }}%</h4>
+                                <small class="text-muted">RAM Kullanımı</small>
+                                <div class="progress mt-2" style="height: 8px;">
+                                    <div class="progress-bar bg-warning" style="width: {{ performance_data.memory_usage }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-success">{{ performance_data.disk_usage }}%</h4>
+                                <small class="text-muted">Disk Kullanımı</small>
+                                <div class="progress mt-2" style="height: 8px;">
+                                    <div class="progress-bar bg-success" style="width: {{ performance_data.disk_usage }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-info">{{ performance_data.uptime }}</h4>
+                                <small class="text-muted">Çalışma Süresi</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cihaz Logları -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-list me-2"></i>Son Loglar
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if device_logs %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Tarih</th>
+                                    <th>Seviye</th>
+                                    <th>Mesaj</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in device_logs %}
+                                <tr>
+                                    <td>{{ log.timestamp|date:"d.m.Y H:i:s" }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if log.level == 'ERROR' %}danger{% elif log.level == 'WARNING' %}warning{% else %}info{% endif %}">
+                                            {{ log.level }}
+                                        </span>
+                                    </td>
+                                    <td>{{ log.message }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-info-circle fa-2x text-muted mb-3"></i>
+                        <p class="text-muted">Henüz log kaydı bulunmuyor</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Yan Panel -->
+        <div class="col-lg-4">
+            <!-- Hızlı İşlemler -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bolt me-2"></i>Hızlı İşlemler
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button onclick="pingDevice()" class="btn btn-outline-primary">
+                            <i class="fas fa-network-wired me-2"></i>Ping Test
+                        </button>
+                        <button onclick="testConnection()" class="btn btn-outline-success">
+                            <i class="fas fa-plug me-2"></i>Bağlantı Testi
+                        </button>
+                        <button onclick="getDeviceInfo()" class="btn btn-outline-info">
+                            <i class="fas fa-info me-2"></i>Cihaz Bilgilerini Al
+                        </button>
+                        <hr>
+                        <a href="{% url 'device_integrations:device_edit' company_slug device.id %}" class="btn btn-outline-warning">
+                            <i class="fas fa-cog me-2"></i>Ayarları Düzenle
+                        </a>
+                        <button onclick="deleteDevice()" class="btn btn-outline-danger">
+                            <i class="fas fa-trash me-2"></i>Cihazı Sil
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cihaz Durumu -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-heartbeat me-2"></i>Cihaz Durumu
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center">
+                        <div class="mb-3">
+                            {% if device.status == 'online' %}
+                                <i class="fas fa-circle text-success fa-3x"></i>
+                            {% elif device.status == 'offline' %}
+                                <i class="fas fa-circle text-danger fa-3x"></i>
+                            {% else %}
+                                <i class="fas fa-circle text-warning fa-3x"></i>
+                            {% endif %}
+                        </div>
+                        <h4 class="mb-1">{{ device.get_status_display }}</h4>
+                        <p class="text-muted mb-0">Son güncelleme: {{ device.last_seen|date:"d.m.Y H:i" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Network Bilgileri -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-network-wired me-2"></i>Network Bilgileri
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-borderless">
+                        <tr>
+                            <td><strong>IP:</strong></td>
+                            <td><code>{{ device.ip_address }}</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Port:</strong></td>
+                            <td>{{ device.port }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Protokol:</strong></td>
+                            <td>{{ device.protocol|upper }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>İzleme:</strong></td>
+                            <td>
+                                {% if device.is_monitored %}
+                                    <span class="badge bg-success">Aktif</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Pasif</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function refreshDeviceStatus() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Yenileniyor...';
+    button.disabled = true;
+    
+    fetch(`/device/refresh/{{ company_slug }}/{{ device.id }}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('success', data.message);
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showToast('error', data.error || 'Bir hata oluştu');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('error', 'Bağlantı hatası');
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showToast('success', 'IP adresi panoya kopyalandı');
+    });
+}
+
+function pingDevice() {
+    showToast('info', 'Ping testi başlatılıyor...');
+    // Ping testi implementasyonu
+}
+
+function testConnection() {
+    showToast('info', 'Bağlantı testi başlatılıyor...');
+    // Bağlantı testi implementasyonu
+}
+
+function getDeviceInfo() {
+    showToast('info', 'Cihaz bilgileri alınıyor...');
+    // Cihaz bilgileri alma implementasyonu
+}
+
+function deleteDevice() {
+    if (confirm('Bu cihazı silmek istediğinizden emin misiniz?')) {
+        window.location.href = "{% url 'device_integrations:device_delete' company_slug device.id %}";
+    }
+}
+
+function showToast(type, message) {
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} alert-dismissible fade show position-fixed`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    toast.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }, 3000);
+}
+</script>
+{% endblock %}

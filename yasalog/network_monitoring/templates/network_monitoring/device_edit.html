@@ -1,0 +1,379 @@
+{% extends "log_kayit/partials/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ device.name }} - Cihaz Düzenle{% endblock %}
+
+{% block extra_css %}
+<style>
+.device-edit {
+    padding: 20px;
+}
+
+.dashboard-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 10px;
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+.dashboard-title {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.dashboard-subtitle {
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+.chart-section {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.section-header {
+    border-bottom: 2px solid #f4f4f4;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.section-title {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.form-control {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+    width: 100%;
+    font-size: 14px;
+}
+
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.nav-buttons {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.nav-buttons .btn {
+    margin: 0 5px;
+}
+
+.form-actions {
+    text-align: center;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -15px;
+}
+
+.col-md-6 {
+    flex: 0 0 50%;
+    max-width: 50%;
+    padding: 0 15px;
+}
+
+.col-md-12 {
+    flex: 0 0 100%;
+    max-width: 100%;
+    padding: 0 15px;
+}
+
+@media (max-width: 768px) {
+    .col-md-6 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="device-edit">
+    <!-- Cihaz Düzenleme Başlığı -->
+    <div class="dashboard-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="dashboard-title">
+                    <i class="fas fa-edit me-2"></i>Cihaz Düzenle
+                </h1>
+                <p class="dashboard-subtitle">
+                    <i class="fas fa-network-wired me-2"></i>{{ device.name }}
+                    <span class="mx-2">|</span>
+                    <i class="fas fa-ethernet me-2"></i>{{ device.ip_address }}
+                </p>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="status-badge status-{{ device.status|lower }}">
+                    <i class="fas fa-circle me-2"></i>{{ device.get_status_display }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cihaz Düzenleme Formu -->
+    <div class="chart-section">
+        <div class="section-header">
+            <h3 class="section-title">
+                <i class="fas fa-cog me-2"></i>Cihaz Bilgileri
+            </h3>
+        </div>
+        <div class="section-content">
+            <form method="post">
+                {% csrf_token %}
+                
+                <!-- Temel Bilgiler -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label" for="name">Cihaz Adı *</label>
+                            <input type="text" class="form-control" id="name" name="name" 
+                                   value="{{ device.name }}" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label" for="device_type">Cihaz Türü *</label>
+                            <select class="form-control" id="device_type" name="device_type" required>
+                                {% for value, label in device_types %}
+                                <option value="{{ value }}" {% if device.device_type == value %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ağ Bilgileri -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label" for="ip_address">IP Adresi *</label>
+                            <input type="text" class="form-control" id="ip_address" name="ip_address" 
+                                   value="{{ device.ip_address }}" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label" for="mac_address">MAC Adresi</label>
+                            <input type="text" class="form-control" id="mac_address" name="mac_address" 
+                                   value="{{ device.mac_address }}">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Donanım Bilgileri -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label" for="manufacturer">Üretici</label>
+                            <input type="text" class="form-control" id="manufacturer" name="manufacturer" 
+                                   value="{{ device.manufacturer }}">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label" for="model">Model</label>
+                            <input type="text" class="form-control" id="model" name="model" 
+                                   value="{{ device.model }}">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Yazılım Bilgileri -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label" for="firmware_version">Firmware Versiyonu</label>
+                            <input type="text" class="form-control" id="firmware_version" name="firmware_version" 
+                                   value="{{ device.firmware_version }}">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label" for="serial_no">Seri Numarası</label>
+                            <input type="text" class="form-control" id="serial_no" name="serial_no" 
+                                   value="{{ device.serial_number }}">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ağ Konfigürasyonu -->
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="form-label" for="subnet_mask">Subnet Mask</label>
+                            <input type="text" class="form-control" id="subnet_mask" name="subnet_mask" 
+                                   value="{{ device.subnet_mask }}">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="form-label" for="gateway">Gateway</label>
+                            <input type="text" class="form-control" id="gateway" name="gateway" 
+                                   value="{{ device.gateway }}">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="form-label" for="status">Durum *</label>
+                            <select class="form-control" id="status" name="status" required>
+                                {% for value, label in status_choices %}
+                                <option value="{{ value }}" {% if device.status == value %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performans Bilgileri -->
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="form-label" for="cpu_usage">CPU Kullanımı (%)</label>
+                            <input type="number" class="form-control" id="cpu_usage" name="cpu_usage" 
+                                   value="{{ device.cpu_usage }}" min="0" max="100" step="0.1">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="form-label" for="memory_usage">RAM Kullanımı (%)</label>
+                            <input type="number" class="form-control" id="memory_usage" name="memory_usage" 
+                                   value="{{ device.memory_usage }}" min="0" max="100" step="0.1">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="form-label" for="temperature">Sıcaklık (°C)</label>
+                            <input type="number" class="form-control" id="temperature" name="temperature" 
+                                   value="{{ device.temperature }}" step="0.1">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Uptime -->
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label class="form-label" for="uptime">Çalışma Süresi</label>
+                            <input type="text" class="form-control" id="uptime" name="uptime" 
+                                   value="{{ device.uptime }}" placeholder="Örn: 5 gün, 3 saat">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Butonları -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Değişiklikleri Kaydet
+                    </button>
+                    <a href="{% url 'network_monitoring:device_list' company.slug %}" class="btn btn-secondary">
+                        <i class="fas fa-times me-2"></i>İptal
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Geri Dön ve Ana Sayfa Butonları -->
+    <div class="nav-buttons">
+        <a href="{% url 'network_monitoring:device_list' company.slug %}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-2"></i>Geri Dön
+        </a>
+        <a href="{% url 'log_kayit:company_dashboard_slug' company.slug %}" class="btn btn-outline-secondary">
+            <i class="fas fa-home me-2"></i>Ana Sayfa
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Form validasyonu
+    $('form').on('submit', function(e) {
+        var isValid = true;
+        
+        // Zorunlu alanları kontrol et
+        $('input[required], select[required]').each(function() {
+            if (!$(this).val()) {
+                $(this).addClass('is-invalid');
+                isValid = false;
+            } else {
+                $(this).removeClass('is-invalid');
+            }
+        });
+        
+        // IP adresi formatını kontrol et
+        var ipAddress = $('#ip_address').val();
+        if (ipAddress && !isValidIP(ipAddress)) {
+            $('#ip_address').addClass('is-invalid');
+            isValid = false;
+        }
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Lütfen tüm zorunlu alanları doldurun ve geçerli bir IP adresi girin.');
+        }
+    });
+    
+    // IP adresi format kontrolü
+    function isValidIP(ip) {
+        var ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+        return ipRegex.test(ip);
+    }
+    
+    // MAC adresi formatını otomatik düzenle
+    $('#mac_address').on('blur', function() {
+        var mac = $(this).val().replace(/[^a-fA-F0-9]/g, '');
+        if (mac.length === 12) {
+            mac = mac.match(/.{2}/g).join(':').toUpperCase();
+            $(this).val(mac);
+        }
+    });
+    
+    // CPU ve RAM kullanımı için progress bar güncelleme
+    function updateProgressBars() {
+        var cpuUsage = parseFloat($('#cpu_usage').val()) || 0;
+        var memoryUsage = parseFloat($('#memory_usage').val()) || 0;
+        
+        // Progress bar'ları güncelle (eğer sayfada varsa)
+        $('.cpu-progress').css('width', cpuUsage + '%');
+        $('.memory-progress').css('width', memoryUsage + '%');
+    }
+    
+    $('#cpu_usage, #memory_usage').on('input', updateProgressBars);
+});
+</script>
+{% endblock %}

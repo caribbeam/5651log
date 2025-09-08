@@ -1,0 +1,215 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "İmza Detayı" %} - {{ company.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-signature"></i> {% trans "İmza Detayı" %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- İmza Bilgileri -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title">{% trans "Temel Bilgiler" %}</h5>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-borderless">
+                                        <tr>
+                                            <td><strong>{% trans "Log Kaydı" %}:</strong></td>
+                                            <td>{{ signature.log_entry.ad_soyad }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>{% trans "TC No" %}:</strong></td>
+                                            <td>{{ signature.log_entry.tc_no }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>{% trans "Otorite" %}:</strong></td>
+                                            <td>{{ signature.authority.name }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>{% trans "Durum" %}:</strong></td>
+                                            <td>
+                                                {% if signature.status == 'SIGNED' %}
+                                                    <span class="badge bg-success">{% trans "İmzalandı" %}</span>
+                                                {% elif signature.status == 'VERIFIED' %}
+                                                    <span class="badge bg-info">{% trans "Doğrulandı" %}</span>
+                                                {% elif signature.status == 'FAILED' %}
+                                                    <span class="badge bg-danger">{% trans "Başarısız" %}</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">{% trans "Beklemede" %}</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>{% trans "Seri Numarası" %}:</strong></td>
+                                            <td>{{ signature.serial_number|default:"-" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>{% trans "Hash Algoritması" %}:</strong></td>
+                                            <td>{{ signature.hash_algorithm }}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title">{% trans "Zaman Bilgileri" %}</h5>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-borderless">
+                                        <tr>
+                                            <td><strong>{% trans "Oluşturulma Tarihi" %}:</strong></td>
+                                            <td>{{ signature.created_at|date:"d.m.Y H:i:s" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>{% trans "İmzalama Zamanı" %}:</strong></td>
+                                            <td>{{ signature.signed_at|date:"d.m.Y H:i:s"|default:"-" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>{% trans "Doğrulama Zamanı" %}:</strong></td>
+                                            <td>{{ signature.verified_at|date:"d.m.Y H:i:s"|default:"-" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>{% trans "Güncellenme Tarihi" %}:</strong></td>
+                                            <td>{{ signature.updated_at|date:"d.m.Y H:i:s" }}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- İmza Verisi -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title">{% trans "İmza Verisi" %}</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6>{% trans "İmza Verisi" %}</h6>
+                                            <textarea class="form-control" rows="8" readonly>{{ signature.signature_data }}</textarea>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6>{% trans "Zaman Damgası Token" %}</h6>
+                                            <textarea class="form-control" rows="8" readonly>{{ signature.timestamp_token }}</textarea>
+                                        </div>
+                                    </div>
+                                    
+                                    {% if signature.certificate_chain %}
+                                    <div class="row mt-3">
+                                        <div class="col-12">
+                                            <h6>{% trans "Sertifika Zinciri" %}</h6>
+                                            <textarea class="form-control" rows="6" readonly>{{ signature.certificate_chain }}</textarea>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hata Mesajı -->
+                    {% if signature.error_message %}
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="alert alert-danger">
+                                <h5 class="alert-heading">{% trans "Hata Mesajı" %}</h5>
+                                <p>{{ signature.error_message }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- İşlemler -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title">{% trans "İşlemler" %}</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'timestamp_signing:signatures_list' company.slug %}" 
+                                           class="btn btn-secondary">
+                                            <i class="fas fa-arrow-left"></i> {% trans "Geri Dön" %}
+                                        </a>
+                                        
+                                        {% if signature.status == 'SIGNED' %}
+                                        <form method="post" action="{% url 'timestamp_signing:verify_signature' company.slug signature.id %}" style="display: inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-success" 
+                                                    onclick="return confirm('{% trans "İmzayı doğrulamak istediğinizden emin misiniz?" %}')">
+                                                <i class="fas fa-shield-alt"></i> {% trans "İmzayı Doğrula" %}
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                        
+                                        <button type="button" class="btn btn-info" onclick="copyToClipboard('{{ signature.signature_data }}')">
+                                            <i class="fas fa-copy"></i> {% trans "İmzayı Kopyala" %}
+                                        </button>
+                                        
+                                        <button type="button" class="btn btn-warning" onclick="downloadSignature()">
+                                            <i class="fas fa-download"></i> {% trans "İmzayı İndir" %}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        alert('{% trans "İmza verisi panoya kopyalandı!" %}');
+    }, function(err) {
+        console.error('Kopyalama hatası: ', err);
+    });
+}
+
+function downloadSignature() {
+    const signatureData = `{% trans "İmza Detayı" %}
+{% trans "Log Kaydı" %}: {{ signature.log_entry.ad_soyad }}
+{% trans "TC No" %}: {{ signature.log_entry.tc_no }}
+{% trans "Otorite" %}: {{ signature.authority.name }}
+{% trans "Durum" %}: {{ signature.get_status_display }}
+{% trans "Seri No" %}: {{ signature.serial_number }}
+{% trans "İmzalama Zamanı" %}: {{ signature.signed_at|date:"d.m.Y H:i:s" }}
+
+{% trans "İmza Verisi" %}:
+{{ signature.signature_data }}
+
+{% trans "Zaman Damgası Token" %}:
+{{ signature.timestamp_token }}`;
+
+    const blob = new Blob([signatureData], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'signature_{{ signature.id }}.txt';
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,721 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Profil Detayı - {{ profile.name }} - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="profile-detail-container">
+    <div class="detail-header">
+        <div class="header-content">
+            <h1><i class="fas fa-user-tag"></i> {{ profile.name }}</h1>
+            <p class="text-muted">Profil Kodu: #{{ profile.profile_code }} | {{ company.name }}</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'profile_management:profile_edit' company.slug profile.id %}" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Düzenle
+            </a>
+            <a href="{% url 'profile_management:profile_list' company.slug %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Geri Dön
+            </a>
+        </div>
+    </div>
+
+    <!-- Profil Bilgileri -->
+    <div class="profile-info-grid">
+        <!-- Temel Bilgiler -->
+        <div class="info-card">
+            <div class="card-header">
+                <h3><i class="fas fa-info-circle"></i> Temel Bilgiler</h3>
+            </div>
+            <div class="card-content">
+                <div class="info-row">
+                    <span class="info-label">Profil Adı:</span>
+                    <span class="info-value">{{ profile.name }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Profil Kodu:</span>
+                    <span class="info-value">#{{ profile.profile_code }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Profil Tipi:</span>
+                    <span class="info-value">
+                        <span class="badge badge-{{ profile.profile_type }}">
+                            {{ profile.get_profile_type_display }}
+                        </span>
+                    </span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Durum:</span>
+                    <span class="info-value">
+                        {% if profile.is_active %}
+                            <span class="status-badge active">Aktif</span>
+                        {% else %}
+                            <span class="status-badge inactive">Pasif</span>
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Premium:</span>
+                    <span class="info-value">
+                        {% if profile.is_premium %}
+                            <span class="badge badge-premium">Premium</span>
+                        {% else %}
+                            <span class="badge badge-standard">Standart</span>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hız Limitleri -->
+        <div class="info-card">
+            <div class="card-header">
+                <h3><i class="fas fa-tachometer-alt"></i> Hız Limitleri</h3>
+            </div>
+            <div class="card-content">
+                <div class="info-row">
+                    <span class="info-label">Upload Hızı:</span>
+                    <span class="info-value">{{ profile.upload_speed }} Mbps</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Download Hızı:</span>
+                    <span class="info-value">{{ profile.download_speed }} Mbps</span>
+                </div>
+                <div class="speed-display">
+                    <div class="speed-bar">
+                        <div class="speed-fill upload" style="width: {{ profile.upload_speed|floatformat:0 }}%"></div>
+                    </div>
+                    <div class="speed-bar">
+                        <div class="speed-fill download" style="width: {{ profile.download_speed|floatformat:0 }}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Süre Limitleri -->
+        <div class="info-card">
+            <div class="card-header">
+                <h3><i class="fas fa-clock"></i> Süre Limitleri</h3>
+            </div>
+            <div class="card-content">
+                <div class="duration-display">
+                    <div class="duration-item">
+                        <span class="duration-number">{{ profile.duration_days }}</span>
+                        <span class="duration-label">Gün</span>
+                    </div>
+                    <div class="duration-item">
+                        <span class="duration-number">{{ profile.duration_hours }}</span>
+                        <span class="duration-label">Saat</span>
+                    </div>
+                    <div class="duration-item">
+                        <span class="duration-number">{{ profile.duration_minutes }}</span>
+                        <span class="duration-label">Dakika</span>
+                    </div>
+                    <div class="duration-item">
+                        <span class="duration-number">{{ profile.duration_seconds }}</span>
+                        <span class="duration-label">Saniye</span>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Toplam Süre:</span>
+                    <span class="info-value">{{ profile.get_duration_display }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kullanıcı Limitleri -->
+        <div class="info-card">
+            <div class="card-header">
+                <h3><i class="fas fa-users"></i> Kullanıcı Limitleri</h3>
+            </div>
+            <div class="card-content">
+                <div class="info-row">
+                    <span class="info-label">Paylaşılan Kullanıcı:</span>
+                    <span class="info-value">{{ profile.shared_users }} kullanıcı</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Maksimum Eşzamanlı:</span>
+                    <span class="info-value">{{ profile.max_concurrent_users }} kullanıcı</span>
+                </div>
+                <div class="users-display">
+                    <div class="users-icon">
+                        <i class="fas fa-users"></i>
+                        <span class="users-count">{{ profile.shared_users }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Zaman Bilgileri -->
+    <div class="time-info-section">
+        <div class="time-card">
+            <div class="time-header">
+                <h3><i class="fas fa-calendar-alt"></i> Zaman Bilgileri</h3>
+            </div>
+            <div class="time-content">
+                <div class="time-row">
+                    <div class="time-item">
+                        <span class="time-label">Oluşturulma:</span>
+                        <span class="time-value">{{ profile.created_at|date:"d.m.Y H:i" }}</span>
+                    </div>
+                    <div class="time-item">
+                        <span class="time-label">Güncellenme:</span>
+                        <span class="time-value">{{ profile.updated_at|date:"d.m.Y H:i" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profil Atamaları -->
+    <div class="assignments-section">
+        <div class="section-header">
+            <h3><i class="fas fa-link"></i> Profil Atamaları</h3>
+            <span class="assignment-count">{{ assignments.count }} atama</span>
+        </div>
+        
+        {% if assignments %}
+            <div class="assignments-grid">
+                {% for assignment in assignments %}
+                <div class="assignment-card">
+                    <div class="assignment-header">
+                        <div class="user-info">
+                            <div class="user-avatar">
+                                {{ assignment.user.username|first|upper }}
+                            </div>
+                            <div class="user-details">
+                                <h4>{{ assignment.user.get_full_name|default:assignment.user.username }}</h4>
+                                <span class="user-email">{{ assignment.user.email|default:"E-posta yok" }}</span>
+                            </div>
+                        </div>
+                        <div class="assignment-status">
+                            {% if assignment.is_active %}
+                                <span class="status-badge active">Aktif</span>
+                            {% else %}
+                                <span class="status-badge inactive">Pasif</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="assignment-details">
+                        <div class="detail-item">
+                            <i class="fas fa-calendar"></i>
+                            <span>Atama: {{ assignment.assigned_at|date:"d.m.Y" }}</span>
+                        </div>
+                        {% if assignment.expires_at %}
+                        <div class="detail-item">
+                            <i class="fas fa-clock"></i>
+                            <span>Bitiş: {{ assignment.expires_at|date:"d.m.Y" }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="detail-item">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Kullanım: {{ assignment.current_bandwidth_used|filesizeformat }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span>Oturum: {{ assignment.session_count }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-assignments">
+                <i class="fas fa-link fa-3x text-muted"></i>
+                <h4>Henüz atama yapılmamış</h4>
+                <p>Bu profil henüz hiçbir kullanıcıya atanmamış.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Profil Detay CSS -->
+<style>
+.profile-detail-container {
+    padding: 20px;
+}
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.header-content h1 {
+    color: #2c3e50;
+    margin-bottom: 8px;
+    font-size: 2rem;
+}
+
+.header-content p {
+    color: #6c757d;
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.header-actions {
+    display: flex;
+    gap: 15px;
+}
+
+.profile-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
+.info-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+}
+
+.card-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.card-content {
+    padding: 25px;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #6c757d;
+}
+
+.info-value {
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.badge-personel { background: #e3f2fd; color: #1976d2; }
+.badge-misafir { background: #fff3e0; color: #f57c00; }
+.badge-vip { background: #fce4ec; color: #c2185b; }
+.badge-ultra { background: #e8f5e8; color: #388e3c; }
+.badge-ust { background: #f3e5f5; color: #7b1fa2; }
+
+.badge-premium { background: #fff8e1; color: #f57f17; }
+.badge-standard { background: #f5f5f5; color: #616161; }
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.status-badge.active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-badge.inactive {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.speed-display {
+    margin-top: 20px;
+}
+
+.speed-bar {
+    background: #f8f9fa;
+    height: 8px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    overflow: hidden;
+}
+
+.speed-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.speed-fill.upload {
+    background: linear-gradient(90deg, #3498db, #2980b9);
+}
+
+.speed-fill.download {
+    background: linear-gradient(90deg, #2ecc71, #27ae60);
+}
+
+.duration-display {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.duration-item {
+    text-align: center;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+
+.duration-number {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #3498db;
+    margin-bottom: 5px;
+}
+
+.duration-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.users-display {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.users-icon {
+    position: relative;
+    display: inline-block;
+}
+
+.users-icon i {
+    font-size: 3rem;
+    color: #3498db;
+}
+
+.users-count {
+    position: absolute;
+    top: -5px;
+    right: -10px;
+    background: #e74c3c;
+    color: white;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.time-info-section {
+    margin-bottom: 30px;
+}
+
+.time-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.time-header {
+    background: linear-gradient(135deg, #17a2b8, #6f42c1);
+    color: white;
+    padding: 20px;
+}
+
+.time-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.time-content {
+    padding: 25px;
+}
+
+.time-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.time-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.time-label {
+    font-weight: 600;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.time-value {
+    color: #2c3e50;
+    font-weight: 500;
+    font-size: 1.1rem;
+}
+
+.assignments-section {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #f8f9fa;
+}
+
+.section-header h3 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.assignment-count {
+    background: #e9ecef;
+    color: #6c757d;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.assignments-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+.assignment-card {
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+
+.assignment-card:hover {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.assignment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.user-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.user-details h4 {
+    margin: 0 0 5px 0;
+    color: #2c3e50;
+    font-size: 1.1rem;
+}
+
+.user-email {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.assignment-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.detail-item i {
+    width: 16px;
+    color: #3498db;
+}
+
+.no-assignments {
+    text-align: center;
+    padding: 40px;
+    color: #7f8c8d;
+}
+
+.no-assignments i {
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.no-assignments h4 {
+    margin-bottom: 10px;
+    color: #6c757d;
+}
+
+.no-assignments p {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.btn {
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: #3498db;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #545b62;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .detail-header {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+    }
+    
+    .header-actions {
+        justify-content: center;
+    }
+    
+    .profile-info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .duration-display {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .time-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .assignments-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .assignment-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+    
+    .assignment-details {
+        grid-template-columns: 1fr;
+    }
+    
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-detail-container {
+        padding: 15px;
+    }
+    
+    .detail-header {
+        padding: 20px;
+    }
+    
+    .header-content h1 {
+        font-size: 1.5rem;
+    }
+    
+    .duration-display {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

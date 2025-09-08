@@ -1,0 +1,345 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Yeni Mirror Konfigürasyonu" %} - {{ company.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.mirror-dashboard {
+    padding: 20px;
+}
+
+.form-section {
+    background: white;
+    border-radius: 10px;
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.form-section h5 {
+    color: #333;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f8f9fa;
+}
+
+.form-group {
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 8px;
+    display: block;
+    width: 100%;
+}
+
+.form-control {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px 15px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+    width: 100%;
+    min-height: 45px;
+    display: block;
+}
+
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    outline: none;
+}
+
+select.form-control {
+    background-color: white;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 12px center;
+    background-repeat: no-repeat;
+    background-size: 16px;
+    padding-right: 40px;
+    appearance: none;
+}
+
+.form-check-input {
+    margin-top: 0.3em;
+}
+
+.form-check-label {
+    margin-left: 8px;
+    font-weight: 500;
+}
+
+.help-text {
+    font-size: 12px;
+    color: #6c757d;
+    margin-top: 5px;
+}
+
+.btn-save {
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    border: none;
+    color: white;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-save:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+}
+
+.collapse-section {
+    margin-top: 15px;
+}
+
+.collapse-section .btn-link {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.collapse-section .btn-link:hover {
+    text-decoration: underline;
+}
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="mirror-dashboard">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-plus me-2"></i>{% trans "Yeni Mirror Konfigürasyonu" %}
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'mirror_port:configurations_list' company.slug %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri Dön" %}
+            </a>
+            <a href="{% url 'log_kayit:company_dashboard_slug' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-home me-2"></i>{% trans "Ana Sayfa" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Mesajlar -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Konfigürasyon Formu -->
+    <form method="post">
+        {% csrf_token %}
+        
+        <!-- Temel Bilgiler -->
+        <div class="form-section">
+            <h5><i class="fas fa-info-circle me-2"></i>{% trans "Temel Bilgiler" %}</h5>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="name">{% trans "Konfigürasyon Adı" %}</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                        <div class="help-text">{% trans "Konfigürasyonu tanımlayan benzersiz bir isim" %}</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="config_type">{% trans "Konfigürasyon Tipi" %}</label>
+                        <select class="form-control" id="config_type" name="config_type" required>
+                            <option value="">{% trans "Tip Seçin" %}</option>
+                            <option value="SPAN">{% trans "SPAN (Switch Port Analyzer)" %}</option>
+                            <option value="RSPAN">{% trans "RSPAN (Remote SPAN)" %}</option>
+                            <option value="ERSPAN">{% trans "ERSPAN (Encapsulated RSPAN)" %}</option>
+                            <option value="MIRROR">{% trans "Port Mirroring" %}</option>
+                        </select>
+                        <div class="help-text">{% trans "Mirror port tipini seçin" %}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Port Ayarları -->
+        <div class="form-section">
+            <h5><i class="fas fa-network-wired me-2"></i>{% trans "Port Ayarları" %}</h5>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="source_ports">{% trans "Kaynak Portlar" %}</label>
+                        <input type="text" class="form-control" id="source_ports" name="source_ports" 
+                               placeholder="1,2,3,4" required>
+                        <div class="help-text">{% trans "Virgülle ayrılmış port numaraları (örn: 1,2,3,4)" %}</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="destination_port">{% trans "Hedef Port" %}</label>
+                        <input type="text" class="form-control" id="destination_port" name="destination_port" 
+                               placeholder="5" required>
+                        <div class="help-text">{% trans "Trafiğin yansıtılacağı hedef port" %}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="source_vlans">{% trans "Kaynak VLAN'lar" %}</label>
+                        <input type="text" class="form-control" id="source_vlans" name="source_vlans" 
+                               placeholder="10,20,30">
+                        <div class="help-text">{% trans "Virgülle ayrılmış VLAN ID'leri (opsiyonel)" %}</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="destination_ip">{% trans "Hedef IP Adresi" %}</label>
+                        <input type="text" class="form-control" id="destination_ip" name="destination_ip" 
+                               placeholder="192.168.1.100">
+                        <div class="help-text">{% trans "RSPAN/ERSPAN için hedef IP (opsiyonel)" %}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtreleme Ayarları -->
+        <div class="form-section">
+            <h5><i class="fas fa-filter me-2"></i>{% trans "Filtreleme Ayarları" %}</h5>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="direction">{% trans "Trafik Yönü" %}</label>
+                        <select class="form-control" id="direction" name="direction">
+                            <option value="BOTH">{% trans "Her İki Yön" %}</option>
+                            <option value="TX">{% trans "Sadece Gönderim" %}</option>
+                            <option value="RX">{% trans "Sadece Alım" %}</option>
+                        </select>
+                        <div class="help-text">{% trans "Hangi yöndeki trafiğin yansıtılacağını seçin" %}</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="protocol_filter">{% trans "Protokol Filtresi" %}</label>
+                        <input type="text" class="form-control" id="protocol_filter" name="protocol_filter" 
+                               placeholder="TCP,UDP,ICMP">
+                        <div class="help-text">{% trans "Virgülle ayrılmış protokol listesi (opsiyonel)" %}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performans Ayarları -->
+        <div class="form-section">
+            <h5>
+                <i class="fas fa-tachometer-alt me-2"></i>{% trans "Performans Ayarları" %}
+                <button type="button" class="btn btn-link btn-sm collapse-section" data-bs-toggle="collapse" data-bs-target="#performanceSettings">
+                    {% trans "Göster" %}
+                </button>
+            </h5>
+            
+            <div class="collapse" id="performanceSettings">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="max_bandwidth">{% trans "Maksimum Bant Genişliği (Mbps)" %}</label>
+                            <input type="number" class="form-control" id="max_bandwidth" name="max_bandwidth" 
+                                   value="1000" min="1" max="10000">
+                            <div class="help-text">{% trans "Mirror port için maksimum bant genişliği" %}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="buffer_size">{% trans "Buffer Boyutu (MB)" %}</label>
+                            <input type="number" class="form-control" id="buffer_size" name="buffer_size" 
+                                   value="100" min="1" max="1000">
+                            <div class="help-text">{% trans "Trafik yakalama için buffer boyutu" %}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Durum Ayarları -->
+        <div class="form-section">
+            <h5><i class="fas fa-toggle-on me-2"></i>{% trans "Durum Ayarları" %}</h5>
+            
+            <div class="form-group">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                    <label class="form-check-label" for="is_active">
+                        {% trans "Aktif" %}
+                    </label>
+                </div>
+                <div class="help-text">{% trans "Konfigürasyonun aktif olup olmadığını belirler" %}</div>
+            </div>
+        </div>
+
+        <!-- Kaydet Butonu -->
+        <div class="form-section text-center">
+            <button type="submit" class="btn btn-save btn-lg">
+                <i class="fas fa-save me-2"></i>{% trans "Konfigürasyonu Kaydet" %}
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+// Form validasyonu
+document.querySelector('form').addEventListener('submit', function(e) {
+    const name = document.getElementById('name').value.trim();
+    const configType = document.getElementById('config_type').value;
+    const sourcePorts = document.getElementById('source_ports').value.trim();
+    const destinationPort = document.getElementById('destination_port').value.trim();
+    
+    if (!name) {
+        e.preventDefault();
+        alert('{% trans "Lütfen konfigürasyon adı girin" %}');
+        return;
+    }
+    
+    if (!configType) {
+        e.preventDefault();
+        alert('{% trans "Lütfen konfigürasyon tipi seçin" %}');
+        return;
+    }
+    
+    if (!sourcePorts) {
+        e.preventDefault();
+        alert('{% trans "Lütfen kaynak portları girin" %}');
+        return;
+    }
+    
+    if (!destinationPort) {
+        e.preventDefault();
+        alert('{% trans "Lütfen hedef port girin" %}');
+        return;
+    }
+    
+    // Port numaralarını kontrol et
+    const portRegex = /^[0-9,]+$/;
+    if (!portRegex.test(sourcePorts)) {
+        e.preventDefault();
+        alert('{% trans "Kaynak portlar sadece rakam ve virgül içerebilir" %}');
+        return;
+    }
+    
+    if (!portRegex.test(destinationPort)) {
+        e.preventDefault();
+        alert('{% trans "Hedef port sadece rakam içerebilir" %}');
+        return;
+    }
+});
+</script>
+{% endblock %}

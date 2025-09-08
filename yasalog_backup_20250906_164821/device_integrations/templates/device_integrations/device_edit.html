@@ -1,0 +1,260 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}{{ device.name }} - Cihaz Düzenle{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-edit me-2"></i>{{ device.name }} - Cihaz Düzenle
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'device_integrations:device_dashboard' company_slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Geri Dön
+            </a>
+            <a href="{% url 'device_integrations:device_view' company_slug device.id %}" class="btn btn-outline-info">
+                <i class="fas fa-eye me-2"></i>Görüntüle
+            </a>
+        </div>
+    </div>
+
+    <!-- Cihaz Düzenleme Formu -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-server me-2"></i>Cihaz Bilgileri
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Cihaz Adı *</label>
+                                    <input type="text" class="form-control" id="name" name="name" value="{{ device.name }}" required>
+                                    <div class="form-text">Cihaz için benzersiz bir isim girin</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="device_type" class="form-label">Cihaz Tipi</label>
+                                    <input type="text" class="form-control" id="device_type" name="device_type" value="{{ device.device_type.name }}" readonly>
+                                    <div class="form-text">Cihaz tipi değiştirilemez</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Açıklama</label>
+                            <textarea class="form-control" id="description" name="description" rows="3">{{ device.description }}</textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="ip_address" class="form-label">IP Adresi *</label>
+                                    <input type="text" class="form-control" id="ip_address" name="ip_address" value="{{ device.ip_address }}" required>
+                                    <div class="form-text">Cihazın IP adresini girin</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="port" class="form-label">Port</label>
+                                    <input type="number" class="form-control" id="port" name="port" value="{{ device.port }}" min="1" max="65535">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="protocol" class="form-label">Protokol</label>
+                                    <select class="form-select" id="protocol" name="protocol">
+                                        <option value="ssh" {% if device.protocol == 'ssh' %}selected{% endif %}>SSH</option>
+                                        <option value="telnet" {% if device.protocol == 'telnet' %}selected{% endif %}>Telnet</option>
+                                        <option value="http" {% if device.protocol == 'http' %}selected{% endif %}>HTTP</option>
+                                        <option value="https" {% if device.protocol == 'https' %}selected{% endif %}>HTTPS</option>
+                                        <option value="snmp" {% if device.protocol == 'snmp' %}selected{% endif %}>SNMP</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="integration_type" class="form-label">Entegrasyon Tipi *</label>
+                            <select class="form-select" id="integration_type" name="integration_type" required>
+                                {% for value, label in integration_choices %}
+                                <option value="{{ value }}" {% if device.integration_type == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="api_endpoint" class="form-label">API Endpoint</label>
+                                    <input type="url" class="form-control" id="api_endpoint" name="api_endpoint" value="{{ device.api_endpoint }}">
+                                    <div class="form-text">API bağlantı adresi (opsiyonel)</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="api_key" class="form-label">API Anahtarı</label>
+                                    <input type="password" class="form-control" id="api_key" name="api_key" value="{{ device.api_key }}">
+                                    <div class="form-text">API kimlik doğrulama anahtarı (opsiyonel)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="is_monitored" name="is_monitored" {% if device.is_monitored %}checked{% endif %}>
+                                <label class="form-check-label" for="is_monitored">
+                                    Cihazı izle
+                                </label>
+                                <div class="form-text">Bu cihazın durumunu otomatik olarak izle</div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'device_integrations:device_dashboard' company_slug %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>İptal
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Değişiklikleri Kaydet
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Cihaz Durumu -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-heartbeat me-2"></i>Cihaz Durumu
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        {% if device.status == 'online' %}
+                            <i class="fas fa-circle text-success fa-3x"></i>
+                        {% elif device.status == 'offline' %}
+                            <i class="fas fa-circle text-danger fa-3x"></i>
+                        {% else %}
+                            <i class="fas fa-circle text-warning fa-3x"></i>
+                        {% endif %}
+                    </div>
+                    <h4 class="mb-1">{{ device.get_status_display }}</h4>
+                    <p class="text-muted mb-0">Son güncelleme: {{ device.last_seen|date:"d.m.Y H:i" }}</p>
+                </div>
+            </div>
+
+            <!-- Cihaz Bilgileri -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Cihaz Bilgileri
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-borderless">
+                        <tr>
+                            <td><strong>Oluşturulma:</strong></td>
+                            <td>{{ device.created_at|date:"d.m.Y H:i" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Son Güncelleme:</strong></td>
+                            <td>{{ device.updated_at|date:"d.m.Y H:i" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Entegrasyon:</strong></td>
+                            <td>
+                                <span class="badge bg-info">{{ device.get_integration_type_display }}</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>İzleme:</strong></td>
+                            <td>
+                                {% if device.is_monitored %}
+                                    <span class="badge bg-success">Aktif</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Pasif</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Hızlı İşlemler -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bolt me-2"></i>Hızlı İşlemler
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'device_integrations:device_view' company_slug device.id %}" class="btn btn-outline-primary">
+                            <i class="fas fa-eye me-2"></i>Cihaz Detayları
+                        </a>
+                        <button onclick="testConnection()" class="btn btn-outline-success">
+                            <i class="fas fa-plug me-2"></i>Bağlantı Testi
+                        </button>
+                        <button onclick="refreshStatus()" class="btn btn-outline-info">
+                            <i class="fas fa-sync me-2"></i>Durumu Yenile
+                        </button>
+                        <hr>
+                        <button onclick="deleteDevice()" class="btn btn-outline-danger">
+                            <i class="fas fa-trash me-2"></i>Cihazı Sil
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function testConnection() {
+    showToast('info', 'Bağlantı testi başlatılıyor...');
+    // Bağlantı testi implementasyonu
+}
+
+function refreshStatus() {
+    showToast('info', 'Cihaz durumu yenileniyor...');
+    // Durum yenileme implementasyonu
+}
+
+function deleteDevice() {
+    if (confirm('Bu cihazı silmek istediğinizden emin misiniz?')) {
+        window.location.href = "{% url 'device_integrations:device_delete' company_slug device.id %}";
+    }
+}
+
+function showToast(type, message) {
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} alert-dismissible fade show position-fixed`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    toast.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }, 3000);
+}
+</script>
+{% endblock %}

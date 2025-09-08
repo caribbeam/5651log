@@ -1,0 +1,165 @@
+{% load i18n %}
+
+<div class="language-switcher-container" style="position: absolute; top: 18px; right: 24px; z-index: 10;">
+    <div class="d-flex align-items-center gap-2">
+        <!-- 5651 Kanun Bilgisi -->
+        <div class="dropdown">
+            <button class="btn btn-outline-info btn-sm dropdown-toggle" type="button" id="lawInfoDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-info-circle me-1"></i>
+                {% trans "5651 Kanunu" %}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="lawInfoDropdown">
+                <li><h6 class="dropdown-header">{% trans "5651 Sayılı Kanun Hakkında" %}</h6></li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <div class="dropdown-item-text">
+                        <small class="text-muted">
+                            {% trans "Bu sistem, 5651 sayılı 'İnternet Ortamında Yapılan Yayınların Düzenlenmesi Hakkında Kanun' kapsamında ziyaretçi kayıtlarının tutulması amacıyla geliştirilmiştir." %}
+                        </small>
+                    </div>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <div class="dropdown-item-text">
+                        <small class="text-muted">
+                            {% trans "Madde 4: İçerik sağlayıcı, yer sağlayıcı ve toplu kullanım sağlayıcıları, kendi ortamlarında hukuka aykırı içeriklerin yayından kaldırılması amacıyla yer sağlayıcılarına bildirim yapılması için gerekli teknik donanımı sağlamakla yükümlüdür." %}
+                        </small>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Dil Seçici -->
+        <div class="dropdown">
+            <button class="btn btn-outline-primary btn-sm dropdown-toggle d-flex align-items-center gap-2" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-globe"></i>
+                <span id="currentLanguageText">
+                    {% get_current_language as LANGUAGE_CODE %}
+                    {% get_available_languages as LANGUAGES %}
+                    {% for lang_code, lang_name in LANGUAGES %}
+                        {% if lang_code == LANGUAGE_CODE %}
+                            {{ lang_name }}
+                        {% endif %}
+                    {% endfor %}
+                </span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
+                {% for lang_code, lang_name in LANGUAGES %}
+                    <li>
+                        <a class="dropdown-item language-option {% if lang_code == LANGUAGE_CODE %}active{% endif %}" 
+                           href="#" 
+                           data-lang="{{ lang_code }}">
+                            <i class="fas fa-flag me-2"></i>
+                            {{ lang_name }}
+                            {% if lang_code == LANGUAGE_CODE %}
+                                <i class="fas fa-check text-success ms-auto"></i>
+                            {% endif %}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<style>
+.language-switcher-container {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.language-switcher-container .btn {
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.language-switcher-container .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.dropdown-menu {
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    border: none;
+    padding: 0.5rem 0;
+}
+
+.dropdown-item {
+    padding: 0.75rem 1rem;
+    transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+    transform: translateX(2px);
+}
+
+.dropdown-item.active {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+.dropdown-header {
+    font-weight: 600;
+    color: #495057;
+    padding: 0.5rem 1rem;
+}
+
+.dropdown-item-text {
+    padding: 0.75rem 1rem;
+    max-width: 300px;
+    line-height: 1.4;
+}
+
+.language-option {
+    cursor: pointer;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Dil seçeneklerine tıklama olayı ekle
+    const languageOptions = document.querySelectorAll('.language-option');
+    languageOptions.forEach(option => {
+        option.addEventListener('click', function(e) {
+            e.preventDefault();
+            const langCode = this.getAttribute('data-lang');
+            changeLanguage(langCode);
+        });
+    });
+
+    function changeLanguage(langCode) {
+        // Mevcut URL'den dil kodunu kaldır ve yeni dil koduyla değiştir
+        const currentPath = window.location.pathname;
+        const pathWithoutLang = currentPath.replace(/^\/[a-z]{2}\//, '/');
+        const newPath = langCode === 'tr' ? pathWithoutLang : '/' + langCode + pathWithoutLang;
+        
+        // Form oluştur ve gönder
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{% url "set_language" %}';
+        
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = '{{ csrf_token }}';
+        form.appendChild(csrfInput);
+
+        const langInput = document.createElement('input');
+        langInput.type = 'hidden';
+        langInput.name = 'language';
+        langInput.value = langCode;
+        form.appendChild(langInput);
+
+        const nextInput = document.createElement('input');
+        nextInput.type = 'hidden';
+        nextInput.name = 'next';
+        nextInput.value = newPath;
+        form.appendChild(nextInput);
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+});
+</script> 

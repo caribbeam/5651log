@@ -1,0 +1,592 @@
+{% extends "log_kayit/partials/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Hotspot Kullanıcı Detayı - {{ user.username }} - {{ company.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .user-detail {
+        padding: 20px 0;
+    }
+    
+    .user-header {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border-left: 5px solid #007bff;
+    }
+    
+    .user-title {
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 15px;
+    }
+    
+    .user-meta {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+    
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+        color: #666;
+    }
+    
+    .status-badge {
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .status-active { background: #28a745; color: white; }
+    .status-inactive { background: #6c757d; color: white; }
+    .status-blocked { background: #dc3545; color: white; }
+    
+    .type-badge {
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .type-guest { background: #6c757d; color: white; }
+    .type-registered { background: #007bff; color: white; }
+    .type-staff { background: #28a745; color: white; }
+    .type-vip { background: #ffc107; color: #212529; }
+    
+    .user-sections {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .user-section {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    
+    .section-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #f8f9fa;
+    }
+    
+    .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+    }
+    
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .detail-label {
+        font-size: 0.85rem;
+        color: #666;
+        font-weight: 500;
+    }
+    
+    .detail-value {
+        font-size: 1rem;
+        color: #333;
+        font-weight: 600;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .stat-item {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        border-left: 4px solid #007bff;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #007bff;
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        color: #666;
+    }
+    
+    .recent-items {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    
+    .recent-items h4 {
+        color: #333;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .item-card {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-left: 4px solid #28a745;
+        transition: all 0.3s ease;
+    }
+    
+    .item-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    
+    .item-title {
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+    }
+    
+    .item-meta {
+        display: flex;
+        gap: 15px;
+        font-size: 0.85rem;
+        color: #666;
+    }
+    
+    .item-description {
+        color: #666;
+        margin: 0;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #666;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        opacity: 0.3;
+    }
+    
+    .action-buttons {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    
+    .btn-group {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="user-detail">
+    {% csrf_token %}
+    <!-- Kullanıcı Başlığı -->
+    <div class="user-header">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <h1 class="user-title">{{ user.username }}</h1>
+            <div class="d-flex gap-2">
+                <span class="status-badge status-{% if user.is_active %}active{% else %}inactive{% endif %}">
+                    {% if user.is_active %}Aktif{% else %}Pasif{% endif %}
+                </span>
+                {% if user.is_blocked %}
+                <span class="status-badge status-blocked">Engellenmiş</span>
+                {% endif %}
+                <span class="type-badge type-{{ user.user_type|lower }}">{{ user.get_user_type_display }}</span>
+            </div>
+        </div>
+        
+        <div class="user-meta">
+            <div class="meta-item">
+                <i class="fas fa-wifi"></i>
+                <span>Hotspot: {{ user.hotspot.name }}</span>
+            </div>
+            <div class="meta-item">
+                <i class="fas fa-mobile-alt"></i>
+                <span>MAC: {{ user.mac_address }}</span>
+            </div>
+            <div class="meta-item">
+                <i class="fas fa-network-wired"></i>
+                <span>IP: {{ user.ip_address }}</span>
+            </div>
+            {% if user.email %}
+            <div class="meta-item">
+                <i class="fas fa-envelope"></i>
+                <span>{{ user.email }}</span>
+            </div>
+            {% endif %}
+            {% if user.phone %}
+            <div class="meta-item">
+                <i class="fas fa-phone"></i>
+                <span>{{ user.phone }}</span>
+            </div>
+            {% endif %}
+            <div class="meta-item">
+                <i class="fas fa-calendar"></i>
+                <span>Kayıt: {{ user.created_at|date:'d.m.Y H:i' }}</span>
+            </div>
+            {% if user.last_login %}
+            <div class="meta-item">
+                <i class="fas fa-clock"></i>
+                <span>Son Giriş: {{ user.last_login|date:'d.m.Y H:i' }}</span>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="d-flex gap-2">
+            <a href="{% url 'hotspot_management:users_list' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Geri Dön
+            </a>
+            <a href="{% url 'log_kayit:company_dashboard_slug' company.slug %}" class="btn btn-outline-primary">
+                <i class="fas fa-home me-2"></i>Ana Sayfa
+            </a>
+        </div>
+    </div>
+
+    <!-- İstatistikler -->
+    <div class="stats-grid">
+        <div class="stat-item">
+            <div class="stat-number">{{ total_sessions|default:0 }}</div>
+            <div class="stat-label">Toplam Oturum</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">{{ active_sessions|default:0 }}</div>
+            <div class="stat-label">Aktif Oturum</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">{{ total_bytes|filesizeformat|default:"0 B" }}</div>
+            <div class="stat-label">Toplam Veri</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">{{ avg_session_duration|default:0 }}</div>
+            <div class="stat-label">Ort. Oturum (dk)</div>
+        </div>
+    </div>
+
+    <!-- Kullanıcı Detayları -->
+    <div class="user-sections">
+        <!-- Temel Bilgiler -->
+        <div class="user-section">
+            <h4 class="section-title">
+                <i class="fas fa-user"></i>
+                Temel Bilgiler
+            </h4>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <div class="detail-label">Kullanıcı Adı</div>
+                    <div class="detail-value">{{ user.username }}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Kullanıcı Tipi</div>
+                    <div class="detail-value">
+                        <span class="badge bg-{{ user.get_user_type_color }}">{{ user.get_user_type_display }}</span>
+                    </div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Durum</div>
+                    <div class="detail-value">
+                        <span class="badge bg-{% if user.is_active %}success{% else %}secondary{% endif %}">
+                            {% if user.is_active %}Aktif{% else %}Pasif{% endif %}
+                        </span>
+                    </div>
+                </div>
+                {% if user.is_blocked %}
+                <div class="detail-item">
+                    <div class="detail-label">Engel Durumu</div>
+                    <div class="detail-value">
+                        <span class="badge bg-danger">Engellenmiş</span>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="detail-item">
+                    <div class="detail-label">Kayıt Tarihi</div>
+                    <div class="detail-value">{{ user.created_at|date:'d.m.Y H:i' }}</div>
+                </div>
+                {% if user.last_login %}
+                <div class="detail-item">
+                    <div class="detail-label">Son Giriş</div>
+                    <div class="detail-value">{{ user.last_login|date:'d.m.Y H:i' }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- İletişim Bilgileri -->
+        <div class="user-section">
+            <h4 class="section-title">
+                <i class="fas fa-address-book"></i>
+                İletişim Bilgileri
+            </h4>
+            <div class="detail-grid">
+                {% if user.email %}
+                <div class="detail-item">
+                    <div class="detail-label">E-posta</div>
+                    <div class="detail-value">{{ user.email }}</div>
+                </div>
+                {% endif %}
+                {% if user.phone %}
+                <div class="detail-item">
+                    <div class="detail-label">Telefon</div>
+                    <div class="detail-value">{{ user.phone }}</div>
+                </div>
+                {% endif %}
+                <div class="detail-item">
+                    <div class="detail-label">MAC Adresi</div>
+                    <div class="detail-value">{{ user.mac_address }}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">IP Adresi</div>
+                    <div class="detail-value">{{ user.ip_address }}</div>
+                </div>
+                {% if user.device_info %}
+                <div class="detail-item">
+                    <div class="detail-label">Cihaz Bilgisi</div>
+                    <div class="detail-value">{{ user.device_info }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Hotspot Bilgileri -->
+        <div class="user-section">
+            <h4 class="section-title">
+                <i class="fas fa-wifi"></i>
+                Hotspot Bilgileri
+            </h4>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <div class="detail-label">Hotspot</div>
+                    <div class="detail-value">
+                        <a href="{% url 'hotspot_management:configuration_detail' company.slug user.hotspot.id %}">
+                            {{ user.hotspot.name }}
+                        </a>
+                    </div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">SSID</div>
+                    <div class="detail-value">{{ user.hotspot.ssid }}</div>
+                </div>
+                {% if user.bandwidth_policy %}
+                <div class="detail-item">
+                    <div class="detail-label">Bant Genişliği Politikası</div>
+                    <div class="detail-value">{{ user.bandwidth_policy.name }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Son Oturumlar -->
+    <div class="recent-items">
+        <h4>
+            <i class="fas fa-history"></i>
+            Son Oturumlar
+        </h4>
+        {% for session in recent_sessions %}
+        <div class="item-card">
+            <div class="item-header">
+                <div class="item-title">Oturum #{{ session.session_id|truncatechars:8 }}</div>
+                <div class="item-meta">
+                    <span class="badge bg-{{ session.get_status_color }}">{{ session.get_status_display }}</span>
+                    {{ session.start_time|date:'d.m.Y H:i' }}
+                </div>
+            </div>
+            <div class="item-description">
+                <i class="fas fa-clock me-1"></i>{{ session.duration_minutes }} dakika
+                <br><i class="fas fa-download me-1"></i>{{ session.bytes_downloaded|filesizeformat }}
+                <i class="fas fa-upload me-1 ms-2"></i>{{ session.bytes_uploaded|filesizeformat }}
+                {% if session.end_time %}
+                <br><i class="fas fa-stop me-1"></i>Bitiş: {{ session.end_time|date:'d.m.Y H:i' }}
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <i class="fas fa-history"></i>
+            <p>Henüz oturum bulunmuyor</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Aksiyon Butonları -->
+    <div class="action-buttons">
+        <h4 class="section-title">
+            <i class="fas fa-tools"></i>
+            Kullanıcı Yönetimi
+        </h4>
+        <div class="btn-group">
+            {% if user.is_active %}
+            <button class="btn btn-warning" onclick="toggleUserStatus({{ user.id }}, false)">
+                <i class="fas fa-pause me-2"></i>Kullanıcıyı Pasifleştir
+            </button>
+            {% else %}
+            <button class="btn btn-success" onclick="toggleUserStatus({{ user.id }}, true)">
+                <i class="fas fa-play me-2"></i>Kullanıcıyı Aktifleştir
+            </button>
+            {% endif %}
+            
+            {% if user.is_blocked %}
+            <button class="btn btn-success" onclick="toggleUserBlock({{ user.id }}, false)">
+                <i class="fas fa-unlock me-2"></i>Engeli Kaldır
+            </button>
+            {% else %}
+            <button class="btn btn-danger" onclick="toggleUserBlock({{ user.id }}, true)">
+                <i class="fas fa-ban me-2"></i>Kullanıcıyı Engelle
+            </button>
+            {% endif %}
+            
+            <button class="btn btn-info" onclick="viewUserSessions({{ user.id }})">
+                <i class="fas fa-list me-2"></i>Tüm Oturumları Görüntüle
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Kullanıcı durumunu değiştir
+function toggleUserStatus(userId, isActive) {
+    const action = isActive ? 'aktifleştirmek' : 'pasifleştirmek';
+    if (confirm(`Bu kullanıcıyı ${action} istediğinizden emin misiniz?`)) {
+        // AJAX ile kullanıcı durumunu güncelle
+        fetch(`/hotspot/users/${userId}/toggle-status/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                is_active: isActive
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Hata: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Hata:', error);
+            alert('Bir hata oluştu.');
+        });
+    }
+}
+
+// Kullanıcı engelini değiştir
+function toggleUserBlock(userId, isBlocked) {
+    const action = isBlocked ? 'engellemek' : 'engeli kaldırmak';
+    if (confirm(`Bu kullanıcıyı ${action} istediğinizden emin misiniz?`)) {
+        // AJAX ile kullanıcı engelini güncelle
+        fetch(`/hotspot/users/${userId}/toggle-block/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                is_blocked: isBlocked
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Hata: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Hata:', error);
+            alert('Bir hata oluştu.');
+        });
+    }
+}
+
+// Kullanıcı oturumlarını görüntüle
+function viewUserSessions(userId) {
+    window.location.href = `/hotspot/sessions/site/?user=${userId}`;
+}
+
+// Sayfa yüklendiğinde animasyonlar
+document.addEventListener('DOMContentLoaded', function() {
+    // Stat kartlarına animasyon ekle
+    const statItems = document.querySelectorAll('.stat-item');
+    statItems.forEach((item, index) => {
+        setTimeout(() => {
+            item.style.opacity = '0';
+            item.style.transform = 'translateY(20px)';
+            item.style.transition = 'all 0.5s ease';
+            
+            setTimeout(() => {
+                item.style.opacity = '1';
+                item.style.transform = 'translateY(0)';
+            }, 100);
+        }, index * 100);
+    });
+    
+    // Kullanıcı kartlarına hover efekti
+    const userSections = document.querySelectorAll('.user-section');
+    userSections.forEach(section => {
+        section.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+            this.style.transition = 'all 0.3s ease';
+        });
+        
+        section.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+});
+</script>
+{% endblock %}

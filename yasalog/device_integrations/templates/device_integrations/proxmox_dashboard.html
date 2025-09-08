@@ -1,0 +1,303 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Proxmox Dashboard - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-server me-2"></i>Proxmox Dashboard
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'device_integrations:device_dashboard' company_slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Device Management
+            </a>
+            <button onclick="refreshProxmoxData()" class="btn btn-primary">
+                <i class="fas fa-sync me-2"></i>Yenile
+            </button>
+        </div>
+    </div>
+
+    <!-- Genel İstatistikler -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ total_proxmox_devices }}</h4>
+                            <p class="mb-0">Proxmox Sunucuları</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-server fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ total_nodes }}</h4>
+                            <p class="mb-0">Toplam Node</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-cubes fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ total_vms }}</h4>
+                            <p class="mb-0">Toplam VM</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-desktop fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ total_containers }}</h4>
+                            <p class="mb-0">Toplam Container</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-box fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Durum İstatistikleri -->
+    <div class="row mb-4">
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Node Durumu</h5>
+                    <div class="progress mb-2" style="height: 20px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ node_usage_percent }}%">
+                            {{ online_nodes }}/{{ total_nodes }}
+                        </div>
+                    </div>
+                    <small class="text-muted">{{ node_usage_percent|floatformat:1 }}% Online</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">VM Durumu</h5>
+                    <div class="progress mb-2" style="height: 20px;">
+                        <div class="progress-bar bg-info" role="progressbar" style="width: {{ vm_usage_percent }}%">
+                            {{ running_vms }}/{{ total_vms }}
+                        </div>
+                    </div>
+                    <small class="text-muted">{{ vm_usage_percent|floatformat:1 }}% Çalışıyor</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Container Durumu</h5>
+                    <div class="progress mb-2" style="height: 20px;">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: {{ container_usage_percent }}%">
+                            {{ running_containers }}/{{ total_containers }}
+                        </div>
+                    </div>
+                    <small class="text-muted">{{ container_usage_percent|floatformat:1 }}% Çalışıyor</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Proxmox Sunucuları -->
+    {% for proxmox in proxmox_data %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-server me-2"></i>{{ proxmox.device.name }}
+                    <span class="badge bg-{% if proxmox.status == 'connected' %}success{% elif proxmox.status == 'disconnected' %}danger{% else %}warning{% endif %} ms-2">
+                        {% if proxmox.status == 'connected' %}Bağlı{% elif proxmox.status == 'disconnected' %}Bağlantısız{% else %}Hata{% endif %}
+                    </span>
+                </h5>
+                <div>
+                    <small class="text-muted">{{ proxmox.device.ip_address }}:8006</small>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if proxmox.status == 'connected' %}
+                <!-- Node'lar -->
+                <div class="row">
+                    {% for node_info in proxmox.nodes %}
+                    <div class="col-lg-4 col-md-6 mb-3">
+                        <div class="card border-{% if node_info.status == 'online' %}success{% else %}danger{% endif %}">
+                            <div class="card-header bg-{% if node_info.status == 'online' %}success{% else %}danger{% endif %} text-white">
+                                <h6 class="card-title mb-0">
+                                    <i class="fas fa-cube me-2"></i>{{ node_info.node.name }}
+                                    <span class="badge bg-light text-dark ms-2">
+                                        {% if node_info.status == 'online' %}Online{% else %}Offline{% endif %}
+                                    </span>
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <!-- VM'ler -->
+                                {% if node_info.vms %}
+                                <h6 class="text-primary">
+                                    <i class="fas fa-desktop me-2"></i>VM'ler ({{ node_info.vm_count }})
+                                </h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>İsim</th>
+                                                <th>Durum</th>
+                                                <th>CPU</th>
+                                                <th>RAM</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for vm in node_info.vms %}
+                                            <tr>
+                                                <td>{{ vm.vmid }}</td>
+                                                <td>{{ vm.name }}</td>
+                                                <td>
+                                                    <span class="badge bg-{% if vm.status == 'running' %}success{% elif vm.status == 'stopped' %}danger{% else %}warning{% endif %}">
+                                                        {% if vm.status == 'running' %}Çalışıyor{% elif vm.status == 'stopped' %}Durdurulmuş{% else %}{{ vm.status }}{% endif %}
+                                                    </span>
+                                                </td>
+                                                <td>{{ vm.cpu|floatformat:1 }}%</td>
+                                                <td>{{ vm.memory|filesizeformat }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% endif %}
+
+                                <!-- Container'lar -->
+                                {% if node_info.containers %}
+                                <h6 class="text-warning mt-3">
+                                    <i class="fas fa-box me-2"></i>Container'lar ({{ node_info.container_count }})
+                                </h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>İsim</th>
+                                                <th>Durum</th>
+                                                <th>CPU</th>
+                                                <th>RAM</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for container in node_info.containers %}
+                                            <tr>
+                                                <td>{{ container.vmid }}</td>
+                                                <td>{{ container.name }}</td>
+                                                <td>
+                                                    <span class="badge bg-{% if container.status == 'running' %}success{% elif container.status == 'stopped' %}danger{% else %}warning{% endif %}">
+                                                        {% if container.status == 'running' %}Çalışıyor{% elif container.status == 'stopped' %}Durdurulmuş{% else %}{{ container.status }}{% endif %}
+                                                    </span>
+                                                </td>
+                                                <td>{{ container.cpu|floatformat:1 }}%</td>
+                                                <td>{{ container.memory|filesizeformat }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% endif %}
+
+                                <!-- Node İstatistikleri -->
+                                <div class="row mt-3">
+                                    <div class="col-6">
+                                        <small class="text-muted">
+                                            <strong>VM'ler:</strong> {{ node_info.running_vms }}/{{ node_info.vm_count }} çalışıyor
+                                        </small>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted">
+                                            <strong>Container'lar:</strong> {{ node_info.running_containers }}/{{ node_info.container_count }} çalışıyor
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-{% if proxmox.status == 'disconnected' %}danger{% else %}warning{% endif %}">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    {% if proxmox.status == 'disconnected' %}
+                        Proxmox sunucusuna bağlanılamıyor. Lütfen bağlantı ayarlarını kontrol edin.
+                    {% else %}
+                        Proxmox sunucusuna bağlanırken hata oluştu: {{ proxmox.status }}
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="card">
+        <div class="card-body text-center">
+            <i class="fas fa-server fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">Proxmox Sunucusu Bulunamadı</h5>
+            <p class="text-muted">Proxmox entegrasyonu için önce bir Proxmox cihazı ekleyin.</p>
+            <a href="{% url 'device_integrations:device_add' company_slug %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Proxmox Cihazı Ekle
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+function refreshProxmoxData() {
+    showToast('info', 'Proxmox verileri yenileniyor...');
+    setTimeout(() => {
+        location.reload();
+    }, 1000);
+}
+
+function showToast(type, message) {
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} alert-dismissible fade show position-fixed`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    toast.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }, 3000);
+}
+</script>
+{% endblock %}

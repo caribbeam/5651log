@@ -1,0 +1,113 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}{{ device.name }} - Cihaz Sil{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Cihaz Silme Onayı
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-trash-alt fa-4x text-danger"></i>
+                    </div>
+                    
+                    <h4 class="text-danger mb-3">{{ device.name }} Cihazını Sil</h4>
+                    
+                    <div class="alert alert-warning">
+                        <strong>Dikkat!</strong><br>
+                        Bu işlem geri alınamaz. Cihaz ve tüm ilişkili veriler kalıcı olarak silinecektir.
+                    </div>
+                    
+                    <!-- Cihaz Bilgileri -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h6 class="card-title">Silinecek Cihaz Bilgileri:</h6>
+                            <table class="table table-sm table-borderless">
+                                <tr>
+                                    <td><strong>Cihaz Adı:</strong></td>
+                                    <td>{{ device.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>IP Adresi:</strong></td>
+                                    <td><code>{{ device.ip_address }}</code></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Tip:</strong></td>
+                                    <td>{{ device.get_integration_type_display }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Durum:</strong></td>
+                                    <td>
+                                        <span class="badge bg-{% if device.status == 'online' %}success{% elif device.status == 'offline' %}danger{% else %}warning{% endif %}">
+                                            {{ device.get_status_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Oluşturulma:</strong></td>
+                                    <td>{{ device.created_at|date:"d.m.Y H:i" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <p class="text-muted mb-4">
+                        Bu cihazı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+                    </p>
+                    
+                    <form method="post" class="d-inline">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="{% url 'device_integrations:device_dashboard' company_slug %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>İptal
+                            </a>
+                            <a href="{% url 'device_integrations:device_edit' company_slug device.id %}" class="btn btn-outline-primary">
+                                <i class="fas fa-edit me-2"></i>Düzenle
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-2"></i>Evet, Sil
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Uyarı Bilgileri -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Silme İşlemi Hakkında
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                            <small>Cihaz ve tüm ilişkili veriler kalıcı olarak silinir</small>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                            <small>Cihaz logları ve performans verileri silinir</small>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                            <small>Bu işlem geri alınamaz</small>
+                        </li>
+                        <li>
+                            <i class="fas fa-info-circle text-info me-2"></i>
+                            <small>Alternatif olarak cihazı "Bakım" moduna alabilirsiniz</small>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

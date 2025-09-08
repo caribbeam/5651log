@@ -1,0 +1,257 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Uyarı Bildirimleri - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-bell me-2"></i>Uyarı Bildirimleri
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="/dashboard/{{ company_slug }}/" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Ana Dashboard
+            </a>
+            <a href="/alerts/dashboard/{{ company_slug }}/" class="btn btn-outline-primary">
+                <i class="fas fa-tachometer-alt me-2"></i>Alert Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Bildirim Ayarları -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-cog"></i> Bildirim Ayarları
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="notificationSettingsForm">
+                        <!-- Email Ayarları -->
+                        <div class="mb-4">
+                            <h6 class="text-primary">Email Bildirimleri</h6>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="emailEnabled" 
+                                       {% if notification_settings.email_enabled %}checked{% endif %}>
+                                <label class="form-check-label" for="emailEnabled">
+                                    Email bildirimlerini etkinleştir
+                                </label>
+                            </div>
+                            <div class="mb-2">
+                                <label for="emailRecipients" class="form-label">Email Alıcıları</label>
+                                <textarea class="form-control" id="emailRecipients" rows="3" 
+                                          placeholder="admin@company.com, tech@company.com">{{ notification_settings.email_recipients|join:", " }}</textarea>
+                                <small class="form-text text-muted">Her satıra bir email adresi yazın</small>
+                            </div>
+                        </div>
+
+                        <!-- SMS Ayarları -->
+                        <div class="mb-4">
+                            <h6 class="text-primary">SMS Bildirimleri</h6>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="smsEnabled" 
+                                       {% if notification_settings.sms_enabled %}checked{% endif %}>
+                                <label class="form-check-label" for="smsEnabled">
+                                    SMS bildirimlerini etkinleştir
+                                </label>
+                            </div>
+                            <div class="mb-2">
+                                <label for="smsRecipients" class="form-label">SMS Alıcıları</label>
+                                <textarea class="form-control" id="smsRecipients" rows="2" 
+                                          placeholder="+905551234567, +905559876543">{{ notification_settings.sms_recipients|join:", " }}</textarea>
+                                <small class="form-text text-muted">Her satıra bir telefon numarası yazın</small>
+                            </div>
+                        </div>
+
+                        <!-- Push Notification -->
+                        <div class="mb-4">
+                            <h6 class="text-primary">Push Bildirimleri</h6>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="pushEnabled" 
+                                       {% if notification_settings.push_enabled %}checked{% endif %}>
+                                <label class="form-check-label" for="pushEnabled">
+                                    Push bildirimlerini etkinleştir
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Slack Ayarları -->
+                        <div class="mb-4">
+                            <h6 class="text-primary">Slack Entegrasyonu</h6>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="slackEnabled" 
+                                       {% if notification_settings.slack_enabled %}checked{% endif %}>
+                                <label class="form-check-label" for="slackEnabled">
+                                    Slack bildirimlerini etkinleştir
+                                </label>
+                            </div>
+                            <div class="mb-2">
+                                <label for="slackWebhook" class="form-label">Slack Webhook URL</label>
+                                <input type="url" class="form-control" id="slackWebhook" 
+                                       value="{{ notification_settings.slack_webhook }}" 
+                                       placeholder="https://hooks.slack.com/services/...">
+                            </div>
+                        </div>
+
+                        <!-- Teams Ayarları -->
+                        <div class="mb-4">
+                            <h6 class="text-primary">Microsoft Teams</h6>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="teamsEnabled" 
+                                       {% if notification_settings.teams_enabled %}checked{% endif %}>
+                                <label class="form-check-label" for="teamsEnabled">
+                                    Teams bildirimlerini etkinleştir
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Webhook Ayarları -->
+                        <div class="mb-4">
+                            <h6 class="text-primary">Webhook</h6>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="webhookEnabled" 
+                                       {% if notification_settings.webhook_enabled %}checked{% endif %}>
+                                <label class="form-check-label" for="webhookEnabled">
+                                    Webhook bildirimlerini etkinleştir
+                                </label>
+                            </div>
+                            <div class="mb-2">
+                                <label for="webhookUrl" class="form-label">Webhook URL</label>
+                                <input type="url" class="form-control" id="webhookUrl" 
+                                       value="{{ notification_settings.webhook_url }}" 
+                                       placeholder="https://company.com/webhook/alerts">
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Ayarları Kaydet
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-file-alt"></i> Bildirim Şablonları
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for template in notification_templates %}
+                    <div class="card mb-3">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">{{ template.name }}</h6>
+                            {% if template.is_active %}
+                                <span class="badge bg-success">Aktif</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Pasif</span>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <strong>Tip:</strong> 
+                                <span class="badge bg-info">{{ template.type|title }}</span>
+                            </div>
+                            <div class="mb-2">
+                                <strong>Konu:</strong> {{ template.subject }}
+                            </div>
+                            <div class="mb-2">
+                                <strong>Mesaj:</strong>
+                                <div class="bg-light p-2 rounded">
+                                    <small>{{ template.message|linebreaks }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="d-flex justify-content-between">
+                                <button class="btn btn-sm btn-outline-primary" onclick="editTemplate({{ template.id }})">
+                                    <i class="fas fa-edit"></i> Düzenle
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteTemplate({{ template.id }})">
+                                    <i class="fas fa-trash"></i> Sil
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-file-alt fa-2x text-muted mb-2"></i>
+                        <p class="text-muted">Henüz bildirim şablonu eklenmemiş</p>
+                        <button class="btn btn-primary" onclick="addTemplate()">
+                            <i class="fas fa-plus"></i> Şablon Ekle
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Bildirim ayarları formu
+document.getElementById('notificationSettingsForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Form verilerini topla
+    const formData = new FormData();
+    formData.append('email_enabled', document.getElementById('emailEnabled').checked);
+    formData.append('email_recipients', document.getElementById('emailRecipients').value);
+    formData.append('sms_enabled', document.getElementById('smsEnabled').checked);
+    formData.append('sms_recipients', document.getElementById('smsRecipients').value);
+    formData.append('push_enabled', document.getElementById('pushEnabled').checked);
+    formData.append('slack_enabled', document.getElementById('slackEnabled').checked);
+    formData.append('slack_webhook', document.getElementById('slackWebhook').value);
+    formData.append('teams_enabled', document.getElementById('teamsEnabled').checked);
+    formData.append('webhook_enabled', document.getElementById('webhookEnabled').checked);
+    formData.append('webhook_url', document.getElementById('webhookUrl').value);
+    
+    // AJAX ile gönder
+    fetch('/alerts/notifications/{{ company_slug }}/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Ayarlar başarıyla kaydedildi!');
+        } else {
+            alert('Hata: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Bir hata oluştu!');
+    });
+});
+
+// Şablon düzenleme
+function editTemplate(templateId) {
+    alert('Şablon düzenleme özelliği yakında eklenecek!');
+}
+
+// Şablon silme
+function deleteTemplate(templateId) {
+    if (confirm('Bu şablonu silmek istediğinizden emin misiniz?')) {
+        alert('Şablon silme özelliği yakında eklenecek!');
+    }
+}
+
+// Şablon ekleme
+function addTemplate() {
+    alert('Şablon ekleme özelliği yakında eklenecek!');
+}
+</script>
+{% endblock %}

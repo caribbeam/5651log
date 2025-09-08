@@ -1,0 +1,260 @@
+{% extends "log_kayit/partials/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ device.name }} - Network Cihaz Detayı{% endblock %}
+
+{% block extra_css %}
+<style>
+.device-detail {
+    padding: 20px;
+}
+
+.device-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 10px;
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+.metric-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.metric-value {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.status-badge {
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+.status-online { background: #d4edda; color: #155724; }
+.status-offline { background: #f8d7da; color: #721c24; }
+.status-warning { background: #fff3cd; color: #856404; }
+.status-critical { background: #f8d7da; color: #721c24; }
+
+.log-item {
+    padding: 15px;
+    border-left: 4px solid;
+    margin-bottom: 15px;
+    background: #f8f9fa;
+    border-radius: 5px;
+}
+
+.log-debug { border-left-color: #6c757d; }
+.log-info { border-left-color: #17a2b8; }
+.log-warning { border-left-color: #ffc107; }
+.log-error { border-left-color: #dc3545; }
+.log-critical { border-left-color: #dc3545; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="device-detail">
+    <!-- Cihaz Başlığı -->
+    <div class="device-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-2">
+                    <i class="fas fa-{{ device.device_type|lower }} me-2"></i>{{ device.name }}
+                </h1>
+                <p class="mb-2">
+                    <i class="fas fa-network-wired me-2"></i>{{ device.ip_address }} 
+                    <span class="mx-2">|</span>
+                    <i class="fas fa-ethernet me-2"></i>{{ device.mac_address }}
+                </p>
+                {% if device.model %}
+                <p class="mb-0">
+                    <i class="fas fa-microchip me-2"></i>{{ device.manufacturer }} {{ device.model }}
+                    {% if device.firmware_version %}
+                    <span class="mx-2">|</span>
+                    <i class="fas fa-code me-2"></i>{{ device.firmware_version }}
+                    {% endif %}
+                </p>
+                {% endif %}
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="status-badge status-{{ device.status|lower }}">
+                    <i class="fas fa-circle me-2"></i>{{ device.get_status_display }}
+                </div>
+                <div class="mt-3">
+                    <small>Son görülme: {{ device.last_seen|timesince }} önce</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performans Metrikleri -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-value text-primary">{{ device.cpu_usage }}%</div>
+                <div class="text-muted">CPU Kullanımı</div>
+                <div class="progress mt-2">
+                    <div class="progress-bar {% if device.cpu_usage > 80 %}bg-danger{% elif device.cpu_usage > 60 %}bg-warning{% else %}bg-success{% endif %}" 
+                         style="width: {{ device.cpu_usage }}%"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-value text-info">{{ device.memory_usage }}%</div>
+                <div class="text-muted">RAM Kullanımı</div>
+                <div class="progress mt-2">
+                    <div class="progress-bar {% if device.memory_usage > 80 %}bg-danger{% elif device.memory_usage > 60 %}bg-warning{% else %}bg-success{% endif %}" 
+                         style="width: {{ device.memory_usage }}%"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-value text-warning">
+                    {% if device.temperature %}{{ device.temperature }}°C{% else %}N/A{% endif %}
+                </div>
+                <div class="text-muted">Sıcaklık</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-value text-success">
+                    {% if device.uptime %}{{ device.uptime }}{% else %}N/A{% endif %}
+                </div>
+                <div class="text-muted">Çalışma Süresi</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trafik İstatistikleri -->
+    {% if traffic_stats %}
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="metric-card">
+                <div class="metric-value text-primary">{{ traffic_stats.total_bytes|filesizeformat }}</div>
+                <div class="text-muted">Toplam Trafik</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="metric-card">
+                <div class="metric-value text-info">{{ traffic_stats.total_packets|default:0 }}</div>
+                <div class="text-muted">Toplam Paket</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="metric-card">
+                <div class="metric-value text-success">{{ traffic_stats.avg_duration|floatformat:2 }}s</div>
+                <div class="text-muted">Ortalama Yanıt Süresi</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Cihaz Logları -->
+    <div class="card">
+        <div class="card-header">
+            <h6 class="mb-0">
+                <i class="fas fa-list me-2"></i>Cihaz Logları
+                <span class="badge bg-secondary ms-2">{{ logs|length }}</span>
+            </h6>
+        </div>
+        <div class="card-body">
+            {% if logs %}
+            <div class="log-list" style="max-height: 500px; overflow-y: auto;">
+                {% for log in logs %}
+                <div class="log-item log-{{ log.level|lower }}">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="fw-bold">{{ log.get_log_type_display }}</div>
+                            <div class="text-sm">{{ log.message }}</div>
+                            {% if log.source_ip or log.destination_ip %}
+                            <div class="text-xs text-muted mt-1">
+                                {% if log.source_ip %}Kaynak: {{ log.source_ip }}:{{ log.source_port|default:"N/A" }}{% endif %}
+                                {% if log.destination_ip %} → Hedef: {{ log.destination_ip }}:{{ log.destination_port|default:"N/A" }}{% endif %}
+                                {% if log.protocol %} ({{ log.protocol }}){% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-{{ log.level|lower }}">{{ log.get_level_display }}</span>
+                            <div class="text-xs text-muted mt-1">{{ log.timestamp|date:"H:i:s" }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-list fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Bu cihaz için henüz log kaydı yok</h5>
+                <p class="text-muted">Cihaz aktif olduğunda loglar burada görünecek.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Geri Dön Butonu -->
+    <div class="text-center mt-4">
+        <a href="{% url 'network_monitoring:network_dashboard' device.company.slug %}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-2"></i>Network Dashboard'a Dön
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Sayfa yüklendiğinde cihaz durumunu kontrol et
+document.addEventListener('DOMContentLoaded', function() {
+    checkDeviceStatus();
+    
+    // Her 10 saniyede bir cihaz durumunu kontrol et
+    setInterval(checkDeviceStatus, 10000);
+});
+
+function checkDeviceStatus() {
+    fetch(`/network/api/device/{{ device.id }}/status/`)
+        .then(response => response.json())
+        .then(data => {
+            if (!data.error) {
+                // Durum güncelleme
+                updateDeviceStatus(data);
+            }
+        })
+        .catch(error => {
+            console.error('Error checking device status:', error);
+        });
+}
+
+function updateDeviceStatus(data) {
+    // CPU kullanımını güncelle
+    const cpuValue = document.querySelector('.metric-value.text-primary');
+    if (cpuValue) {
+        cpuValue.textContent = data.cpu_usage + '%';
+    }
+    
+    // RAM kullanımını güncelle
+    const memoryValue = document.querySelector('.metric-value.text-info');
+    if (memoryValue) {
+        memoryValue.textContent = data.memory_usage + '%';
+    }
+    
+    // Sıcaklık güncelle
+    const tempValue = document.querySelector('.metric-value.text-warning');
+    if (tempValue && data.temperature) {
+        tempValue.textContent = data.temperature + '°C';
+    }
+    
+    console.log('Device status updated:', data);
+}
+</script>
+{% endblock %}

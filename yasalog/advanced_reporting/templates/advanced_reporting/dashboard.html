@@ -1,0 +1,485 @@
+{% extends "log_kayit/partials/base_dashboard.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Gelişmiş Raporlama" %} - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="firewall-dashboard">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <h1 class="dashboard-title">
+                <i class="fas fa-chart-line"></i>
+                {% trans "Gelişmiş Raporlama Sistemi" %}
+            </h1>
+            <p class="dashboard-subtitle">{% trans "5651 Loglama için kapsamlı rapor oluşturma ve analiz" %}</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'advanced_reporting:template_add' company.slug %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> {% trans "Yeni Şablon" %}
+            </a>
+            <a href="{% url 'advanced_reporting:generate_report' company.slug 0 %}" class="btn btn-success">
+                <i class="fas fa-file-alt"></i> {% trans "Hızlı Rapor" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="nav-buttons">
+        <a href="{% url 'log_kayit:company_dashboard_slug' company.slug %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> {% trans "Geri Dön" %}
+        </a>
+        <a href="{% url 'log_kayit:company_dashboard_slug' company.slug %}" class="btn btn-info">
+            <i class="fas fa-home"></i> {% trans "Ana Sayfa" %}
+        </a>
+    </div>
+
+    <!-- Statistics Overview -->
+    <div class="stats-overview">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-file-alt"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ stats.total_reports }}</h3>
+                <p>{% trans "Toplam Rapor" %}</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-calendar-day"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ stats.reports_today }}</h3>
+                <p>{% trans "Bugün Oluşturulan" %}</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-calendar-week"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ stats.reports_week }}</h3>
+                <p>{% trans "Bu Hafta" %}</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ stats.reports_month }}</h3>
+                <p>{% trans "Bu Ay" %}</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-layer-group"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ stats.templates }}</h3>
+                <p>{% trans "Şablon Sayısı" %}</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ stats.scheduled_reports }}</h3>
+                <p>{% trans "Zamanlanmış" %}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Grid -->
+    <div class="dashboard-grid">
+        <!-- Recent Reports -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3><i class="fas fa-history"></i> {% trans "Son Raporlar" %}</h3>
+                <a href="{% url 'advanced_reporting:reports_list' company.slug %}" class="btn btn-sm btn-outline-primary">
+                    {% trans "Tümünü Gör" %}
+                </a>
+            </div>
+            <div class="card-body">
+                {% if recent_reports %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Rapor Adı" %}</th>
+                                    <th>{% trans "Format" %}</th>
+                                    <th>{% trans "Durum" %}</th>
+                                    <th>{% trans "Tarih" %}</th>
+                                    <th>{% trans "İşlemler" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for report in recent_reports %}
+                                <tr>
+                                    <td>{{ report.title|truncatechars:30 }}</td>
+                                    <td>
+                                        <span class="badge badge-info">{{ report.get_report_format_display }}</span>
+                                    </td>
+                                    <td>
+                                        {% if report.status == 'completed' %}
+                                            <span class="badge badge-success">{{ report.get_status_display }}</span>
+                                        {% elif report.status == 'failed' %}
+                                            <span class="badge badge-danger">{{ report.get_status_display }}</span>
+                                        {% elif report.status == 'generating' %}
+                                            <span class="badge badge-warning">{{ report.get_status_display }}</span>
+                                        {% else %}
+                                            <span class="badge badge-secondary">{{ report.get_status_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ report.created_at|date:"d.m.Y H:i" }}</td>
+                                    <td>
+                                        <a href="{% url 'advanced_reporting:report_detail' company.slug report.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% if report.status == 'completed' %}
+                                            <a href="{% url 'advanced_reporting:report_download' company.slug report.id %}" class="btn btn-sm btn-outline-success">
+                                                <i class="fas fa-download"></i>
+                                            </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-file-alt"></i>
+                        <p>{% trans "Henüz rapor oluşturulmamış" %}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Report Templates -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3><i class="fas fa-layer-group"></i> {% trans "Rapor Şablonları" %}</h3>
+                <a href="{% url 'advanced_reporting:templates_list' company.slug %}" class="btn btn-sm btn-outline-primary">
+                    {% trans "Tümünü Gör" %}
+                </a>
+            </div>
+            <div class="card-body">
+                {% if templates %}
+                    <div class="template-list">
+                        {% for template in templates %}
+                        <div class="template-item">
+                            <div class="template-info">
+                                <h4>{{ template.name }}</h4>
+                                <p>{{ template.get_template_type_display }}</p>
+                                <span class="badge badge-{% if template.is_active %}success{% else %}secondary{% endif %}">
+                                    {% if template.is_active %}{% trans "Aktif" %}{% else %}{% trans "Pasif" %}{% endif %}
+                                </span>
+                            </div>
+                            <div class="template-actions">
+                                <a href="{% url 'advanced_reporting:template_detail' company.slug template.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'advanced_reporting:generate_report' company.slug template.id %}" class="btn btn-sm btn-outline-success">
+                                    <i class="fas fa-play"></i>
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-layer-group"></i>
+                        <p>{% trans "Henüz şablon oluşturulmamış" %}</p>
+                        <a href="{% url 'advanced_reporting:template_add' company.slug %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> {% trans "İlk Şablonu Oluştur" %}
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Scheduled Reports -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3><i class="fas fa-clock"></i> {% trans "Zamanlanmış Raporlar" %}</h3>
+                <a href="{% url 'advanced_reporting:schedules_list' company.slug %}" class="btn btn-sm btn-outline-primary">
+                    {% trans "Tümünü Gör" %}
+                </a>
+            </div>
+            <div class="card-body">
+                {% if scheduled_reports %}
+                    <div class="schedule-list">
+                        {% for schedule in scheduled_reports %}
+                        <div class="schedule-item">
+                            <div class="schedule-info">
+                                <h4>{{ schedule.name }}</h4>
+                                <p>{{ schedule.template.name }}</p>
+                                <small class="text-muted">
+                                    {% trans "Sonraki çalışma" %}: {{ schedule.next_run|date:"d.m.Y H:i" }}
+                                </small>
+                            </div>
+                            <div class="schedule-status">
+                                <span class="badge badge-{% if schedule.is_active %}success{% else %}secondary{% endif %}">
+                                    {% if schedule.is_active %}{% trans "Aktif" %}{% else %}{% trans "Pasif" %}{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-clock"></i>
+                        <p>{% trans "Henüz zamanlanmış rapor yok" %}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Report Types Distribution -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3><i class="fas fa-chart-pie"></i> {% trans "Rapor Tipi Dağılımı" %}</h3>
+            </div>
+            <div class="card-body">
+                {% if report_types %}
+                    <div class="chart-container">
+                        <canvas id="reportTypesChart" width="400" height="200"></canvas>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-chart-pie"></i>
+                        <p>{% trans "Henüz veri yok" %}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Report Types Chart
+    {% if report_types %}
+    const ctx = document.getElementById('reportTypesChart').getContext('2d');
+    const reportTypesData = {{ report_types|safe }};
+    
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: reportTypesData.map(item => item.template__template_type),
+            datasets: [{
+                data: reportTypesData.map(item => item.count),
+                backgroundColor: [
+                    '#FF6384',
+                    '#36A2EB',
+                    '#FFCE56',
+                    '#4BC0C0',
+                    '#9966FF',
+                    '#FF9F40'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+    {% endif %}
+});
+</script>
+
+<style>
+.firewall-dashboard {
+    padding: 20px;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+    color: white;
+}
+
+.dashboard-title {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+.dashboard-subtitle {
+    margin: 5px 0 0 0;
+    opacity: 0.9;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.nav-buttons {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+.stats-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: white;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.stat-content h3 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #333;
+}
+
+.stat-content p {
+    margin: 5px 0 0 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 20px;
+}
+
+.dashboard-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8f9fa;
+}
+
+.card-header h3 {
+    margin: 0;
+    color: #333;
+    font-size: 1.2rem;
+}
+
+.card-body {
+    padding: 20px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+.template-list, .schedule-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.template-item, .schedule-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+
+.template-info h4, .schedule-info h4 {
+    margin: 0 0 5px 0;
+    font-size: 1rem;
+    color: #333;
+}
+
+.template-info p, .schedule-info p {
+    margin: 0 0 5px 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.template-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.chart-container {
+    height: 300px;
+    position: relative;
+}
+
+@media (max-width: 768px) {
+    .dashboard-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+    }
+    
+    .stats-overview {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+    
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

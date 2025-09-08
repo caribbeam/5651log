@@ -1,0 +1,253 @@
+{% extends "log_kayit/partials/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Hotspot Oturumları - {{ company.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .sessions-list {
+        padding: 20px 0;
+    }
+    
+    .session-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border-left: 5px solid #17a2b8;
+        transition: transform 0.3s ease;
+    }
+    
+    .session-card:hover {
+        transform: translateY(-2px);
+    }
+    
+    .session-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .session-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .session-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+    }
+    
+    .session-details h4 {
+        margin: 0;
+        color: #333;
+        font-weight: 600;
+    }
+    
+    .session-meta {
+        color: #666;
+        font-size: 0.9rem;
+        margin: 0;
+    }
+    
+    .session-status {
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .status-active { background: #28a745; color: white; }
+    .status-expired { background: #6c757d; color: white; }
+    .status-terminated { background: #dc3545; color: white; }
+    .status-suspended { background: #ffc107; color: #212529; }
+    
+    .session-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin: 15px 0;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+    }
+    
+    .stat-item {
+        text-align: center;
+    }
+    
+    .stat-number {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #333;
+        display: block;
+    }
+    
+    .stat-label {
+        font-size: 0.8rem;
+        color: #666;
+        text-transform: uppercase;
+    }
+    
+    .session-timeline {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px;
+        margin: 15px 0;
+    }
+    
+    .timeline-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .timeline-item:last-child {
+        border-bottom: none;
+    }
+    
+    .timeline-label {
+        font-weight: 500;
+        color: #333;
+    }
+    
+    .timeline-value {
+        color: #666;
+        font-size: 0.9rem;
+    }
+    
+    .session-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #666;
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.3;
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="sessions-list">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-clock me-2"></i>Hotspot Oturumları
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="/admin/hotspot_management/usersession/add/" class="btn btn-primary" target="_blank">
+                <i class="fas fa-plus me-2"></i>Yeni Oturum
+            </a>
+            <a href="{% url 'hotspot_management:hotspot_dashboard' company.slug %}" class="btn btn-outline-secondary ms-2">
+                <i class="fas fa-arrow-left me-2"></i>Dashboard'a Dön
+            </a>
+        </div>
+    </div>
+
+    <!-- Oturum Listesi -->
+    {% if sessions %}
+        {% for session in sessions %}
+        <div class="session-card">
+            <div class="session-header">
+                <div class="session-info">
+                    <div class="session-icon">
+                        <i class="fas fa-wifi"></i>
+                    </div>
+                    <div class="session-details">
+                        <h4>{{ session.user.username }}</h4>
+                        <p class="session-meta">
+                            {{ session.hotspot.name }} • {{ session.session_id|truncatechars:20 }} • {{ session.start_time|date:'d.m.Y H:i' }}
+                        </p>
+                    </div>
+                </div>
+                
+                <span class="session-status status-{{ session.status|lower }}">
+                    {{ session.get_status_display }}
+                </span>
+            </div>
+            
+            <div class="session-stats">
+                <div class="stat-item">
+                    <span class="stat-number">{{ session.duration_minutes|default:0 }}</span>
+                    <span class="stat-label">Süre (dk)</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">{{ session.total_bytes|filesizeformat }}</span>
+                    <span class="stat-label">Veri Kullanımı</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">{{ session.bytes_uploaded|filesizeformat }}</span>
+                    <span class="stat-label">Upload</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">{{ session.bytes_downloaded|filesizeformat }}</span>
+                    <span class="stat-label">Download</span>
+                </div>
+            </div>
+            
+            <div class="session-timeline">
+                <div class="timeline-item">
+                    <span class="timeline-label">Başlangıç:</span>
+                    <span class="timeline-value">{{ session.start_time|date:'d.m.Y H:i:s' }}</span>
+                </div>
+                {% if session.end_time %}
+                <div class="timeline-item">
+                    <span class="timeline-label">Bitiş:</span>
+                    <span class="timeline-value">{{ session.end_time|date:'d.m.Y H:i:s' }}</span>
+                </div>
+                {% endif %}
+                <div class="timeline-item">
+                    <span class="timeline-label">IP Adresi:</span>
+                    <span class="timeline-value">{{ session.ip_address|default:"Bilinmiyor" }}</span>
+                </div>
+                <div class="timeline-item">
+                    <span class="timeline-label">Cihaz:</span>
+                    <span class="timeline-value">{{ session.device_info|default:"Bilinmiyor" }}</span>
+                </div>
+            </div>
+            
+            <div class="session-actions">
+                <a href="/admin/hotspot_management/usersession/{{ session.id }}/change/" class="btn btn-outline-warning btn-sm" target="_blank">
+                    <i class="fas fa-edit me-1"></i>Düzenle
+                </a>
+                <a href="/admin/hotspot_management/usersession/{{ session.id }}/delete/" class="btn btn-outline-danger btn-sm" target="_blank">
+                    <i class="fas fa-trash me-1"></i>Sil
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-clock"></i>
+            <h4>Henüz Oturum Bulunmuyor</h4>
+            <p>İlk hotspot oturumunuzu oluşturmak için yukarıdaki "Yeni Oturum" butonunu kullanın.</p>
+            <a href="/admin/hotspot_management/usersession/add/" class="btn btn-primary" target="_blank">
+                <i class="fas fa-plus me-2"></i>İlk Oturumu Oluştur
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

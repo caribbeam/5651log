@@ -1,0 +1,182 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Kullanıcı Aktivite Logları{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-history"></i> Aktivite Logları: {{ company_user.user.get_full_name|default:company_user.user.username }}
+                    </h3>
+                    <div class="card-tools">
+                        <a href="{% url 'log_kayit:user_management_dashboard' company.slug %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Geri Dön
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    {% if logs %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Zaman</th>
+                                        <th>İşlem</th>
+                                        <th>IP Adresi</th>
+                                        <th>User Agent</th>
+                                        <th>Detaylar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for log in logs %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge badge-info">
+                                                {{ log.timestamp|date:"d.m.Y" }}
+                                            </span>
+                                            <br>
+                                            <small class="text-muted">{{ log.timestamp|time:"H:i:s" }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-{% if log.action == 'login' %}success{% elif log.action == 'logout' %}warning{% elif log.action == 'unauthorized_access' %}danger{% else %}primary{% endif %}">
+                                                {{ log.get_action_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <code>{{ log.ip_address }}</code>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">
+                                                {% if log.user_agent %}
+                                                    {{ log.user_agent|truncatechars:50 }}
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            {% if log.details %}
+                                                <small>{{ log.details }}</small>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Sayfalama -->
+                        {% if logs.has_other_pages %}
+                        <nav aria-label="Sayfa navigasyonu">
+                            <ul class="pagination justify-content-center">
+                                {% if logs.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ logs.previous_page_number }}">Önceki</a>
+                                    </li>
+                                {% endif %}
+                                
+                                {% for num in logs.paginator.page_range %}
+                                    {% if logs.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% elif num > logs.number|add:'-3' and num < logs.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if logs.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ logs.next_page_number }}">Sonraki</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center text-muted">
+                            <i class="fas fa-history fa-3x mb-3"></i>
+                            <br>
+                            <h5>Henüz aktivite logu bulunmuyor</h5>
+                            <p>Bu kullanıcının henüz sistem aktivitesi kaydedilmemiş.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+}
+
+.badge-success {
+    background-color: #28a745;
+    color: white;
+}
+
+.badge-warning {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.badge-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.badge-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.badge-info {
+    background-color: #17a2b8;
+    color: white;
+}
+
+code {
+    background-color: #f8f9fa;
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+}
+
+.text-muted {
+    color: #6c757d !important;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    background-color: #f8f9fa;
+}
+
+.pagination {
+    margin-top: 1rem;
+}
+
+.page-link {
+    color: #007bff;
+    border: 1px solid #dee2e6;
+}
+
+.page-item.active .page-link {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+</style>
+{% endblock %}

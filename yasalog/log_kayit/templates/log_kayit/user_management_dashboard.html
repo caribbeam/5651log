@@ -1,0 +1,262 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Kullanıcı Yönetimi{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title">
+                        <i class="fas fa-users"></i> Kullanıcı Yönetimi
+                    </h3>
+                    <div>
+                        <a href="{% url 'log_kayit:add_user' company.slug %}" class="btn btn-primary" title="Tek tek kullanıcı ekleme formu açar">
+                            <i class="fas fa-plus"></i> Yeni Kullanıcı
+                            <small class="d-block">Tek tek ekle</small>
+                        </a>
+                        <a href="{% url 'log_kayit:bulk_user_creation' company.slug %}" class="btn btn-success" title="Çoklu kullanıcı ekleme sayfası açar">
+                            <i class="fas fa-upload"></i> Toplu Ekleme
+                            <small class="d-block">Çoklu ekle</small>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <!-- İstatistikler -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-info"><i class="fas fa-users"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Toplam Kullanıcı</span>
+                                    <span class="info-box-number">{{ total_users }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-success"><i class="fas fa-user-check"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Aktif Kullanıcı</span>
+                                    <span class="info-box-number">{{ active_users }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-warning"><i class="fas fa-user-shield"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Yönetici</span>
+                                    <span class="info-box-number">{{ admin_count }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-primary"><i class="fas fa-user"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Personel</span>
+                                    <span class="info-box-number">{{ staff_count }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Açıklama -->
+                    <div class="alert alert-info mb-3">
+                        <h6><i class="fas fa-info-circle"></i> Kullanıcı Yönetimi Açıklamaları:</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Arama:</strong> Kullanıcı adı, e-posta veya ad-soyad ile arama yapabilirsiniz
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Filtreleme:</strong> Kullanıcıları role göre filtreleyebilirsiniz
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Arama ve Filtreleme -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label"><strong>🔍 Kullanıcı Arama:</strong></label>
+                            <form method="get" class="form-inline">
+                                <div class="input-group">
+                                    <input type="text" name="search" class="form-control" placeholder="Kullanıcı adı, e-posta veya ad-soyad yazın..." value="{{ search }}">
+                                    <div class="input-group-append">
+                                        <button type="submit" class="btn btn-outline-secondary" title="Kullanıcı adı, e-posta veya ad-soyad ile ara">
+                                            <i class="fas fa-search"></i>
+                                            <small class="d-block">Ara</small>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label"><strong>🎯 Rol Filtreleme:</strong></label>
+                            <form method="get" class="form-inline">
+                                <div class="input-group">
+                                    <select name="role_filter" class="form-control" onchange="this.form.submit()">
+                                        <option value="">Tüm Roller</option>
+                                        <option value="admin" {% if request.GET.role_filter == 'admin' %}selected{% endif %}>Firma Yöneticisi</option>
+                                        <option value="staff" {% if request.GET.role_filter == 'staff' %}selected{% endif %}>Personel</option>
+                                        <option value="viewer" {% if request.GET.role_filter == 'viewer' %}selected{% endif %}>Sadece Görüntüleyici</option>
+                                    </select>
+                                    <div class="input-group-append">
+                                        <button type="button" class="btn btn-outline-info" title="Kullanıcıları role göre filtrele">
+                                            <i class="fas fa-filter"></i>
+                                            <small class="d-block">Filtrele</small>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Kullanıcı Listesi -->
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Kullanıcı</th>
+                                    <th>E-posta</th>
+                                    <th>Rol</th>
+                                    <th>Durum</th>
+                                    <th>Son Giriş</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for company_user in users %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm bg-primary rounded-circle d-flex align-items-center justify-content-center me-2">
+                                                <i class="fas fa-user text-white"></i>
+                                            </div>
+                                            <div>
+                                                <strong>{{ company_user.user.get_full_name|default:company_user.user.username }}</strong>
+                                                <br>
+                                                <small class="text-muted">@{{ company_user.user.username }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ company_user.user.email }}</td>
+                                    <td>
+                                        <span class="badge badge-{% if company_user.role == 'admin' %}danger{% elif company_user.role == 'staff' %}warning{% else %}info{% endif %}">
+                                            {{ company_user.get_role_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-{% if company_user.user.is_active %}success{% else %}danger{% endif %}">
+                                            {% if company_user.user.is_active %}Aktif{% else %}Pasif{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if company_user.user.last_login %}
+                                            {{ company_user.user.last_login|date:"d.m.Y H:i" }}
+                                        {% else %}
+                                            <span class="text-muted">Hiç giriş yapmamış</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'log_kayit:edit_user' company_user.id company.slug %}" class="btn btn-sm btn-outline-primary" title="Kullanıcı bilgilerini düzenle">
+                                                <i class="fas fa-edit"></i>
+                                                <small class="d-block">Düzenle</small>
+                                            </a>
+                                            <a href="{% url 'log_kayit:user_permissions' company_user.id company.slug %}" class="btn btn-sm btn-outline-warning" title="Kullanıcı yetkilerini ayarla">
+                                                <i class="fas fa-key"></i>
+                                                <small class="d-block">Yetkiler</small>
+                                            </a>
+                                            <a href="{% url 'log_kayit:user_activity_logs' company_user.id company.slug %}" class="btn btn-sm btn-outline-info" title="Kullanıcı aktivite loglarını görüntüle">
+                                                <i class="fas fa-history"></i>
+                                                <small class="d-block">Loglar</small>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-{% if company_user.user.is_active %}danger{% else %}success{% endif %}" 
+                                                    onclick="toggleUserStatus({{ company_user.id }}, {{ company_user.user.is_active|yesno:'false,true' }})"
+                                                    title="{% if company_user.user.is_active %}Kullanıcıyı deaktive et{% else %}Kullanıcıyı aktive et{% endif %}">
+                                                <i class="fas fa-{% if company_user.user.is_active %}ban{% else %}check{% endif %}"></i>
+                                                <small class="d-block">{% if company_user.user.is_active %}Deaktive{% else %}Aktive{% endif %}</small>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">
+                                        <i class="fas fa-users fa-3x mb-3"></i>
+                                        <br>
+                                        Henüz kullanıcı bulunmuyor.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Sayfalama -->
+                    {% if users.has_other_pages %}
+                    <nav aria-label="Sayfa navigasyonu">
+                        <ul class="pagination justify-content-center">
+                            {% if users.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ users.previous_page_number }}{% if search %}&search={{ search }}{% endif %}">Önceki</a>
+                                </li>
+                            {% endif %}
+                            
+                            {% for num in users.paginator.page_range %}
+                                {% if users.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% elif num > users.number|add:'-3' and num < users.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if users.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ users.next_page_number }}{% if search %}&search={{ search }}{% endif %}">Sonraki</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% csrf_token %}
+<script>
+function toggleUserStatus(userId, isActive) {
+    const action = isActive ? 'deaktive et' : 'aktive et';
+    if (confirm(`Bu kullanıcıyı ${action}mek istediğinizden emin misiniz?`)) {
+        fetch(`/users/${userId}/toggle-status/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Hata: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Bir hata oluştu: ' + error);
+        });
+    }
+}
+</script>
+{% endblock %}

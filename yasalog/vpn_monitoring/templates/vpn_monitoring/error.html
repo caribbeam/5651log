@@ -1,0 +1,224 @@
+{% extends "log_kayit/partials/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}VPN Hata - {{ company.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .vpn-error-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 60vh;
+        text-align: center;
+        padding: 40px;
+    }
+    
+    .vpn-error-icon {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        color: white;
+        margin-bottom: 30px;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+    
+    .vpn-error-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #dc3545;
+        margin-bottom: 20px;
+    }
+    
+    .vpn-error-message {
+        font-size: 1.2rem;
+        color: #6c757d;
+        margin-bottom: 30px;
+        max-width: 600px;
+        line-height: 1.6;
+    }
+    
+    .vpn-error-details {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 30px;
+        max-width: 600px;
+        text-align: left;
+    }
+    
+    .vpn-error-details h4 {
+        color: #333;
+        margin-bottom: 15px;
+        font-size: 1.1rem;
+    }
+    
+    .vpn-error-details pre {
+        background: #e9ecef;
+        padding: 15px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        color: #495057;
+        overflow-x: auto;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+    
+    .vpn-error-actions {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .vpn-error-btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .vpn-error-btn.primary {
+        background: #667eea;
+        color: white;
+    }
+    
+    .vpn-error-btn.primary:hover {
+        background: #5a6fd8;
+        transform: translateY(-2px);
+    }
+    
+    .vpn-error-btn.secondary {
+        background: #6c757d;
+        color: white;
+    }
+    
+    .vpn-error-btn.secondary:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+    }
+    
+    .vpn-error-btn.danger {
+        background: #dc3545;
+        color: white;
+    }
+    
+    .vpn-error-btn.danger:hover {
+        background: #c82333;
+        transform: translateY(-2px);
+    }
+    
+    .vpn-error-help {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 4px 25px rgba(0,0,0,0.08);
+        margin-top: 40px;
+        max-width: 800px;
+    }
+    
+    .vpn-error-help h3 {
+        color: #333;
+        margin-bottom: 20px;
+        font-size: 1.5rem;
+    }
+    
+    .vpn-error-help ul {
+        text-align: left;
+        color: #6c757d;
+        line-height: 1.8;
+    }
+    
+    .vpn-error-help li {
+        margin-bottom: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="vpn-error-container">
+        <div class="vpn-error-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        
+        <h1 class="vpn-error-title">VPN Hatası Oluştu</h1>
+        
+        <p class="vpn-error-message">
+            VPN Monitoring modülünde beklenmeyen bir hata oluştu. 
+            Lütfen aşağıdaki detayları kontrol edin ve gerekli önlemleri alın.
+        </p>
+        
+        {% if error %}
+        <div class="vpn-error-details">
+            <h4>Hata Detayları:</h4>
+            <pre>{{ error }}</pre>
+        </div>
+        {% endif %}
+        
+        <div class="vpn-error-actions">
+            <a href="{% url 'vpn_monitoring:vpn_dashboard' company.slug %}" class="vpn-error-btn primary">
+                <i class="fas fa-home"></i> Ana Sayfaya Dön
+            </a>
+            
+                            <a href="{% url 'log_kayit:company_dashboard_slug' company.slug %}" class="vpn-error-btn secondary">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+            
+            <button onclick="location.reload()" class="vpn-error-btn danger">
+                <i class="fas fa-sync"></i> Sayfayı Yenile
+            </button>
+        </div>
+        
+        <div class="vpn-error-help">
+            <h3>🔧 Hata Giderme Önerileri:</h3>
+            <ul>
+                <li><strong>Sayfa Yenileme:</strong> Tarayıcıda F5 tuşuna basarak sayfayı yenileyin</li>
+                <li><strong>Oturum Kontrolü:</strong> VPN Monitoring modülüne erişim yetkinizin olduğundan emin olun</li>
+                <li><strong>Tarayıcı Cache:</strong> Tarayıcı önbelleğini temizleyin ve tekrar deneyin</li>
+                <li><strong>Farklı Tarayıcı:</strong> Farklı bir tarayıcı ile erişmeyi deneyin</li>
+                <li><strong>Sistem Yöneticisi:</strong> Hata devam ederse sistem yöneticisi ile iletişime geçin</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // VPN Error sayfası için özel JavaScript
+    document.addEventListener('DOMContentLoaded', function() {
+        // Hata detaylarını console'a yazdır
+        {% if error %}
+        console.error('VPN Monitoring Hatası:', '{{ error }}');
+        {% endif %}
+        
+        // Otomatik yenileme (5 dakika sonra)
+        setTimeout(function() {
+            if (confirm('Sayfa otomatik olarak yenilensin mi?')) {
+                location.reload();
+            }
+        }, 300000);
+    });
+</script>
+{% endblock %}

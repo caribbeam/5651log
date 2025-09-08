@@ -1,0 +1,294 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Trafik Analizi" %} - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="mirror-dashboard">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-chart-line me-2"></i>{% trans "Trafik Analizi" %}
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'mirror_port:dashboard' company.slug %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri Dön" %}
+            </a>
+            <a href="{% url 'log_kayit:company_dashboard_slug' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-home me-2"></i>{% trans "Ana Sayfa" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- İçerik -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-chart-line"></i> {% trans "Trafik Analizi" %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- Genel İstatistikler -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-info"><i class="fas fa-chart-line"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">{% trans "Toplam Paket" %}</span>
+                                    <span class="info-box-number">{{ stats.total_packets|floatformat:0 }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-success"><i class="fas fa-database"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">{% trans "Toplam Veri" %}</span>
+                                    <span class="info-box-number">{{ stats.total_bytes|filesizeformat }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-warning"><i class="fas fa-exclamation-triangle"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">{% trans "Şüpheli Trafik" %}</span>
+                                    <span class="info-box-number">{{ stats.suspicious_count|floatformat:0 }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-primary"><i class="fas fa-network-wired"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">{% trans "Benzersiz IP" %}</span>
+                                    <span class="info-box-number">{{ stats.unique_ips|floatformat:0 }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Grafikler -->
+                    <div class="row">
+                        <!-- Saatlik Trafik Grafiği -->
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">{% trans "Son 24 Saat Trafik Analizi" %}</h3>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="hourlyTrafficChart" height="100"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Protokol Dağılımı -->
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">{% trans "Protokol Dağılımı" %}</h3>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="protocolChart" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detaylı Analizler -->
+                    <div class="row mt-4">
+                        <!-- En Çok Trafik Üreten IP'ler -->
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">{% trans "En Çok Trafik Üreten IP'ler" %}</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>{% trans "IP Adresi" %}</th>
+                                                    <th>{% trans "Paket Sayısı" %}</th>
+                                                    <th>{% trans "Toplam Veri" %}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for ip in top_source_ips %}
+                                                <tr>
+                                                    <td><code>{{ ip.source_ip }}</code></td>
+                                                    <td>{{ ip.count }}</td>
+                                                    <td>{{ ip.bytes_sent|add:ip.bytes_received|filesizeformat }}</td>
+                                                </tr>
+                                                {% empty %}
+                                                <tr>
+                                                    <td colspan="3" class="text-center text-muted">{% trans "Veri bulunamadı" %}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- En Çok Hedeflenen IP'ler -->
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">{% trans "En Çok Hedeflenen IP'ler" %}</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>{% trans "IP Adresi" %}</th>
+                                                    <th>{% trans "Paket Sayısı" %}</th>
+                                                    <th>{% trans "Toplam Veri" %}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for ip in top_dest_ips %}
+                                                <tr>
+                                                    <td><code>{{ ip.destination_ip }}</code></td>
+                                                    <td>{{ ip.count }}</td>
+                                                    <td>{{ ip.bytes_sent|add:ip.bytes_received|filesizeformat }}</td>
+                                                </tr>
+                                                {% empty %}
+                                                <tr>
+                                                    <td colspan="3" class="text-center text-muted">{% trans "Veri bulunamadı" %}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tehdit Analizi -->
+                    {% if threat_levels %}
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">{% trans "Tehdit Seviyesi Analizi" %}</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        {% for threat in threat_levels %}
+                                        <div class="col-md-3">
+                                            <div class="info-box">
+                                                <span class="info-box-icon 
+                                                    {% if threat.threat_level == 'CRITICAL' %}bg-danger
+                                                    {% elif threat.threat_level == 'HIGH' %}bg-warning
+                                                    {% elif threat.threat_level == 'MEDIUM' %}bg-info
+                                                    {% else %}bg-secondary{% endif %}">
+                                                    <i class="fas fa-shield-alt"></i>
+                                                </span>
+                                                <div class="info-box-content">
+                                                    <span class="info-box-text">{{ threat.get_threat_level_display }}</span>
+                                                    <span class="info-box-number">{{ threat.count }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Saatlik Trafik Grafiği
+const hourlyCtx = document.getElementById('hourlyTrafficChart').getContext('2d');
+const hourlyChart = new Chart(hourlyCtx, {
+    type: 'line',
+    data: {
+        labels: [
+            {% for stat in hourly_stats %}
+                '{{ stat.hour }}'{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        datasets: [{
+            label: '{% trans "Paket Sayısı" %}',
+            data: [
+                {% for stat in hourly_stats %}
+                    {{ stat.count }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            tension: 0.1
+        }, {
+            label: '{% trans "Şüpheli Trafik" %}',
+            data: [
+                {% for stat in hourly_stats %}
+                    {{ stat.suspicious }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            borderColor: 'rgb(255, 99, 132)',
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Protokol Dağılımı Grafiği
+const protocolCtx = document.getElementById('protocolChart').getContext('2d');
+const protocolChart = new Chart(protocolCtx, {
+    type: 'doughnut',
+    data: {
+        labels: [
+            {% for protocol in protocol_stats %}
+                '{{ protocol.protocol }}'{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        datasets: [{
+            data: [
+                {% for protocol in protocol_stats %}
+                    {{ protocol.count }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            backgroundColor: [
+                '#FF6384',
+                '#36A2EB',
+                '#FFCE56',
+                '#4BC0C0',
+                '#9966FF',
+                '#FF9F40'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

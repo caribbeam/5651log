@@ -1,0 +1,174 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Hata - Alert System{% endblock %}
+
+{% block dashboard_content %}
+<div class="error-page">
+    <div class="error-container">
+        <div class="error-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        
+        <h1 class="error-title">Bir Hata Oluştu</h1>
+        <p class="error-message">{{ error|default:"Beklenmeyen bir hata oluştu." }}</p>
+        
+        <div class="error-actions">
+            <a href="{% url 'alert_system:dashboard' company.slug %}" class="btn btn-primary">
+                <i class="fas fa-home"></i>
+                Ana Sayfaya Dön
+            </a>
+            <a href="{% url 'log_kayit:company_dashboard_slug' company.slug %}" class="btn btn-secondary">
+                <i class="fas fa-tachometer-alt"></i>
+                Dashboard'a Dön
+            </a>
+        </div>
+        
+        <div class="error-help">
+            <h3>Yardım</h3>
+            <ul>
+                <li>Sayfayı yenilemeyi deneyin</li>
+                <li>Tarayıcı önbelleğini temizleyin</li>
+                <li>Tekrar giriş yapmayı deneyin</li>
+                <li>Sorun devam ederse yönetici ile iletişime geçin</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<style>
+.error-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 60vh;
+    padding: 20px;
+}
+
+.error-container {
+    text-align: center;
+    max-width: 600px;
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 4px 25px rgba(0,0,0,0.08);
+}
+
+.error-icon {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 30px;
+    font-size: 3rem;
+    color: white;
+}
+
+.error-title {
+    font-size: 2rem;
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+.error-message {
+    font-size: 1.1rem;
+    color: #7f8c8d;
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+.error-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 24px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-secondary {
+    background: #ecf0f1;
+    color: #2c3e50;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    color: inherit;
+}
+
+.error-help {
+    text-align: left;
+    background: #f8f9fa;
+    border-radius: 15px;
+    padding: 25px;
+    margin-top: 30px;
+}
+
+.error-help h3 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+}
+
+.error-help ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.error-help li {
+    padding: 8px 0;
+    color: #7f8c8d;
+    position: relative;
+    padding-left: 25px;
+}
+
+.error-help li:before {
+    content: '•';
+    color: #667eea;
+    font-weight: bold;
+    position: absolute;
+    left: 0;
+    font-size: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .error-container {
+        padding: 30px 20px;
+    }
+    
+    .error-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .btn {
+        width: 100%;
+        max-width: 250px;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}

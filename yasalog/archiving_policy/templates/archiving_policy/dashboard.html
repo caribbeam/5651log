@@ -1,0 +1,186 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Arşivleme Politikası" %} - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="archiving-policy-dashboard">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-archive me-2"></i>{% trans "Arşivleme Politikası" %}
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'log_kayit:company_dashboard_slug' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-home me-2"></i>{% trans "Ana Sayfa" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- İstatistik Kartları -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ policies.count }}</h4>
+                            <p class="mb-0">{% trans "Toplam Politika" %}</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-cogs fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ active_policies.count }}</h4>
+                            <p class="mb-0">{% trans "Aktif Politika" %}</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-check-circle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ jobs.count }}</h4>
+                            <p class="mb-0">{% trans "Toplam İş" %}</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-tasks fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">0</h4>
+                            <p class="mb-0">{% trans "Arşivlenen (GB)" %}</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-hdd fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hızlı Erişim -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bolt me-2"></i>{% trans "Hızlı Erişim" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <a href="{% url 'archiving_policy:policies_list' company.slug %}" class="btn btn-primary btn-block">
+                                <i class="fas fa-cogs me-2"></i>{% trans "Politikalar" %}
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'archiving_policy:jobs_list' company.slug %}" class="btn btn-warning btn-block">
+                                <i class="fas fa-tasks me-2"></i>{% trans "İşler" %}
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'archiving_policy:storage_list' company.slug %}" class="btn btn-info btn-block">
+                                <i class="fas fa-hdd me-2"></i>{% trans "Depolama" %}
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="/admin/archiving_policy/archivingpolicy/add/" class="btn btn-success btn-block" target="_blank">
+                                <i class="fas fa-plus me-2"></i>{% trans "Yeni Politika" %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Son Politikalar -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-cogs me-2"></i>{% trans "Arşivleme Politikaları" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if policies %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>{% trans "Politika Adı" %}</th>
+                                        <th>{% trans "Tip" %}</th>
+                                        <th>{% trans "Saklama Süresi" %}</th>
+                                        <th>{% trans "Depolama" %}</th>
+                                        <th>{% trans "Durum" %}</th>
+                                        <th>{% trans "Son Çalıştırma" %}</th>
+                                        <th>{% trans "İşlemler" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for policy in policies %}
+                                    <tr>
+                                        <td>{{ policy.name }}</td>
+                                        <td><span class="badge badge-info">{{ policy.get_policy_type_display }}</span></td>
+                                        <td>{{ policy.get_total_retention_days }} {% trans "gün" %}</td>
+                                        <td><span class="badge badge-secondary">{{ policy.get_storage_type_display }}</span></td>
+                                        <td>
+                                            {% if policy.is_active %}
+                                                <span class="badge badge-success">{% trans "Aktif" %}</span>
+                                            {% else %}
+                                                <span class="badge badge-secondary">{% trans "Pasif" %}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ policy.last_execution|date:'d.m.Y H:i:s'|default:"-" }}</td>
+                                        <td>
+                                            <a href="{% url 'archiving_policy:policy_detail' company.slug policy.id %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-cogs fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">{% trans "Henüz arşivleme politikası bulunmuyor" %}</h5>
+                            <p class="text-muted">{% trans "İlk arşivleme politikanızı oluşturmak için yukarıdaki butonu kullanın." %}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

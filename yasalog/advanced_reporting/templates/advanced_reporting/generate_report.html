@@ -1,0 +1,335 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Rapor Oluştur" %} - {{ template.name }} - {{ company.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        margin-bottom: 30px;
+    }
+    
+    .dashboard-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 10px;
+    }
+    
+    .dashboard-subtitle {
+        color: #6c757d;
+        font-size: 1.1rem;
+    }
+    
+    .chart-section {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+        overflow: hidden;
+    }
+    
+    .section-header {
+        background: linear-gradient(135deg, #28a745, #1e7e34);
+        padding: 20px 30px;
+        color: white;
+    }
+    
+    .section-title {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+    
+    .section-content {
+        padding: 30px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+        display: block;
+    }
+    
+    .form-control {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 10px 12px;
+        font-size: 14px;
+        transition: border-color 0.3s;
+    }
+    
+    .form-control:focus {
+        border-color: #28a745;
+        box-shadow: 0 0 0 0.2rem rgba(40,167,69,.25);
+    }
+    
+    .nav-buttons {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .btn {
+        padding: 10px 20px;
+        border-radius: 4px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+    }
+    
+    .btn-outline-secondary {
+        background-color: transparent;
+        border: 1px solid #6c757d;
+        color: #6c757d;
+    }
+    
+    .btn-outline-secondary:hover {
+        background-color: #6c757d;
+        color: white;
+    }
+    
+    .btn-outline-primary {
+        background-color: transparent;
+        border: 1px solid #007bff;
+        color: #007bff;
+    }
+    
+    .btn-outline-primary:hover {
+        background-color: #007bff;
+        color: white;
+    }
+    
+    .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+        color: white;
+    }
+    
+    .btn-success:hover {
+        background-color: #1e7e34;
+        border-color: #1e7e34;
+    }
+    
+    .form-actions {
+        text-align: right;
+        padding-top: 20px;
+        border-top: 1px solid #e9ecef;
+    }
+    
+    .template-info {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border-left: 4px solid #28a745;
+    }
+    
+    .template-info h5 {
+        color: #28a745;
+        margin-bottom: 10px;
+    }
+    
+    .template-info p {
+        margin-bottom: 5px;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<!-- Page Header -->
+<div class="dashboard-header">
+    <h1 class="dashboard-title">
+        <i class="fas fa-play me-3"></i>{% trans "Rapor Oluştur" %}
+    </h1>
+    <p class="dashboard-subtitle">{% trans "5651 Loglama raporu oluşturun" %}</p>
+</div>
+
+<!-- Navigation Buttons -->
+<div class="nav-buttons mb-4">
+    <a href="{% url 'advanced_reporting:template_detail' company.slug template.id %}" class="btn btn-outline-secondary me-2">
+        <i class="fas fa-arrow-left me-2"></i>{% trans "Geri Dön" %}
+    </a>
+    <a href="{% url 'advanced_reporting:templates_list' company.slug %}" class="btn btn-outline-secondary me-2">
+        <i class="fas fa-list me-2"></i>{% trans "Şablon Listesi" %}
+    </a>
+    <a href="{% url 'log_kayit:company_dashboard_slug' company.slug %}" class="btn btn-outline-primary">
+        <i class="fas fa-home me-2"></i>{% trans "Ana Sayfa" %}
+    </a>
+</div>
+
+<!-- Template Information -->
+<div class="template-info">
+    <h5><i class="fas fa-file-alt me-2"></i>{% trans "Şablon Bilgileri" %}</h5>
+    <p><strong>{% trans "Şablon Adı" %}:</strong> {{ template.name }}</p>
+    <p><strong>{% trans "Rapor Türü" %}:</strong> {{ template.get_report_type_display }}</p>
+    <p><strong>{% trans "Rapor Formatı" %}:</strong> {{ template.get_report_format_display }}</p>
+    <p><strong>{% trans "Açıklama" %}:</strong> {{ template.description|default:"-" }}</p>
+</div>
+
+<!-- Form Container -->
+<div class="chart-section">
+    <div class="section-header">
+        <h3 class="section-title">
+            <i class="fas fa-cog me-2"></i>{% trans "Rapor Ayarları" %}
+        </h3>
+    </div>
+    <div class="section-content">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="id_title">{% trans "Rapor Başlığı" %} *</label>
+                        <input type="text" class="form-control" id="id_title" name="title" value="{{ template.name }} - {{ now|date:'d.m.Y' }}" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="id_description">{% trans "Rapor Açıklaması" %}</label>
+                        <input type="text" class="form-control" id="id_description" name="description" value="{{ template.description }}">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="id_period_start">{% trans "Başlangıç Tarihi" %} *</label>
+                        <input type="date" class="form-control" id="id_period_start" name="period_start" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="id_period_end">{% trans "Bitiş Tarihi" %} *</label>
+                        <input type="date" class="form-control" id="id_period_end" name="period_end" required>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="id_report_format">{% trans "Rapor Formatı" %}</label>
+                        <select class="form-control" id="id_report_format" name="report_format">
+                            <option value="{{ template.report_format }}" selected>{{ template.get_report_format_display }}</option>
+                            <option value="pdf">{% trans "PDF" %}</option>
+                            <option value="excel">{% trans "Excel" %}</option>
+                            <option value="csv">{% trans "CSV" %}</option>
+                            <option value="json">{% trans "JSON" %}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="id_priority">{% trans "Öncelik" %}</label>
+                        <select class="form-control" id="id_priority" name="priority">
+                            <option value="normal" selected>{% trans "Normal" %}</option>
+                            <option value="high">{% trans "Yüksek" %}</option>
+                            <option value="low">{% trans "Düşük" %}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="id_custom_filters">{% trans "Özel Filtreler (JSON)" %}</label>
+                <textarea class="form-control" id="id_custom_filters" name="custom_filters" rows="4" placeholder='{"user_id": 123, "ip_address": "192.168.1.1"}'></textarea>
+                <small class="form-text text-muted">{% trans "Rapor için özel filtreler ekleyin (opsiyonel)" %}</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="id_notes">{% trans "Notlar" %}</label>
+                <textarea class="form-control" id="id_notes" name="notes" rows="3" placeholder="{% trans 'Rapor hakkında notlar...' %}"></textarea>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-success me-2">
+                    <i class="fas fa-play me-2"></i>{% trans "Rapor Oluştur" %}
+                </button>
+                <a href="{% url 'advanced_reporting:template_detail' company.slug template.id %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-2"></i>{% trans "İptal" %}
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Set default date range (last 30 days)
+    var today = new Date();
+    var thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+    
+    $('#id_period_end').val(today.toISOString().split('T')[0]);
+    $('#id_period_start').val(thirtyDaysAgo.toISOString().split('T')[0]);
+    
+    // Form validation
+    var form = $('form');
+    var titleInput = $('#id_title');
+    var periodStartInput = $('#id_period_start');
+    var periodEndInput = $('#id_period_end');
+    
+    form.on('submit', function(e) {
+        if (!titleInput.val().trim()) {
+            e.preventDefault();
+            alert('{% trans "Rapor başlığı gereklidir" %}');
+            titleInput.focus();
+            return;
+        }
+        
+        if (!periodStartInput.val()) {
+            e.preventDefault();
+            alert('{% trans "Başlangıç tarihi gereklidir" %}');
+            periodStartInput.focus();
+            return;
+        }
+        
+        if (!periodEndInput.val()) {
+            e.preventDefault();
+            alert('{% trans "Bitiş tarihi gereklidir" %}');
+            periodEndInput.focus();
+            return;
+        }
+        
+        // Check if start date is before end date
+        var startDate = new Date(periodStartInput.val());
+        var endDate = new Date(periodEndInput.val());
+        
+        if (startDate > endDate) {
+            e.preventDefault();
+            alert('{% trans "Başlangıç tarihi bitiş tarihinden sonra olamaz" %}');
+            periodStartInput.focus();
+            return;
+        }
+    });
+    
+    // JSON validation for custom filters
+    var customFiltersTextarea = $('#id_custom_filters');
+    
+    customFiltersTextarea.on('blur', function() {
+        var value = $(this).val().trim();
+        if (value) {
+            try {
+                JSON.parse(value);
+                $(this).css('border-color', '#28a745');
+            } catch (e) {
+                $(this).css('border-color', '#dc3545');
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

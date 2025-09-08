@@ -1,0 +1,216 @@
+{% extends "log_kayit/partials/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Firewall Kuralları - {{ company.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.rules-container {
+    padding: 20px;
+}
+
+.rule-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-left: 4px solid;
+    transition: transform 0.2s ease;
+}
+
+.rule-card:hover {
+    transform: translateY(-2px);
+}
+
+.rule-card.allow { border-left-color: #28a745; }
+.rule-card.deny { border-left-color: #dc3545; }
+.rule-card.drop { border-left-color: #ffc107; }
+.rule-card.reject { border-left-color: #fd7e14; }
+
+.rule-status {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.status-allow { background: #d4edda; color: #155724; }
+.status-deny { background: #f8d7da; color: #721c24; }
+.status-drop { background: #fff3cd; color: #856404; }
+.status-reject { background: #f8d7da; color: #721c24; }
+
+.priority-badge {
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: bold;
+}
+
+.priority-1 { background: #e9ecef; color: #495057; }
+.priority-2 { background: #d1ecf1; color: #0c5460; }
+.priority-3 { background: #d4edda; color: #155724; }
+.priority-4 { background: #fff3cd; color: #856404; }
+.priority-5 { background: #f8d7da; color: #721c24; }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="rules-container">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-list-alt me-2"></i>Firewall Kuralları
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'firewall_management:firewall_dashboard' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Firewall Dashboard
+            </a>
+            <a href="{% url 'firewall_management:rule_add' company.slug %}" class="btn btn-success">
+                <i class="fas fa-plus me-2"></i>Yeni Kural Ekle
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtreler -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Kural Tipi</label>
+                    <select name="rule_type" class="form-select">
+                        <option value="">Tümü</option>
+                        <option value="ALLOW" {% if filters.rule_type == 'ALLOW' %}selected{% endif %}>İzin Ver</option>
+                        <option value="DENY" {% if filters.rule_type == 'DENY' %}selected{% endif %}>Reddet</option>
+                        <option value="DROP" {% if filters.rule_type == 'DROP' %}selected{% endif %}>Düşür</option>
+                        <option value="REJECT" {% if filters.rule_type == 'REJECT' %}selected{% endif %}>Reddet ve Bildir</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Protokol</label>
+                    <select name="protocol" class="form-select">
+                        <option value="">Tümü</option>
+                        <option value="TCP" {% if filters.protocol == 'TCP' %}selected{% endif %}>TCP</option>
+                        <option value="UDP" {% if filters.protocol == 'UDP' %}selected{% endif %}>UDP</option>
+                        <option value="ICMP" {% if filters.protocol == 'ICMP' %}selected{% endif %}>ICMP</option>
+                        <option value="ANY" {% if filters.protocol == 'ANY' %}selected{% endif %}>Tümü</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Durum</label>
+                    <select name="status" class="form-select">
+                        <option value="">Tümü</option>
+                        <option value="active" {% if filters.status == 'active' %}selected{% endif %}>Aktif</option>
+                        <option value="inactive" {% if filters.status == 'inactive' %}selected{% endif %}>Pasif</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search me-2"></i>Filtrele
+                        </button>
+                        <a href="{% url 'firewall_management:rules_list' company.slug %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Temizle
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Kurallar Listesi -->
+    {% if rules %}
+    <div class="rules-list">
+        {% for rule in rules %}
+        <div class="rule-card {{ rule.rule_type|lower }}">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <div class="d-flex align-items-center mb-2">
+                        <h5 class="mb-0 me-3">{{ rule.name }}</h5>
+                        <span class="rule-status status-{{ rule.rule_type|lower }}">
+                            {{ rule.get_rule_type_display }}
+                        </span>
+                        <span class="priority-badge priority-{{ rule.priority }} ms-2">
+                            Öncelik: {{ rule.priority }}
+                        </span>
+                    </div>
+                    {% if rule.description %}
+                    <p class="text-muted mb-2">{{ rule.description }}</p>
+                    {% endif %}
+                    <div class="d-flex gap-3 text-sm">
+                        <span><i class="fas fa-network-wired me-1"></i>{{ rule.get_protocol_display }}</span>
+                        <span><i class="fas fa-map-marker-alt me-1"></i>{{ rule.source_ip|default:"Any" }} → {{ rule.destination_ip|default:"Any" }}</span>
+                        <span><i class="fas fa-plug me-1"></i>{{ rule.source_port|default:"Any" }}:{{ rule.destination_port|default:"Any" }}</span>
+                    </div>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="mb-2">
+                        {% if rule.is_active %}
+                        <span class="badge bg-success">Aktif</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Pasif</span>
+                        {% endif %}
+                    </div>
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a href="{% url 'firewall_management:rule_detail' rule.id %}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="{% url 'firewall_management:rule_edit' company.slug rule.id %}" class="btn btn-sm btn-outline-warning">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <form method="post" action="{% url 'firewall_management:rule_delete' company.slug rule.id %}" style="display: inline;" onsubmit="return confirm('Bu kuralı silmek istediğinizden emin misiniz?')">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Sayfalama -->
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Sayfa navigasyonu" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1&{{ request.GET.urlencode }}">&laquo; İlk</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}">Önceki</a>
+            </li>
+            {% endif %}
+
+            <li class="page-item disabled">
+                <span class="page-link">Sayfa {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+            </li>
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}">Sonraki</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&{{ request.GET.urlencode }}">Son &raquo;</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-shield-alt fa-3x text-muted mb-3"></i>
+        <h5 class="text-muted">Henüz firewall kuralı eklenmemiş</h5>
+        <p class="text-muted">İlk firewall kuralını ekleyerek başlayın.</p>
+        <a href="{% url 'firewall_management:rule_add' company.slug %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>İlk Kuralı Ekle
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

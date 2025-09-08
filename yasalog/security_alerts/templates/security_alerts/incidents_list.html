@@ -1,0 +1,408 @@
+{% extends "log_kayit/partials/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Güvenlik Olayları - {{ company.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .incidents-dashboard {
+        padding: 20px 0;
+    }
+    
+    .filters-section {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    
+    .incident-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border-left: 4px solid #007bff;
+        transition: all 0.3s ease;
+    }
+    
+    .incident-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    }
+    
+    .incident-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 15px;
+    }
+    
+    .incident-title {
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+        font-size: 1.1rem;
+    }
+    
+    .incident-meta {
+        display: flex;
+        gap: 15px;
+        font-size: 0.85rem;
+        color: #666;
+        flex-wrap: wrap;
+    }
+    
+    .severity-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .severity-critical { background: #dc3545; color: white; }
+    .severity-high { background: #fd7e14; color: white; }
+    .severity-medium { background: #ffc107; color: #212529; }
+    .severity-low { background: #28a745; color: white; }
+    
+    .status-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .status-open { background: #dc3545; color: white; }
+    .status-investigating { background: #ffc107; color: #212529; }
+    .status-contained { background: #17a2b8; color: white; }
+    .status-resolved { background: #28a745; color: white; }
+    .status-closed { background: #6c757d; color: white; }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-item {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 15px;
+        text-align: center;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="incidents-dashboard">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-exclamation-circle me-2"></i>Güvenlik Olayları
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'security_alerts:security_dashboard' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Güvenlik Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- İstatistikler -->
+    <div class="stats-grid">
+        <div class="stat-item">
+            <div class="stat-number">{{ page_obj.paginator.count|default:0 }}</div>
+            <div class="stat-label">Toplam Olay</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">{{ page_obj.paginator.count|default:0 }}</div>
+            <div class="stat-label">Açık Olay</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">{{ page_obj.paginator.count|default:0 }}</div>
+            <div class="stat-label">Araştırılan</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">{{ page_obj.paginator.count|default:0 }}</div>
+            <div class="stat-label">Çözülen</div>
+        </div>
+    </div>
+
+    <!-- Filtreler -->
+    <div class="filters-section">
+        <h5 class="mb-3"><i class="fas fa-filter me-2"></i>Filtreler</h5>
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Olay Tipi</label>
+                <select name="incident_type" class="form-select">
+                    <option value="">Tümü</option>
+                    {% for value, label in incident_types %}
+                        <option value="{{ value }}" {% if filters.incident_type == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Durum</label>
+                <select name="status" class="form-select">
+                    <option value="">Tümü</option>
+                    {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Önem Seviyesi</label>
+                <select name="severity" class="form-select">
+                    <option value="">Tümü</option>
+                    {% for value, label in severity_levels %}
+                        <option value="{{ value }}" {% if filters.severity == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Arama</label>
+                <input type="text" name="search" value="{{ filters.search }}" class="form-control" placeholder="Başlık, açıklama...">
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search me-2"></i>Filtrele
+                </button>
+                <a href="{% url 'security_alerts:incidents_list' company.slug %}" class="btn btn-outline-secondary ms-2">
+                    <i class="fas fa-times me-2"></i>Temizle
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Olay Listesi -->
+    <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">
+                <i class="fas fa-list me-2"></i>Olay Listesi
+                <span class="badge bg-primary ms-2">{{ page_obj.paginator.count|default:0 }}</span>
+            </h5>
+            <div class="d-flex gap-2">
+                <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto;">
+                    <option value="-discovered_at" {% if filters.sort == '-discovered_at' %}selected{% endif %}>Keşfedilme (Yeni)</option>
+                    <option value="discovered_at" {% if filters.sort == 'discovered_at' %}selected{% endif %}>Keşfedilme (Eski)</option>
+                    <option value="-severity" {% if filters.sort == '-severity' %}selected{% endif %}>Önem (Yüksek)</option>
+                    <option value="severity" {% if filters.sort == 'severity' %}selected{% endif %}>Önem (Düşük)</option>
+                    <option value="-impact_level" {% if filters.sort == '-impact_level' %}selected{% endif %}>Etki (Yüksek)</option>
+                    <option value="impact_level" {% if filters.sort == 'impact_level' %}selected{% endif %}>Etki (Düşük)</option>
+                </select>
+            </div>
+        </div>
+
+        {% for incident in incidents %}
+        <div class="incident-card">
+            <div class="incident-header">
+                <h6 class="incident-title">{{ incident.title }}</h6>
+                <div class="d-flex gap-2">
+                    <span class="severity-badge severity-{{ incident.severity|lower }}">{{ incident.get_severity_display }}</span>
+                    <span class="status-badge status-{{ incident.status|lower }}">{{ incident.get_status_display }}</span>
+                </div>
+            </div>
+            
+            <p class="mb-3">{{ incident.description }}</p>
+            
+            <div class="incident-meta">
+                <span><i class="fas fa-tag me-1"></i>{{ incident.get_incident_type_display }}</span>
+                <span><i class="fas fa-clock me-1"></i>{{ incident.discovered_at|date:'d.m.Y H:i' }}</span>
+                {% if incident.started_at %}
+                <span><i class="fas fa-play me-1"></i>Başlama: {{ incident.started_at|date:'d.m.Y H:i' }}</span>
+                {% endif %}
+                {% if incident.contained_at %}
+                <span><i class="fas fa-shield-alt me-1"></i>Sınırlandırıldı: {{ incident.contained_at|date:'d.m.Y H:i' }}</span>
+                {% endif %}
+                {% if incident.resolved_at %}
+                <span><i class="fas fa-check-double me-1"></i>Çözüldü: {{ incident.resolved_at|date:'d.m.Y H:i' }}</span>
+                {% endif %}
+                {% if incident.assigned_to %}
+                <span><i class="fas fa-user me-1"></i>{{ incident.assigned_to.get_full_name|default:incident.assigned_to.username }}</span>
+                {% endif %}
+            </div>
+            
+            <div class="mt-3">
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Önem Seviyesi:</strong> 
+                        <span class="badge bg-{{ incident.get_severity_color }} ms-2">{{ incident.get_severity_display }}</span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Etki Seviyesi:</strong> 
+                        <span class="badge bg-{{ incident.get_severity_color }} ms-2">{{ incident.get_impact_level_display }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            {% if incident.related_threats.all %}
+            <div class="mt-3">
+                <strong>İlişkili Tehditler:</strong>
+                <div class="mt-2">
+                    {% for threat in incident.related_threats.all %}
+                    <a href="{% url 'security_alerts:threat_detail' company.slug threat.id %}" class="btn btn-outline-info btn-sm me-2 mb-2">
+                        <i class="fas fa-bug me-1"></i>{{ threat.title }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if incident.related_alerts.all %}
+            <div class="mt-3">
+                <strong>İlişkili Uyarılar:</strong>
+                <div class="mt-2">
+                    {% for alert in incident.related_alerts.all %}
+                    <span class="badge bg-warning me-2 mb-2">{{ alert.title }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if incident.notes %}
+            <div class="mt-3">
+                <strong>Notlar:</strong>
+                <p class="bg-light p-2 rounded mt-2">{{ incident.notes }}</p>
+            </div>
+            {% endif %}
+            
+            <div class="mt-3">
+                <button class="btn btn-outline-primary btn-sm me-2" onclick="updateIncidentStatus({{ incident.id }}, 'investigating')">
+                    <i class="fas fa-search me-1"></i>Araştırılıyor
+                </button>
+                <button class="btn btn-outline-info btn-sm me-2" onclick="updateIncidentStatus({{ incident.id }}, 'contained')">
+                    <i class="fas fa-shield-alt me-1"></i>Sınırlandırıldı
+                </button>
+                <button class="btn btn-outline-success btn-sm me-2" onclick="updateIncidentStatus({{ incident.id }}, 'resolved')">
+                    <i class="fas fa-check-double me-1"></i>Çözüldü
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="updateIncidentStatus({{ incident.id }}, 'closed')">
+                    <i class="fas fa-times me-1"></i>Kapat
+                </button>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center text-muted py-5">
+            <i class="fas fa-exclamation-circle fa-3x mb-3"></i>
+            <h5>Henüz olay bulunmuyor</h5>
+            <p>Yeni güvenlik olayı keşfedildiğinde burada görünecek.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Sayfalama -->
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1&{{ request.GET.urlencode }}">&laquo; İlk</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}">Önceki</a>
+                </li>
+            {% endif %}
+
+            <li class="page-item disabled">
+                <span class="page-link">Sayfa {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+            </li>
+
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}">Sonraki</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&{{ request.GET.urlencode }}">Son &raquo;</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Sıralama değiştiğinde formu otomatik gönder
+document.querySelector('select[name="sort"]').addEventListener('change', function() {
+    const form = document.createElement('form');
+    form.method = 'GET';
+    form.action = window.location.pathname;
+    
+    // Mevcut parametreleri ekle
+    const urlParams = new URLSearchParams(window.location.search);
+    for (let [key, value] of urlParams) {
+        if (key !== 'sort') {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = value;
+            form.appendChild(input);
+        }
+    }
+    
+    // Yeni sıralama parametresini ekle
+    const sortInput = document.createElement('input');
+    sortInput.type = 'hidden';
+    sortInput.name = 'sort';
+    sortInput.value = this.value;
+    form.appendChild(sortInput);
+    
+    document.body.appendChild(form);
+    form.submit();
+});
+
+// Olay durumunu güncelle
+function updateIncidentStatus(incidentId, newStatus) {
+    const statusLabels = {
+        'investigating': 'Araştırılıyor',
+        'contained': 'Sınırlandırıldı',
+        'resolved': 'Çözüldü',
+        'closed': 'Kapatıldı'
+    };
+    
+    if (confirm(`Bu olayı "${statusLabels[newStatus]}" olarak işaretlemek istediğinizden emin misiniz?`)) {
+        // AJAX ile olay durumunu güncelle
+        fetch(`/security/incidents/${incidentId}/update-status/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                status: newStatus
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Hata: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Hata:', error);
+            alert('Bir hata oluştu.');
+        });
+    }
+}
+</script>
+{% endblock %}

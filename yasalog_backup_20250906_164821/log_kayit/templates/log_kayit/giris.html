@@ -1,0 +1,397 @@
+{% extends "log_kayit/partials/base_visitor.html" %}
+{% load i18n %}
+{% load widget_tweaks %}
+
+{% block title %}{% trans "Secure Wi-Fi Login" %}{% endblock %}
+
+{% block content %}
+<div class="guest-login-container">
+    <div class="text-center mb-4">
+        {% if company.logo %}
+            <img src="{{ company.logo.url }}" alt="{{ company.name }} Logo" class="company-logo mb-3">
+        {% endif %}
+        <h2 class="fw-bolder" style="color: {{ theme_color|default:'#0056b3' }};">
+            {{ company.name|default:"Secure Wi-Fi" }}
+        </h2>
+        <p class="text-muted">{% trans "Enter your information to connect to the internet." %}</p>
+    </div>
+
+    <!-- ISO Audit Uyumluluğu - Veri Toplama Bilgilendirmesi -->
+    <div class="privacy-notice mb-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-shield-alt me-2"></i>
+                    Veri Toplama ve Kullanım Bilgilendirmesi
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-primary">
+                            <i class="fas fa-bullseye me-2"></i>Veri Toplama Amacı
+                        </h6>
+                        <p class="small text-muted mb-0">
+                            Bu uygulama <strong>5651 sayılı kanun</strong> gereği Wi-Fi kullanıcı bilgilerini toplar. 
+                            Toplanan veriler güvenlik, yasal zorunluluk ve hizmet kalitesi için kullanılır.
+                        </p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-primary">
+                            <i class="fas fa-clock me-2"></i>Veri Saklama Süresi
+                        </h6>
+                        <p class="small text-muted mb-0">
+                            Kişisel veriler <strong>2 yıl</strong> süreyle saklanır. 
+                            Bu süre sonunda veriler otomatik olarak silinir veya anonim hale getirilir.
+                        </p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-primary">
+                            <i class="fas fa-handshake me-2"></i>Veri Kullanımı
+                        </h6>
+                        <p class="small text-muted mb-0">
+                            Veriler sadece belirtilen amaçlar için kullanılır. 
+                            Üçüncü taraflarla paylaşılmaz veya ticari amaçla kullanılmaz.
+                        </p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-primary">
+                            <i class="fas fa-user-shield me-2"></i>Kullanıcı Hakları
+                        </h6>
+                        <p class="small text-muted mb-0">
+                            KVKK kapsamında <strong>bilgi alma, düzeltme, silme</strong> haklarınız bulunmaktadır. 
+                            Detaylı bilgi için iletişime geçebilirsiniz.
+                        </p>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#privacyModal">
+                        <i class="fas fa-info-circle me-2"></i>Detaylı Bilgi
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form method="post" id="log-form" novalidate class="needs-validation">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger text-center p-2 mb-3" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                {{ form.non_field_errors|first }}
+            </div>
+        {% endif %}
+        
+        <!-- Kimlik Türü Sekmeleri -->
+        <ul class="nav nav-pills nav-fill mb-4" id="idTypeTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="tc-tab" data-bs-toggle="tab" data-bs-target="#tc-pane" type="button" role="tab" aria-controls="tc-pane" aria-selected="true">
+                    <i class="fas fa-address-card me-2"></i>{% trans "T.R. Identity" %}
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="passport-tab" data-bs-toggle="tab" data-bs-target="#passport-pane" type="button" role="tab" aria-controls="passport-pane" aria-selected="false">
+                    <i class="fas fa-passport me-2"></i>{% trans "Passport" %}
+                </button>
+            </li>
+        </ul>
+
+        <!-- Form Alanları -->
+        <div class="tab-content" id="idTypeTabContent">
+            <!-- TC Kimlik Alanları -->
+            <div class="tab-pane fade show active" id="tc-pane" role="tabpanel" aria-labelledby="tc-tab">
+                {{ form.kimlik_turu|attr:"value:TC"|add_class:"d-none" }}
+                <div class="form-floating mb-3">
+                    {% render_field form.tc_no class="form-control" placeholder="TC Kimlik Numarası" %}
+                    <label for="{{ form.tc_no.id_for_label }}">{{ form.tc_no.label }}</label>
+                    {% if form.tc_no.errors %}<div class="invalid-feedback">{{ form.tc_no.errors.0 }}</div>{% endif %}
+                </div>
+            </div>
+            <!-- Pasaport Alanları -->
+            <div class="tab-pane fade" id="passport-pane" role="tabpanel" aria-labelledby="passport-tab">
+                 <div class="form-floating mb-3">
+                    {% render_field form.pasaport_no class="form-control" placeholder="Pasaport Numarası" %}
+                    <label for="{{ form.pasaport_no.id_for_label }}">{{ form.pasaport_no.label }}</label>
+                    {% if form.pasaport_no.errors %}<div class="invalid-feedback">{{ form.pasaport_no.errors.0 }}</div>{% endif %}
+                </div>
+                 <div class="form-floating mb-3">
+                    {% render_field form.pasaport_ulkesi class="form-control" placeholder="Ülke" %}
+                    <label for="{{ form.pasaport_ulkesi.id_for_label }}">{{ form.pasaport_ulkesi.label }}</label>
+                    {% if form.pasaport_ulkesi.errors %}<div class="invalid-feedback">{{ form.pasaport_ulkesi.errors.0 }}</div>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-floating mb-3">
+            {% render_field form.ad_soyad class="form-control" placeholder="Ad Soyad" %}
+            <label for="{{ form.ad_soyad.id_for_label }}">{{ form.ad_soyad.label }}</label>
+            {% if form.ad_soyad.errors %}<div class="invalid-feedback">{{ form.ad_soyad.errors.0 }}</div>{% endif %}
+        </div>
+        
+        <div class="form-floating mb-4">
+            {% render_field form.telefon class="form-control" placeholder="Telefon (İsteğe Bağlı)" %}
+            <label for="{{ form.telefon.id_for_label }}">{{ form.telefon.label }}</label>
+            {% if form.telefon.errors %}<div class="invalid-feedback">{{ form.telefon.errors.0 }}</div>{% endif %}
+        </div>
+
+        {% if kvkk_text %}
+        <div class="form-check text-center mb-4">
+            {% render_field form.kvkk_onay class="form-check-input" %}
+            <label class="form-check-label" for="{{ form.kvkk_onay.id_for_label }}">
+                <a href="#" data-bs-toggle="modal" data-bs-target="#kvkkModal" class="text-decoration-none">
+                    <small>{% trans "I accept the KVKK and internet usage terms." %}</small>
+                </a>
+            </label>
+            {% if form.kvkk_onay.errors %}<div class="invalid-feedback d-block text-center mt-1">{{ form.kvkk_onay.errors.0 }}</div>{% endif %}
+        </div>
+        {% endif %}
+
+        <div class="d-grid">
+            <button type="submit" class="btn btn-primary btn-lg fw-bold" style="--bs-btn-bg: {{ theme_color|default:'#0056b3' }}; --bs-btn-border-color: {{ theme_color|default:'#0056b3' }};">
+                <i class="fas fa-wifi me-2"></i> {% trans "Connect to Internet" %}
+            </button>
+        </div>
+        <div class="alert alert-warning mt-3" style="font-size:0.97em;">
+            <strong>Dikkat:</strong> Lütfen kendi adınızı ve TC kimlik numaranızı eksiksiz ve doğru giriniz. Yanlış beyan yasal sorumluluk doğurur ve erişiminiz engellenebilir.
+        </div>
+    </form>
+
+    {% if login_info_text %}
+    <div class="text-center mt-3">
+        <small class="text-muted">{{ login_info_text }}</small>
+    </div>
+    {% endif %}
+</div>
+
+<!-- KVKK Modal -->
+<div class="modal fade" id="kvkkModal" tabindex="-1" aria-labelledby="kvkkModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="kvkkModalLabel">
+                    <i class="fas fa-shield-alt me-2"></i>KVKK ve İnternet Kullanım Şartları
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-primary">Kişisel Verilerin Korunması</h6>
+                        <ul class="small">
+                            <li>Kişisel verileriniz güvenli şekilde saklanır</li>
+                            <li>Üçüncü taraflarla paylaşılmaz</li>
+                            <li>Yasal zorunluluk dışında kullanılmaz</li>
+                            <li>2 yıl sonra otomatik silinir</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-primary">İnternet Kullanım Şartları</h6>
+                        <ul class="small">
+                            <li>Yasal ve etik kurallara uygun kullanım</li>
+                            <li>Başkalarının haklarına saygı</li>
+                            <li>Güvenlik önlemlerine uyum</li>
+                            <li>Kötüye kullanım yasaktır</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Anladım</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detaylı Gizlilik Modal -->
+<div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="privacyModalLabel">
+                    <i class="fas fa-info-circle me-2"></i>Detaylı Gizlilik Politikası
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-info">5651 Sayılı Kanun Uyumluluğu</h6>
+                        <p class="small">
+                            Bu uygulama, 5651 sayılı "İnternet Ortamında Yapılan Yayınların Düzenlenmesi ve Bu Yayınlar Yoluyla İşlenen Suçlarla Mücadele Edilmesi Hakkında Kanun" kapsamında çalışır.
+                        </p>
+                        <h6 class="text-info">Toplanan Veriler</h6>
+                        <ul class="small">
+                            <li>Kimlik bilgileri (TC No, Pasaport No)</li>
+                            <li>Ad-soyad bilgisi</li>
+                            <li>Telefon numarası (isteğe bağlı)</li>
+                            <li>Bağlantı zamanı ve süresi</li>
+                            <li>IP adresi ve cihaz bilgileri</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-info">Veri Güvenliği</h6>
+                        <ul class="small">
+                            <li>SSL/TLS şifreleme</li>
+                            <li>Güvenli veri depolama</li>
+                            <li>Erişim kontrolü</li>
+                            <li>Düzenli güvenlik denetimleri</li>
+                        </ul>
+                        <h6 class="text-info">İletişim</h6>
+                        <p class="small">
+                            Gizlilik politikası hakkında sorularınız için:<br>
+                            <strong>E-posta:</strong> privacy@{{ company.domain|default:"example.com" }}<br>
+                            <strong>Telefon:</strong> {{ company.phone|default:"+90 xxx xxx xx xx" }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-info" data-bs-dismiss="modal">Kapat</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const idTypeTab = new bootstrap.Tab(document.getElementById('idTypeTab'));
+    const kimlikTuruInput = document.querySelector('input[name="kimlik_turu"]');
+    
+    document.getElementById('tc-tab').addEventListener('click', function () {
+        kimlikTuruInput.value = 'TC';
+    });
+
+    document.getElementById('passport-tab').addEventListener('click', function () {
+        kimlikTuruInput.value = 'PASAPORT';
+    });
+
+    const form = document.querySelector('.needs-validation');
+    form.addEventListener('submit', event => {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    }, false);
+});
+</script>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+    .company-logo {
+        max-height: 80px;
+        max-width: 220px;
+        object-fit: contain;
+    }
+    .nav-pills .nav-link {
+        color: #6c757d;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .nav-pills .nav-link.active, .nav-pills .show>.nav-link {
+        color: #fff;
+        background-color: {{ theme_color|default:'#0056b3' }};
+        box-shadow: 0 4px 15px rgba(0, 86, 179, 0.4);
+    }
+    .form-floating > .form-control:focus, .form-floating > .form-control:not(:placeholder-shown) {
+        padding-top: 1.625rem;
+        padding-bottom: .625rem;
+    }
+    .form-control:focus {
+        border-color: {{ theme_color|default:'#0056b3' }};
+        box-shadow: 0 0 0 0.25rem rgba(0, 86, 179, 0.25);
+    }
+    .btn-primary {
+        transition: all 0.3s ease;
+    }
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 7px 20px rgba(0, 86, 179, 0.3);
+    }
+    
+    /* Privacy Notice Styles */
+    .privacy-notice .card {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .privacy-notice .card-header {
+        background: linear-gradient(135deg, {{ theme_color|default:'#0056b3' }}, #007bff) !important;
+        border: none;
+        padding: 1rem;
+    }
+    .privacy-notice .card-header h6 {
+        font-weight: 600;
+        margin: 0;
+    }
+    .privacy-notice .card-body {
+        padding: 1.5rem;
+    }
+    .privacy-notice h6.text-primary {
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    .privacy-notice .text-muted {
+        font-size: 0.85rem;
+        line-height: 1.4;
+    }
+    .privacy-notice .btn-outline-primary {
+        border-radius: 20px;
+        padding: 0.5rem 1.5rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    .privacy-notice .btn-outline-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 86, 179, 0.3);
+    }
+    
+    /* Modal Styles */
+    .modal-header {
+        border-bottom: none;
+        padding: 1.5rem;
+    }
+    .modal-body {
+        padding: 1.5rem;
+    }
+    .modal-footer {
+        border-top: none;
+        padding: 1rem 1.5rem;
+    }
+    .modal-content {
+        border-radius: 12px;
+        border: none;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+    .modal h6 {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+    .modal ul {
+        padding-left: 1.2rem;
+    }
+    .modal li {
+        margin-bottom: 0.25rem;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .privacy-notice .card-body {
+            padding: 1rem;
+        }
+        .privacy-notice .row > div {
+            margin-bottom: 1rem;
+        }
+        .modal-dialog {
+            margin: 1rem;
+        }
+    }
+</style>
+{% endblock %} 

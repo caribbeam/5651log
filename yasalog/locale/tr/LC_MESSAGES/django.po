@@ -1,0 +1,558 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDERS
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-06-21 01:39+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: .\log_kayit\forms.py:10
+msgid "Select a country"
+msgstr "Ülke seçiniz"
+
+#: .\log_kayit\forms.py:14
+msgid "ID Type"
+msgstr "Kimlik Türü"
+
+#: .\log_kayit\forms.py:15
+msgid "Turkish ID"
+msgstr "T.C. Kimlik No"
+
+#: .\log_kayit\forms.py:15
+msgid "Passport"
+msgstr "Pasaport"
+
+#: .\log_kayit\forms.py:20
+msgid "Passport Country"
+msgstr "Pasaport Ülkesi"
+
+#: .\log_kayit\forms.py:26
+#, fuzzy
+#| msgid "I accept the KVKK and internet usage terms:"
+msgid "I accept the KVKK and internet usage terms"
+msgstr "KVKK ve internet kullanım şartlarını kabul ediyorum:"
+
+#: .\log_kayit\forms.py:35 .\log_kayit\forms.py:41
+msgid "Turkish ID Number"
+msgstr "T.C. Kimlik Numarası"
+
+#: .\log_kayit\forms.py:36 .\log_kayit\forms.py:42
+msgid "Passport Number"
+msgstr "Pasaport Numarası"
+
+#: .\log_kayit\forms.py:37 .\log_kayit\forms.py:43
+msgid "Full Name"
+msgstr "Ad Soyad"
+
+#: .\log_kayit\forms.py:38 .\log_kayit\forms.py:44
+msgid "Phone (optional)"
+msgstr "Telefon (isteğe bağlı)"
+
+#: .\log_kayit\forms.py:66
+#, fuzzy
+#| msgid "Turkish ID Number is required!"
+msgid "This field is required."
+msgstr "TC Kimlik No zorunludur!"
+
+#: .\log_kayit\forms.py:69
+#, fuzzy
+#| msgid "Invalid Turkish ID Number!"
+msgid "Invalid Turkish ID Number."
+msgstr "Geçersiz TC Kimlik Numarası!"
+
+#: .\log_kayit\forms.py:76
+msgid "This field is required for passport holders."
+msgstr "Pasaport sahipleri için bu alan zorunludur."
+
+#: .\log_kayit\forms.py:83
+#, fuzzy
+#| msgid "Country selection is required!"
+msgid "Country selection is required for passport holders."
+msgstr "Ülke seçimi zorunludur!"
+
+#: .\log_kayit\forms.py:89
+msgid "You must accept the terms to continue."
+msgstr "Devam etmek için şartları kabul etmelisiniz."
+
+#: .\log_kayit\models.py:6
+msgid "Firma Adı"
+msgstr "Firma Adı"
+
+#: .\log_kayit\models.py:7
+msgid "Adres"
+msgstr "Adres"
+
+#: .\log_kayit\models.py:8
+msgid "Yetkili Kişi"
+msgstr "Yetkili Kişi"
+
+#: .\log_kayit\models.py:9 .\log_kayit\models.py:32
+msgid "Telefon"
+msgstr "Telefon"
+
+#: .\log_kayit\models.py:10
+msgid "Logo"
+msgstr "Logo"
+
+#: .\log_kayit\models.py:12
+msgid "KVKK Metni"
+msgstr "KVKK Metni"
+
+#: .\log_kayit\models.py:13
+msgid "Giriş Formu Açıklaması"
+msgstr "Giriş Formu Açıklaması"
+
+#: .\log_kayit\models.py:14
+msgid "Tema Rengi (hex)"
+msgstr "Tema Rengi (hex)"
+
+#: .\log_kayit\models.py:15
+msgid "Yabancı Girişine İzin Ver"
+msgstr "Yabancı Girişine İzin Ver"
+
+#: .\log_kayit\models.py:21 .\log_kayit\models.py:49
+msgid "Firma"
+msgstr "Firma"
+
+#: .\log_kayit\models.py:22
+msgid "TC Kimlik No"
+msgstr "TC Kimlik No"
+
+#: .\log_kayit\models.py:24
+msgid "Kimlik Türü"
+msgstr "Kimlik Türü"
+
+#: .\log_kayit\models.py:26
+msgid "TC Kimlik"
+msgstr "TC Kimlik"
+
+#: .\log_kayit\models.py:26
+#, fuzzy
+#| msgid "Passport"
+msgid "Pasaport"
+msgstr "Pasaport"
+
+#: .\log_kayit\models.py:29
+#, fuzzy
+#| msgid "Passport"
+msgid "Pasaport No"
+msgstr "Pasaport No"
+
+#: .\log_kayit\models.py:30
+msgid "Pasaport Ülkesi"
+msgstr "Pasaport Ülkesi"
+
+#: .\log_kayit\models.py:31
+msgid "Ad Soyad"
+msgstr "Ad Soyad"
+
+#: .\log_kayit\models.py:33
+msgid "IP Adresi"
+msgstr "IP Adresi"
+
+#: .\log_kayit\models.py:34
+msgid "MAC Adresi"
+msgstr "MAC Adresi"
+
+#: .\log_kayit\models.py:35
+msgid "Giriş Zamanı"
+msgstr "Giriş Zamanı"
+
+#: .\log_kayit\models.py:36
+msgid "SHA256 Hash"
+msgstr "SHA256 Hash"
+
+#: .\log_kayit\models.py:37
+msgid "Şüpheli/Geçersiz Giriş"
+msgstr "Şüpheli/Geçersiz Giriş"
+
+#: .\log_kayit\models.py:43
+msgid "Log Kaydı"
+msgstr "Log Kaydı"
+
+#: .\log_kayit\models.py:44
+msgid "Log Kayıtları"
+msgstr "Log Kayıtları"
+
+#: .\log_kayit\models.py:48
+msgid "Kullanıcı"
+msgstr "Kullanıcı"
+
+#: .\log_kayit\models.py:51
+msgid "Firma Yöneticisi"
+msgstr "Firma Yöneticisi"
+
+#: .\log_kayit\models.py:52
+msgid "Personel"
+msgstr "Personel"
+
+#: .\log_kayit\models.py:53
+msgid "Sadece Görüntüleyici"
+msgstr "Sadece Görüntüleyici"
+
+#: .\log_kayit\models.py:54
+msgid "Yönetici"
+msgstr "Yönetici"
+
+#: .\log_kayit\models.py:55
+msgid "Firma Kullanıcısı"
+msgstr "Firma Kullanıcısı"
+
+#: .\log_kayit\models.py:56
+msgid "Firma Kullanıcıları"
+msgstr "Firma Kullanıcıları"
+
+#: .\log_kayit\templates\log_kayit\giris.html:8
+msgid "İnternet Giriş Kaydı"
+msgstr "İnternet Giriş Kaydı"
+
+#: .\log_kayit\templates\log_kayit\giris.html:95
+msgid "5651 Yasal Kayıt & Güvenli Erişim"
+msgstr ""
+
+#: .\log_kayit\templates\log_kayit\giris.html:97
+#, fuzzy
+#| msgid "İnternet Giriş Kaydı"
+msgid "İnternet Giriş Paneli"
+msgstr "İnternet Giriş Kaydı"
+
+#: .\log_kayit\templates\log_kayit\giris.html:98
+msgid ""
+"Yasalara uygun, güvenli ve hızlı internet erişimi için lütfen giriş yapınız."
+msgstr ""
+
+#: .\log_kayit\templates\log_kayit\giris.html:100
+msgid "5651 sayılı kanuna tam uyum"
+msgstr ""
+
+#: .\log_kayit\templates\log_kayit\giris.html:101
+msgid "Kişisel verileriniz 2 yıl güvenle saklanır"
+msgstr ""
+
+#: .\log_kayit\templates\log_kayit\giris.html:102
+msgid "Kolay ve hızlı kayıt"
+msgstr ""
+
+#: .\log_kayit\templates\log_kayit\giris.html:103
+msgid "Yönetici ve ziyaretçi için ayrı giriş"
+msgstr ""
+
+#: .\log_kayit\templates\log_kayit\giris.html:110
+#: .\log_kayit\templates\log_kayit\giris.html:161
+msgid "Ziyaretçi Girişi"
+msgstr ""
+
+#: .\log_kayit\templates\log_kayit\giris.html:113
+#: .\log_kayit\templates\log_kayit\giris.html:199
+msgid "Yönetici Girişi"
+msgstr ""
+
+#: .\log_kayit\templates\log_kayit\giris.html:163
+msgid "5651 sayılı yasa gereği bilgileriniz 2 yıl saklanacaktır."
+msgstr ""
+
+#: .\log_kayit\templates\log_kayit\giris.html:192
+msgid "Kullanıcı Adı veya E-posta"
+msgstr ""
+
+#: .\log_kayit\templates\log_kayit\giris.html:196
+msgid "Şifre"
+msgstr ""
+
+#: .\log_kayit\templates\log_kayit\giris.html:202
+msgid "Yalnızca yetkili personel için"
+msgstr ""
+
+#: .\log_kayit\views.py:79
+msgid "You are not authorized to access this company's dashboard."
+msgstr ""
+
+#: .\log_kayit\views.py:132
+msgid "Superuser"
+msgstr ""
+
+#: .\log_kayit\views.py:258 .\log_kayit\views.py:379
+msgid "You are not authorized to view this page."
+msgstr ""
+
+#: .\log_kayit\views.py:383
+msgid "You are not assigned to any company. Cannot show settings."
+msgstr ""
+
+#: .\log_kayit\views.py:389
+msgid "Settings saved successfully."
+msgstr ""
+
+#: .\log_kayit\views.py:392
+msgid "Could not save settings. Please check the form."
+msgstr ""
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:8 .\log_kayit\templates\log_kayit\dashboard.html:23
+msgid "Dashboard"
+msgstr "Kontrol Paneli"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:25
+msgid "Admin Panel"
+msgstr "Yönetici Paneli"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:27
+msgid "User Management"
+msgstr "Kullanıcı Yönetimi"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:29
+msgid "Company Settings"
+msgstr "Firma Ayarları"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:32
+msgid "Logout"
+msgstr "Çıkış"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:40
+msgid "Your Role"
+msgstr "Rolünüz"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:40
+msgid "Last login"
+msgstr "Son giriş"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:40
+msgid "first login"
+msgstr "ilk giriş"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:47
+msgid "Total Logins"
+msgstr "Toplam Giriş"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:53
+msgid "Total Users"
+msgstr "Toplam Kullanıcı"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:59
+msgid "Active Users"
+msgstr "Aktif Kullanıcılar"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:65
+msgid "Suspicious Logins"
+msgstr "Şüpheli Girişler"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:72
+msgid "Company Logo"
+msgstr "Firma Logosu"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:80
+msgid "Turkish ID No"
+msgstr "T.C. Kimlik No"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:83
+msgid "Full Name"
+msgstr "Ad Soyad"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:86
+msgid "Start Date"
+msgstr "Başlangıç Tarihi"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:90
+msgid "End Date"
+msgstr "Bitiş Tarihi"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:94
+msgid "Filter"
+msgstr "Filtrele"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:110
+msgid "Top 5 Users by Login Count"
+msgstr "Giriş Sayısına Göre İlk 5 Kullanıcı"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:119
+msgid "No data available."
+msgstr "Veri bulunamadı."
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:129
+msgid "Today's Logins"
+msgstr "Bugünkü Girişler"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:136
+msgid "Today's Suspicious"
+msgstr "Bugünkü Şüpheliler"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:143
+msgid "Last Login By"
+msgstr "Son Giriş Yapan"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:151
+msgid "Most Active User"
+msgstr "En Aktif Kullanıcı"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:160
+msgid "Suspicious or Invalid Logins"
+msgstr "Şüpheli veya Geçersiz Girişler"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:162
+msgid "Show/Hide"
+msgstr "Göster/Gizle"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:171
+msgid "ID Number"
+msgstr "Kimlik Numarası"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:172
+msgid "Full Name"
+msgstr "Ad Soyad"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:173
+msgid "IP Address"
+msgstr "IP Adresi"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:174
+msgid "MAC Address"
+msgstr "MAC Adresi"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:175
+msgid "Login Time"
+msgstr "Giriş Zamanı"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:195
+msgid "All Logs"
+msgstr "Tüm Kayıtlar"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:201
+msgid "ID Type"
+msgstr "Kimlik Türü"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:202
+msgid "ID Number"
+msgstr "Kimlik Numarası"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:203
+msgid "Full Name"
+msgstr "Ad Soyad"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:204
+msgid "Phone"
+msgstr "Telefon"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:205
+msgid "IP Address"
+msgstr "IP Adresi"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:206
+msgid "MAC Address"
+msgstr "MAC Adresi"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:207
+msgid "Login Time"
+msgstr "Giriş Zamanı"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:224
+msgid "No logs found."
+msgstr "Kayıt bulunamadı."
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:235
+msgid "first"
+msgstr "ilk"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:236
+msgid "previous"
+msgstr "önceki"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:242
+msgid "next"
+msgstr "sonraki"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:243
+msgid "last"
+msgstr "son"
+
+#: .\log_kayit\templates\log_kayit\dashboard.html:257
+msgid "Daily Logins"
+msgstr "Günlük Girişler"
+
+#~ msgid "Germany"
+#~ msgstr "Almanya"
+
+#~ msgid "United Kingdom"
+#~ msgstr "İngiltere"
+
+#~ msgid "Russia"
+#~ msgstr "Rusya"
+
+#~ msgid "France"
+#~ msgstr "Fransa"
+
+#~ msgid "Italy"
+#~ msgstr "İtalya"
+
+#~ msgid "USA"
+#~ msgstr "ABD"
+
+#~ msgid "Turkey"
+#~ msgstr "Türkiye"
+
+#~ msgid "Other"
+#~ msgstr "Diğer"
+
+#~ msgid "Company"
+#~ msgstr "Firma"
+
+#~ msgid "Company selection is required!"
+#~ msgstr "Firma seçimi zorunludur!"
+
+#~ msgid "Passport number is required!"
+#~ msgstr "Pasaport numarası zorunludur!"
+
+#~ msgid "Invalid passport number for the selected country!"
+#~ msgstr "Seçilen ülkeye göre geçersiz pasaport numarası!"
+
+#~ msgid "5651 Legal Record & Secure Access"
+#~ msgstr "5651 Yasal Kayıt & Güvenli Erişim"
+
+#~ msgid "Internet Access Panel"
+#~ msgstr "İnternet Giriş Paneli"
+
+#~ msgid ""
+#~ "Please log in for legally compliant, secure and fast internet access."
+#~ msgstr ""
+#~ "Yasalara uygun, güvenli ve hızlı internet erişimi için lütfen giriş "
+#~ "yapınız."
+
+#~ msgid "Full compliance with Law No. 5651"
+#~ msgstr "5651 sayılı kanuna tam uyum"
+
+#~ msgid "Your personal data is securely stored for 2 years"
+#~ msgstr "Kişisel verileriniz 2 yıl güvenle saklanır"
+
+#~ msgid "Easy and fast registration"
+#~ msgstr "Kolay ve hızlı kayıt"
+
+#~ msgid "Separate login for administrators and visitors"
+#~ msgstr "Yönetici ve ziyaretçi için ayrı giriş"
+
+#~ msgid "Visitor Login"
+#~ msgstr "Ziyaretçi Girişi"
+
+#~ msgid "Administrator Login"
+#~ msgstr "Yönetici Girişi"
+
+#~ msgid "As per Law No. 5651, your information will be stored for 2 years."
+#~ msgstr "5651 sayılı yasa gereği bilgileriniz 2 yıl saklanacaktır."
+
+#~ msgid "Username or Email"
+#~ msgstr "Kullanıcı Adı veya E-posta"
+
+#~ msgid "Password"
+#~ msgstr "Şifre"
+
+#~ msgid "For authorized personnel only"
+#~ msgstr "Yalnızca yetkili personel için"

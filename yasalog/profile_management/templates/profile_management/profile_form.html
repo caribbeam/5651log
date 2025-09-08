@@ -1,0 +1,485 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}
+    {% if profile %}Profil Düzenle - {{ profile.name }}{% else %}Yeni Profil Oluştur{% endif %} - {{ company.name }}
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="profile-form-container">
+    <div class="form-header">
+        <h1>
+            {% if profile %}
+                <i class="fas fa-edit"></i> Profil Düzenle: {{ profile.name }}
+            {% else %}
+                <i class="fas fa-plus"></i> Yeni Profil Oluştur
+            {% endif %}
+        </h1>
+        <p class="text-muted">{{ company.name }} - Profil Yönetimi</p>
+    </div>
+
+    <div class="form-card">
+        <form method="post" class="profile-form">
+            {% csrf_token %}
+            
+            <!-- Temel Bilgiler -->
+            <div class="form-section">
+                <h3><i class="fas fa-info-circle"></i> Temel Bilgiler</h3>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="name">Profil Adı *</label>
+                        <input type="text" id="name" name="name" 
+                               value="{{ profile.name|default:'' }}" 
+                               class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="profile_code">Profil Kodu *</label>
+                        <input type="number" id="profile_code" name="profile_code" 
+                               value="{{ profile.profile_code|default:'' }}" 
+                               class="form-control" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="profile_type">Profil Tipi *</label>
+                        <select id="profile_type" name="profile_type" class="form-control" required>
+                            <option value="">Profil tipi seçin</option>
+                            {% for value, label in profile_types %}
+                                <option value="{{ value }}" 
+                                        {% if profile.profile_type == value %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hız Limitleri -->
+            <div class="form-section">
+                <h3><i class="fas fa-tachometer-alt"></i> Hız Limitleri</h3>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="upload_speed">Upload Hızı (Mbps) *</label>
+                        <input type="number" id="upload_speed" name="upload_speed" 
+                               value="{{ profile.upload_speed|default:10 }}" 
+                               class="form-control" min="1" max="1000" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="download_speed">Download Hızı (Mbps) *</label>
+                        <input type="number" id="download_speed" name="download_speed" 
+                               value="{{ profile.download_speed|default:10 }}" 
+                               class="form-control" min="1" max="1000" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Süre Limitleri -->
+            <div class="form-section">
+                <h3><i class="fas fa-clock"></i> Süre Limitleri</h3>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="duration_days">Gün</label>
+                        <input type="number" id="duration_days" name="duration_days" 
+                               value="{{ profile.duration_days|default:0 }}" 
+                               class="form-control" min="0" max="365">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="duration_hours">Saat</label>
+                        <input type="number" id="duration_hours" name="duration_hours" 
+                               value="{{ profile.duration_hours|default:0 }}" 
+                               class="form-control" min="0" max="23">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="duration_minutes">Dakika</label>
+                        <input type="number" id="duration_minutes" name="duration_minutes" 
+                               value="{{ profile.duration_minutes|default:0 }}" 
+                               class="form-control" min="0" max="59">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="duration_seconds">Saniye</label>
+                        <input type="number" id="duration_seconds" name="duration_seconds" 
+                               value="{{ profile.duration_seconds|default:0 }}" 
+                               class="form-control" min="0" max="59">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kullanıcı Limitleri -->
+            <div class="form-section">
+                <h3><i class="fas fa-users"></i> Kullanıcı Limitleri</h3>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="shared_users">Paylaşılan Kullanıcı Sayısı *</label>
+                        <input type="number" id="shared_users" name="shared_users" 
+                               value="{{ profile.shared_users|default:1 }}" 
+                               class="form-control" min="1" max="100" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="max_concurrent_users">Maksimum Eşzamanlı Kullanıcı</label>
+                        <input type="number" id="max_concurrent_users" name="max_concurrent_users" 
+                               value="{{ profile.max_concurrent_users|default:1 }}" 
+                               class="form-control" min="1" max="100">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Durum Bilgileri -->
+            {% if profile %}
+            <div class="form-section">
+                <h3><i class="fas fa-toggle-on"></i> Durum Bilgileri</h3>
+                
+                <div class="form-row">
+                    <div class="form-group checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="is_active" 
+                                   {% if profile.is_active %}checked{% endif %}>
+                            <span class="checkmark"></span>
+                            Aktif Profil
+                        </label>
+                    </div>
+                    
+                    <div class="form-group checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="is_premium" 
+                                   {% if profile.is_premium %}checked{% endif %}>
+                            <span class="checkmark"></span>
+                            Premium Profil
+                        </label>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Form Buttons -->
+            <div class="form-actions">
+                <a href="{% url 'profile_management:profile_list' company.slug %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Geri Dön
+                </a>
+                
+                <button type="submit" class="btn btn-primary">
+                    {% if profile %}
+                        <i class="fas fa-save"></i> Güncelle
+                    {% else %}
+                        <i class="fas fa-plus"></i> Oluştur
+                    {% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Profil Form CSS -->
+<style>
+.profile-form-container {
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.form-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.form-header h1 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.form-card {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.form-section {
+    margin-bottom: 30px;
+    padding-bottom: 25px;
+    border-bottom: 2px solid #f8f9fa;
+}
+
+.form-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.form-section h3 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.form-section h3 i {
+    color: #3498db;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+}
+
+.form-control {
+    padding: 12px 15px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #3498db;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.form-control:invalid {
+    border-color: #e74c3c;
+}
+
+.checkbox-group {
+    flex-direction: row;
+    align-items: center;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #3498db;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 30px;
+    padding-top: 25px;
+    border-top: 2px solid #f8f9fa;
+}
+
+.btn {
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: #3498db;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #545b62;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .profile-form-container {
+        padding: 15px;
+    }
+    
+    .form-card {
+        padding: 20px;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Form Validation Styles */
+.form-control:invalid {
+    border-color: #e74c3c;
+    background: #fdf2f2;
+}
+
+.form-control:invalid:focus {
+    border-color: #e74c3c;
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+}
+
+/* Success Message */
+.success-message {
+    background: #d4edda;
+    color: #155724;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid #c3e6cb;
+}
+
+/* Error Message */
+.error-message {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid #f5c6cb;
+}
+</style>
+
+<!-- Form Validation JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.profile-form');
+    const inputs = form.querySelectorAll('input, select');
+    
+    // Real-time validation
+    inputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            validateField(this);
+        });
+        
+        input.addEventListener('input', function() {
+            if (this.classList.contains('invalid')) {
+                validateField(this);
+            }
+        });
+    });
+    
+    // Form submission validation
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        inputs.forEach(input => {
+            if (!validateField(input)) {
+                isValid = false;
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            showMessage('Lütfen tüm gerekli alanları doldurun.', 'error');
+        }
+    });
+    
+    function validateField(field) {
+        const value = field.value.trim();
+        let isValid = true;
+        
+        // Remove previous validation classes
+        field.classList.remove('invalid', 'valid');
+        
+        // Required field validation
+        if (field.hasAttribute('required') && !value) {
+            field.classList.add('invalid');
+            isValid = false;
+        }
+        
+        // Number field validation
+        if (field.type === 'number' && value) {
+            const numValue = parseFloat(value);
+            if (field.hasAttribute('min') && numValue < parseFloat(field.getAttribute('min'))) {
+                field.classList.add('invalid');
+                isValid = false;
+            }
+            if (field.hasAttribute('max') && numValue > parseFloat(field.getAttribute('max'))) {
+                field.classList.add('invalid');
+                isValid = false;
+            }
+        }
+        
+        // Add valid class if field is valid
+        if (isValid && value) {
+            field.classList.add('valid');
+        }
+        
+        return isValid;
+    }
+    
+    function showMessage(message, type) {
+        // Remove existing messages
+        const existingMessage = document.querySelector('.message');
+        if (existingMessage) {
+            existingMessage.remove();
+        }
+        
+        // Create new message
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${type}-message`;
+        messageDiv.textContent = message;
+        
+        // Insert before form
+        form.parentNode.insertBefore(messageDiv, form);
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            messageDiv.remove();
+        }, 5000);
+    }
+});
+</script>
+{% endblock %}

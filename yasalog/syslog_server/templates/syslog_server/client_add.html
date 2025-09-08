@@ -1,0 +1,161 @@
+{% extends "log_kayit/partials/base_dashboard.html" %}
+{% load i18n %}
+
+{% block dashboard_content %}
+<div class="dashboard-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-desktop text-primary"></i>
+                {% trans "Yeni Syslog İstemcisi Ekle" %}
+            </h1>
+            <p class="mb-0 text-muted">{% trans "Yeni bir syslog istemcisi konfigürasyonu oluşturun" %}</p>
+        </div>
+        <div>
+            <a href="{% url 'syslog_server:clients_list' company.slug %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> {% trans "Geri Dön" %}
+            </a>
+            <a href="{% url 'syslog_server:dashboard' company.slug %}" class="btn btn-primary">
+                <i class="fas fa-home"></i> {% trans "Ana Sayfa" %}
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-plus-circle"></i>
+                    {% trans "Syslog İstemci Bilgileri" %}
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="name">{% trans "İstemci Adı" %} <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="client_type">{% trans "İstemci Tipi" %} <span class="text-danger">*</span></label>
+                                <select class="form-control" id="client_type" name="client_type" required>
+                                    <option value="">{% trans "Seçiniz" %}</option>
+                                    <option value="firewall">{% trans "Firewall" %}</option>
+                                    <option value="router">{% trans "Router" %}</option>
+                                    <option value="switch">{% trans "Switch" %}</option>
+                                    <option value="server">{% trans "Server" %}</option>
+                                    <option value="workstation">{% trans "Workstation" %}</option>
+                                    <option value="printer">{% trans "Printer" %}</option>
+                                    <option value="other">{% trans "Diğer" %}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="ip_address">{% trans "IP Adresi" %} <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="ip_address" name="ip_address" placeholder="192.168.1.100" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="mac_address">{% trans "MAC Adresi" %}</label>
+                                <input type="text" class="form-control" id="mac_address" name="mac_address" placeholder="00:11:22:33:44:55">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="hostname">{% trans "Hostname" %}</label>
+                                <input type="text" class="form-control" id="hostname" name="hostname" placeholder="device.example.com">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="syslog_server">{% trans "Syslog Sunucusu" %}</label>
+                                <select class="form-control" id="syslog_server" name="syslog_server">
+                                    <option value="">{% trans "Seçiniz (Opsiyonel)" %}</option>
+                                    {% for server in servers %}
+                                        <option value="{{ server.id }}">{{ server.name }} ({{ server.host }}:{{ server.port }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="facility">{% trans "Facility" %}</label>
+                                <select class="form-control" id="facility" name="facility">
+                                    <option value="local0">local0</option>
+                                    <option value="local1">local1</option>
+                                    <option value="local2">local2</option>
+                                    <option value="local3">local3</option>
+                                    <option value="local4">local4</option>
+                                    <option value="local5">local5</option>
+                                    <option value="local6">local6</option>
+                                    <option value="local7">local7</option>
+                                    <option value="kern">kern</option>
+                                    <option value="user">user</option>
+                                    <option value="mail">mail</option>
+                                    <option value="daemon">daemon</option>
+                                    <option value="auth">auth</option>
+                                    <option value="syslog">syslog</option>
+                                    <option value="lpr">lpr</option>
+                                    <option value="news">news</option>
+                                    <option value="uucp">uucp</option>
+                                    <option value="cron">cron</option>
+                                    <option value="authpriv">authpriv</option>
+                                    <option value="ftp">ftp</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="priority">{% trans "Priority" %}</label>
+                                <select class="form-control" id="priority" name="priority">
+                                    <option value="emerg">emerg (0)</option>
+                                    <option value="alert">alert (1)</option>
+                                    <option value="crit">crit (2)</option>
+                                    <option value="err">err (3)</option>
+                                    <option value="warning">warning (4)</option>
+                                    <option value="notice">notice (5)</option>
+                                    <option value="info" selected>info (6)</option>
+                                    <option value="debug">debug (7)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="is_active" name="is_active" checked>
+                            <label class="form-check-label" for="is_active">
+                                {% trans "Aktif" %}
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> {% trans "Kaydet" %}
+                        </button>
+                        <a href="{% url 'syslog_server:clients_list' company.slug %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> {% trans "İptal" %}
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

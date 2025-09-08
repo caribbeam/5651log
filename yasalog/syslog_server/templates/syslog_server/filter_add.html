@@ -1,0 +1,121 @@
+{% extends "log_kayit/partials/base_dashboard.html" %}
+{% load i18n %}
+
+{% block dashboard_content %}
+<div class="dashboard-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-filter text-primary"></i>
+                {% trans "Yeni Syslog Filtresi Ekle" %}
+            </h1>
+            <p class="mb-0 text-muted">{% trans "Yeni bir syslog filtresi konfigürasyonu oluşturun" %}</p>
+        </div>
+        <div>
+            <a href="{% url 'syslog_server:filters_list' company.slug %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> {% trans "Geri Dön" %}
+            </a>
+            <a href="{% url 'syslog_server:dashboard' company.slug %}" class="btn btn-primary">
+                <i class="fas fa-home"></i> {% trans "Ana Sayfa" %}
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-plus-circle"></i>
+                    {% trans "Syslog Filtre Bilgileri" %}
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="name">{% trans "Filtre Adı" %} <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="filter_type">{% trans "Filtre Tipi" %} <span class="text-danger">*</span></label>
+                                <select class="form-control" id="filter_type" name="filter_type" required>
+                                    <option value="">{% trans "Seçiniz" %}</option>
+                                    <option value="facility">{% trans "Facility" %}</option>
+                                    <option value="priority">{% trans "Priority" %}</option>
+                                    <option value="hostname">{% trans "Hostname" %}</option>
+                                    <option value="ip_address">{% trans "IP Adresi" %}</option>
+                                    <option value="message">{% trans "Mesaj İçeriği" %}</option>
+                                    <option value="program">{% trans "Program" %}</option>
+                                    <option value="timestamp">{% trans "Zaman Damgası" %}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="filter_value">{% trans "Filtre Değeri" %} <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="filter_value" name="filter_value" required>
+                                <small class="form-text text-muted">{% trans "Regex pattern kullanabilirsiniz" %}</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="action">{% trans "Aksiyon" %} <span class="text-danger">*</span></label>
+                                <select class="form-control" id="action" name="action" required>
+                                    <option value="ACCEPT">{% trans "Kabul Et" %}</option>
+                                    <option value="REJECT">{% trans "Reddet" %}</option>
+                                    <option value="LOG">{% trans "Sadece Logla" %}</option>
+                                    <option value="ALERT">{% trans "Uyarı Ver" %}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="priority">{% trans "Öncelik" %}</label>
+                                <input type="number" class="form-control" id="priority" name="priority" value="1" min="1" max="100">
+                                <small class="form-text text-muted">{% trans "Düşük sayı = Yüksek öncelik" %}</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <div class="form-check mt-4">
+                                    <input type="checkbox" class="form-check-input" id="is_active" name="is_active" checked>
+                                    <label class="form-check-label" for="is_active">
+                                        {% trans "Aktif" %}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description">{% trans "Açıklama" %}</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" placeholder="{% trans 'Filtrenin amacını açıklayın...' %}"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> {% trans "Kaydet" %}
+                        </button>
+                        <a href="{% url 'syslog_server:filters_list' company.slug %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> {% trans "İptal" %}
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

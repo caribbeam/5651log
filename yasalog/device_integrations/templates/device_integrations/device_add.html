@@ -1,0 +1,204 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Yeni Cihaz Ekle - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-plus-circle me-2"></i>Yeni Cihaz Ekle
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'device_integrations:device_dashboard' company_slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Geri Dön
+            </a>
+        </div>
+    </div>
+
+    <!-- Cihaz Ekleme Formu -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-server me-2"></i>Cihaz Bilgileri
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Cihaz Adı *</label>
+                                    <input type="text" class="form-control" id="name" name="name" required>
+                                    <div class="form-text">Cihaz için benzersiz bir isim girin</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="device_type" class="form-label">Cihaz Tipi *</label>
+                                    <input type="text" class="form-control" id="device_type" name="device_type" required>
+                                    <div class="form-text">Örn: Router, Switch, Server</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Açıklama</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="ip_address" class="form-label">IP Adresi *</label>
+                                    <input type="text" class="form-control" id="ip_address" name="ip_address" required>
+                                    <div class="form-text">Cihazın IP adresini girin</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="port" class="form-label">Port</label>
+                                    <input type="number" class="form-control" id="port" name="port" value="22" min="1" max="65535">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="protocol" class="form-label">Protokol</label>
+                                    <select class="form-select" id="protocol" name="protocol">
+                                        <option value="ssh">SSH</option>
+                                        <option value="telnet">Telnet</option>
+                                        <option value="http">HTTP</option>
+                                        <option value="https">HTTPS</option>
+                                        <option value="snmp">SNMP</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="integration_type" class="form-label">Entegrasyon Tipi *</label>
+                            <select class="form-select" id="integration_type" name="integration_type" required>
+                                <option value="">Seçiniz...</option>
+                                {% for value, label in integration_choices %}
+                                <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="api_endpoint" class="form-label">API Endpoint</label>
+                                    <input type="url" class="form-control" id="api_endpoint" name="api_endpoint">
+                                    <div class="form-text">API bağlantı adresi (opsiyonel)</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="api_key" class="form-label">API Anahtarı</label>
+                                    <input type="password" class="form-control" id="api_key" name="api_key">
+                                    <div class="form-text">API kimlik doğrulama anahtarı (opsiyonel)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="is_monitored" name="is_monitored" checked>
+                                <label class="form-check-label" for="is_monitored">
+                                    Cihazı izle
+                                </label>
+                                <div class="form-text">Bu cihazın durumunu otomatik olarak izle</div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'device_integrations:device_dashboard' company_slug %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>İptal
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Cihazı Kaydet
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Entegrasyon Rehberi -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Entegrasyon Rehberi
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6><i class="fab fa-mikrotik me-2"></i>MikroTik</h6>
+                        <small class="text-muted">
+                            RouterOS API kullanarak router yönetimi. Port: 8728 (API), 22 (SSH)
+                        </small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6><i class="fas fa-cloud me-2"></i>VMware</h6>
+                        <small class="text-muted">
+                            vCenter Server API ile sanal makine yönetimi. Port: 443 (HTTPS)
+                        </small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6><i class="fas fa-server me-2"></i>Proxmox</h6>
+                        <small class="text-muted">
+                            Proxmox VE API ile container ve VM yönetimi. Port: 8006 (HTTPS)
+                        </small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6><i class="fas fa-shield-alt me-2"></i>Cisco</h6>
+                        <small class="text-muted">
+                            ASA/ASDM API ile firewall yönetimi. Port: 443 (HTTPS), 22 (SSH)
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- İpuçları -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>İpuçları
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            <small>IP adresinin erişilebilir olduğundan emin olun</small>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            <small>Gerekli portların açık olduğunu kontrol edin</small>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            <small>API anahtarlarını güvenli bir şekilde saklayın</small>
+                        </li>
+                        <li>
+                            <i class="fas fa-check text-success me-2"></i>
+                            <small>Cihaz ekledikten sonra durumunu test edin</small>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

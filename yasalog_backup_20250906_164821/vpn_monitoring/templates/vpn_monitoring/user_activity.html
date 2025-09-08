@@ -1,0 +1,554 @@
+{% extends "log_kayit/partials/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}VPN Kullanıcı Aktiviteleri - {{ company.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .vpn-activity-header {
+        text-align: center;
+        margin-bottom: 40px;
+        padding: 30px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        color: white;
+    }
+    
+    .vpn-activity-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+    
+    .vpn-activity-subtitle {
+        font-size: 1.2rem;
+        opacity: 0.9;
+    }
+    
+    .vpn-filters-section {
+        background: white;
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 4px 25px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+    }
+    
+    .vpn-filters-form {
+        display: flex;
+        gap: 20px;
+        align-items: end;
+        flex-wrap: wrap;
+    }
+    
+    .vpn-filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .vpn-filter-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .vpn-filter-input {
+        padding: 10px 15px;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+    
+    .vpn-filter-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .vpn-filter-btn {
+        padding: 12px 24px;
+        background: #667eea;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .vpn-filter-btn:hover {
+        background: #5a6fd8;
+        transform: translateY(-2px);
+    }
+    
+    .vpn-activity-section {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 4px 25px rgba(0,0,0,0.08);
+    }
+    
+    .vpn-activity-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        border: 1px solid #f1f3f4;
+        border-radius: 15px;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+        background: #f8f9fa;
+    }
+    
+    .vpn-activity-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        border-color: #667eea;
+    }
+    
+    .vpn-activity-info {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    
+    .vpn-activity-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+    
+    .vpn-activity-details h5 {
+        margin: 0 0 5px 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .vpn-activity-details p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    
+    .vpn-activity-meta {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+    }
+    
+    .vpn-activity-type {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .vpn-activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        color: white;
+    }
+    
+    .vpn-activity-icon.login {
+        background: #28a745;
+    }
+    
+    .vpn-activity-icon.logout {
+        background: #dc3545;
+    }
+    
+    .vpn-activity-icon.reconnect {
+        background: #17a2b8;
+    }
+    
+    .vpn-activity-icon.timeout {
+        background: #ffc107;
+        color: #333;
+    }
+    
+    .vpn-activity-icon.error {
+        background: #dc3545;
+    }
+    
+    .vpn-activity-icon.bandwidth_update {
+        background: #6f42c1;
+    }
+    
+    .vpn-activity-icon.ip_change {
+        background: #fd7e14;
+    }
+    
+    .vpn-activity-type-label {
+        font-size: 0.9rem;
+        color: #333;
+        font-weight: 500;
+    }
+    
+    .vpn-activity-timestamp {
+        font-size: 0.9rem;
+        color: #6c757d;
+        font-weight: 500;
+    }
+    
+    .vpn-activity-ip {
+        font-size: 0.9rem;
+        color: #6c757d;
+        font-family: monospace;
+        background: #e9ecef;
+        padding: 5px 10px;
+        border-radius: 8px;
+    }
+    
+    .vpn-activity-description {
+        font-size: 0.9rem;
+        color: #6c757d;
+        max-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .vpn-activity-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .vpn-action-btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .vpn-action-btn.primary {
+        background: #667eea;
+        color: white;
+    }
+    
+    .vpn-action-btn.primary:hover {
+        background: #5a6fd8;
+        transform: translateY(-2px);
+    }
+    
+    .vpn-action-btn.secondary {
+        background: #6c757d;
+        color: white;
+    }
+    
+    .vpn-action-btn.secondary:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+    }
+    
+    .vpn-activity-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .vpn-stat-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        text-align: center;
+        border-left: 4px solid #667eea;
+    }
+    
+    .vpn-stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: white;
+        margin: 0 auto 15px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .vpn-stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 8px;
+    }
+    
+    .vpn-stat-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        font-weight: 500;
+    }
+    
+    .vpn-pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        margin-top: 30px;
+    }
+    
+    .vpn-page-btn {
+        padding: 10px 15px;
+        border: 1px solid #dee2e6;
+        background: white;
+        color: #667eea;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    
+    .vpn-page-btn:hover {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+    
+    .vpn-page-btn.active {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+    
+    .vpn-page-btn.disabled {
+        color: #6c757d;
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+    
+    .vpn-page-btn.disabled:hover {
+        background: white;
+        color: #6c757d;
+        border-color: #dee2e6;
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="vpn-activity-header">
+        <h1 class="vpn-activity-title">📊 VPN Kullanıcı Aktiviteleri</h1>
+        <p class="vpn-activity-subtitle">5651log Platform - VPN Kullanıcı Aktivite Takibi</p>
+    </div>
+    
+    <!-- İstatistikler -->
+    <div class="vpn-activity-stats">
+        <div class="vpn-stat-card">
+            <div class="vpn-stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="vpn-stat-number">{{ total_activities }}</div>
+            <div class="vpn-stat-label">Toplam Aktivite</div>
+        </div>
+        
+        <div class="vpn-stat-card">
+            <div class="vpn-stat-icon">
+                <i class="fas fa-sign-in-alt"></i>
+            </div>
+            <div class="vpn-stat-number">{{ login_count|default:"0" }}</div>
+            <div class="vpn-stat-label">Giriş</div>
+        </div>
+        
+        <div class="vpn-stat-card">
+            <div class="vpn-stat-icon">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+            <div class="vpn-stat-number">{{ logout_count|default:"0" }}</div>
+            <div class="vpn-stat-label">Çıkış</div>
+        </div>
+        
+        <div class="vpn-stat-card">
+            <div class="vpn-stat-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="vpn-stat-number">{{ error_count|default:"0" }}</div>
+            <div class="vpn-stat-label">Hata</div>
+        </div>
+    </div>
+    
+    <!-- Filtreler -->
+    <div class="vpn-filters-section">
+        <form method="get" class="vpn-filters-form">
+            <div class="vpn-filter-group">
+                <label class="vpn-filter-label">Aktivite Tipi</label>
+                <select name="activity" class="vpn-filter-input">
+                    <option value="">Tümü</option>
+                    <option value="login" {% if activity_filter == 'login' %}selected{% endif %}>Giriş</option>
+                    <option value="logout" {% if activity_filter == 'logout' %}selected{% endif %}>Çıkış</option>
+                    <option value="reconnect" {% if activity_filter == 'reconnect' %}selected{% endif %}>Yeniden Bağlanma</option>
+                    <option value="timeout" {% if activity_filter == 'timeout' %}selected{% endif %}>Zaman Aşımı</option>
+                    <option value="error" {% if activity_filter == 'error' %}selected{% endif %}>Hata</option>
+                    <option value="bandwidth_update" {% if activity_filter == 'bandwidth_update' %}selected{% endif %}>Trafik Güncelleme</option>
+                    <option value="ip_change" {% if activity_filter == 'ip_change' %}selected{% endif %}>IP Değişikliği</option>
+                </select>
+            </div>
+            
+            <div class="vpn-filter-group">
+                <label class="vpn-filter-label">Kullanıcı</label>
+                <input type="text" name="user" value="{{ user_filter }}" placeholder="Kullanıcı adı..." class="vpn-filter-input">
+            </div>
+            
+            <button type="submit" class="vpn-filter-btn">
+                <i class="fas fa-filter"></i> Filtrele
+            </button>
+        </form>
+    </div>
+    
+    <!-- Aktivite Listesi -->
+    <div class="vpn-activity-section">
+        <div class="section-header">
+            <h2 class="section-title">Kullanıcı Aktiviteleri ({{ total_activities }})</h2>
+            <div class="section-actions">
+                <a href="{% url 'vpn_monitoring:vpn_dashboard' company.slug %}" class="vpn-action-btn secondary">
+                    <i class="fas fa-arrow-left"></i> Geri Dön
+                </a>
+            </div>
+        </div>
+        
+        {% if activities %}
+            {% for activity in activities %}
+            <div class="vpn-activity-item">
+                <div class="vpn-activity-info">
+                    <div class="vpn-activity-avatar">
+                        {{ activity.user|first|upper }}
+                    </div>
+                    <div class="vpn-activity-details">
+                        <h5>{{ activity.user }}</h5>
+                        <p>{{ activity.project }}</p>
+                    </div>
+                </div>
+                
+                <div class="vpn-activity-meta">
+                    <div class="vpn-activity-type">
+                        <div class="vpn-activity-icon {{ activity.activity_type }}">
+                            {% if activity.activity_type == 'login' %}
+                                <i class="fas fa-sign-in-alt"></i>
+                            {% elif activity.activity_type == 'logout' %}
+                                <i class="fas fa-sign-out-alt"></i>
+                            {% elif activity.activity_type == 'reconnect' %}
+                                <i class="fas fa-sync"></i>
+                            {% elif activity.activity_type == 'timeout' %}
+                                <i class="fas fa-clock"></i>
+                            {% elif activity.activity_type == 'error' %}
+                                <i class="fas fa-exclamation-triangle"></i>
+                            {% elif activity.activity_type == 'bandwidth_update' %}
+                                <i class="fas fa-chart-line"></i>
+                            {% elif activity.activity_type == 'ip_change' %}
+                                <i class="fas fa-exchange-alt"></i>
+                            {% endif %}
+                        </div>
+                        <span class="vpn-activity-type-label">{{ activity.activity_type|title }}</span>
+                    </div>
+                    
+                    <div class="vpn-activity-timestamp">
+                        {{ activity.timestamp|date:"d.m.Y H:i" }}
+                    </div>
+                    
+                    <div class="vpn-activity-ip">
+                        {{ activity.ip_address }}
+                    </div>
+                    
+                    <div class="vpn-activity-description" title="{{ activity.description }}">
+                        {{ activity.description }}
+                    </div>
+                </div>
+                
+                <div class="vpn-activity-actions">
+                    <a href="#" class="vpn-action-btn primary">
+                        <i class="fas fa-eye"></i> Detay
+                    </a>
+                    <a href="#" class="vpn-action-btn secondary">
+                        <i class="fas fa-chart-line"></i> Log
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+            
+            <!-- Pagination -->
+            {% if activities.has_other_pages %}
+            <div class="vpn-pagination">
+                {% if activities.has_previous %}
+                    <a href="?page={{ activities.previous_page_number }}&activity={{ activity_filter }}&user={{ user_filter }}" class="vpn-page-btn">
+                        <i class="fas fa-chevron-left"></i> Önceki
+                    </a>
+                {% else %}
+                    <span class="vpn-page-btn disabled">
+                        <i class="fas fa-chevron-left"></i> Önceki
+                    </span>
+                {% endif %}
+                
+                {% for num in activities.paginator.page_range %}
+                    {% if activities.number == num %}
+                        <span class="vpn-page-btn active">{{ num }}</span>
+                    {% elif num > activities.number|add:'-3' and num < activities.number|add:'3' %}
+                        <a href="?page={{ num }}&activity={{ activity_filter }}&user={{ user_filter }}" class="vpn-page-btn">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if activities.has_next %}
+                    <a href="?page={{ activities.next_page_number }}&activity={{ activity_filter }}&user={{ user_filter }}" class="vpn-page-btn">
+                        Sonraki <i class="fas fa-chevron-right"></i>
+                    </a>
+                {% else %}
+                    <span class="vpn-page-btn disabled">
+                        Sonraki <i class="fas fa-chevron-right"></i>
+                    </span>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">Aktivite Bulunamadı</h4>
+                <p class="text-muted">Filtre kriterlerinize uygun aktivite bulunamadı.</p>
+                <a href="{% url 'vpn_monitoring:vpn_user_activity' company.slug %}" class="vpn-action-btn primary">
+                    <i class="fas fa-refresh"></i> Filtreleri Temizle
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // VPN User Activity için özel JavaScript
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-refresh aktivite listesi (her 30 saniyede bir)
+        setInterval(function() {
+            // Burada AJAX ile aktivite listesi güncellenebilir
+            console.log('Aktivite listesi güncelleniyor...');
+        }, 30000);
+        
+        // Filtre formu submit olduğunda loading göster
+        document.querySelector('.vpn-filters-form').addEventListener('submit', function() {
+            // Loading göstergesi eklenebilir
+            console.log('Filtreler uygulanıyor...');
+        });
+    });
+</script>
+{% endblock %}

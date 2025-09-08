@@ -1,0 +1,99 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Syslog Filtreleri" %} - {{ company.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-filter"></i> {% trans "Syslog Filtreleri" %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">{% trans "Mevcut Filtreler" %}</h5>
+                        <a href="{% url 'syslog_server:filter_add' company.slug %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> {% trans "Yeni Filtre Ekle" %}
+                        </a>
+                    </div>
+                    
+                    {% if filters %}
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>{% trans "Filtre Adı" %}</th>
+                                        <th>{% trans "Tip" %}</th>
+                                        <th>{% trans "Değer" %}</th>
+                                        <th>{% trans "Aksiyon" %}</th>
+                                        <th>{% trans "Öncelik" %}</th>
+                                        <th>{% trans "Durum" %}</th>
+                                        <th>{% trans "İşlemler" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for filter in filters %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ filter.name }}</strong>
+                                            {% if filter.description %}
+                                                <br><small class="text-muted">{{ filter.description }}</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">{{ filter.get_filter_type_display }}</span>
+                                        </td>
+                                        <td>
+                                            <code>{{ filter.filter_value }}</code>
+                                        </td>
+                                        <td>
+                                            {% if filter.action == 'ACCEPT' %}
+                                                <span class="badge bg-success">{{ filter.action }}</span>
+                                            {% elif filter.action == 'REJECT' %}
+                                                <span class="badge bg-danger">{{ filter.action }}</span>
+                                            {% elif filter.action == 'LOG' %}
+                                                <span class="badge bg-info">{{ filter.action }}</span>
+                                            {% else %}
+                                                <span class="badge bg-warning">{{ filter.action }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">{{ filter.priority }}</span>
+                                        </td>
+                                        <td>
+                                            {% if filter.is_active %}
+                                                <span class="badge bg-success">{% trans "Aktif" %}</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{% trans "Pasif" %}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'syslog_server:filter_detail' company.slug filter.id %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i> {% trans "Görüntüle" %}
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <h4 class="alert-heading">{% trans "Henüz Syslog Filtresi Yok" %}</h4>
+                            <p>{% trans "İlk syslog filtrenizi oluşturmak için aşağıdaki butona tıklayın." %}</p>
+                            <hr>
+                            <a href="{% url 'syslog_server:filter_add' company.slug %}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> {% trans "İlk Filtreyi Oluştur" %}
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

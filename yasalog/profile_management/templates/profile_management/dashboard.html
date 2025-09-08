@@ -1,0 +1,356 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Profil Yönetimi - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="profile-dashboard">
+    <div class="dashboard-header">
+        <h1><i class="fas fa-users"></i> Profil Yönetimi</h1>
+        <p class="text-muted">{{ company.name }} - Profil Yönetimi Dashboard'u</p>
+    </div>
+
+    <!-- İstatistik Kartları -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-user-tag"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ total_profiles }}</h3>
+                <p>Toplam Profil</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon active">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ active_profiles }}</h3>
+                <p>Aktif Profil</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon warning">
+                <i class="fas fa-link"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ total_assignments }}</h3>
+                <p>Toplam Atama</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ active_assignments }}</h3>
+                <p>Aktif Atama</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hızlı İşlemler -->
+    <div class="quick-actions">
+        <h3>Hızlı İşlemler</h3>
+        <div class="action-buttons">
+            <a href="{% url 'profile_management:profile_create' company.slug %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Yeni Profil Oluştur
+            </a>
+            <a href="{% url 'profile_management:profile_list' company.slug %}" class="btn btn-secondary">
+                <i class="fas fa-list"></i> Tüm Profilleri Görüntüle
+            </a>
+        </div>
+    </div>
+
+    <!-- Son Eklenen Profiller -->
+    <div class="recent-profiles">
+        <h3>Son Eklenen Profiller</h3>
+        {% if recent_profiles %}
+            <div class="profiles-grid">
+                {% for profile in recent_profiles %}
+                <div class="profile-card">
+                    <div class="profile-header">
+                        <h4>{{ profile.name }}</h4>
+                        <span class="profile-code">#{{ profile.profile_code }}</span>
+                    </div>
+                    <div class="profile-details">
+                        <div class="profile-type">
+                            <i class="fas fa-tag"></i>
+                            {{ profile.get_profile_type_display }}
+                        </div>
+                        <div class="profile-speed">
+                            <i class="fas fa-tachometer-alt"></i>
+                            {{ profile.get_speed_display }}
+                        </div>
+                        <div class="profile-duration">
+                            <i class="fas fa-clock"></i>
+                            {{ profile.get_duration_display }}
+                        </div>
+                        <div class="profile-users">
+                            <i class="fas fa-users"></i>
+                            {{ profile.shared_users }} kullanıcı
+                        </div>
+                    </div>
+                    <div class="profile-actions">
+                        <a href="{% url 'profile_management:profile_detail' company.slug profile.id %}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye"></i> Görüntüle
+                        </a>
+                        <a href="{% url 'profile_management:profile_edit' company.slug profile.id %}" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-edit"></i> Düzenle
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-profiles">
+                <i class="fas fa-users fa-3x text-muted"></i>
+                <p>Henüz profil oluşturulmamış</p>
+                <a href="{% url 'profile_management:profile_create' company.slug %}" class="btn btn-primary">
+                    İlk Profili Oluştur
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Profil Yönetimi CSS -->
+<style>
+.profile-dashboard {
+    padding: 20px;
+}
+
+.dashboard-header {
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.dashboard-header h1 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: white;
+    background: #3498db;
+}
+
+.stat-icon.active { background: #27ae60; }
+.stat-icon.warning { background: #f39c12; }
+.stat-icon.success { background: #2ecc71; }
+
+.stat-content h3 {
+    font-size: 2rem;
+    margin: 0;
+    color: #2c3e50;
+}
+
+.stat-content p {
+    margin: 0;
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+.quick-actions {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.quick-actions h3 {
+    margin-bottom: 15px;
+    color: #2c3e50;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.recent-profiles {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.recent-profiles h3 {
+    margin-bottom: 20px;
+    color: #2c3e50;
+}
+
+.profiles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.profile-card {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 15px;
+    transition: all 0.3s ease;
+}
+
+.profile-card:hover {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.profile-header h4 {
+    margin: 0;
+    color: #2c3e50;
+}
+
+.profile-code {
+    background: #e9ecef;
+    color: #6c757d;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.profile-details {
+    margin-bottom: 15px;
+}
+
+.profile-details > div {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.profile-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.no-profiles {
+    text-align: center;
+    padding: 40px;
+    color: #7f8c8d;
+}
+
+.no-profiles i {
+    margin-bottom: 20px;
+}
+
+.btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: #007bff;
+    color: white;
+    border: 1px solid #007bff;
+}
+
+.btn-primary:hover {
+    background: #0056b3;
+    border-color: #0056b3;
+    color: white;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+    border: 1px solid #6c757d;
+}
+
+.btn-secondary:hover {
+    background: #545b62;
+    border-color: #545b62;
+    color: white;
+}
+
+.btn-outline-primary {
+    color: #007bff;
+    border: 1px solid #007bff;
+    background: transparent;
+}
+
+.btn-outline-primary:hover {
+    background: #007bff;
+    color: white;
+}
+
+.btn-outline-secondary {
+    color: #6c757d;
+    border: 1px solid #6c757d;
+    background: transparent;
+}
+
+.btn-outline-secondary:hover {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+}
+
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .profiles-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}

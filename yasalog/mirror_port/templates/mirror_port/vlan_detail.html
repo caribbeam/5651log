@@ -1,0 +1,201 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "VLAN Detayı" %} - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="mirror-dashboard">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-network-wired me-2"></i>{% trans "VLAN Detayı" %}
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'mirror_port:vlans_list' company.slug %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri Dön" %}
+            </a>
+            <a href="{% url 'log_kayit:company_dashboard_slug' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-home me-2"></i>{% trans "Ana Sayfa" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- VLAN Detayları -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-network-wired"></i> {{ vlan.name }} (VLAN {{ vlan.vlan_id }})
+                        {% if vlan.is_active %}
+                            <span class="badge badge-success ml-2">{% trans "Aktif" %}</span>
+                        {% else %}
+                            <span class="badge badge-secondary ml-2">{% trans "Pasif" %}</span>
+                        {% endif %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Temel Bilgiler -->
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <div class="info-box-content">
+                                    <h5 class="info-box-text">{% trans "Temel Bilgiler" %}</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-borderless">
+                                            <tr>
+                                                <td><strong>{% trans "VLAN ID:" %}</strong></td>
+                                                <td><span class="badge badge-primary">{{ vlan.vlan_id }}</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "VLAN Adı:" %}</strong></td>
+                                                <td>{{ vlan.name }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Durum:" %}</strong></td>
+                                                <td>
+                                                    {% if vlan.is_active %}
+                                                        <span class="badge badge-success">{% trans "Aktif" %}</span>
+                                                    {% else %}
+                                                        <span class="badge badge-secondary">{% trans "Pasif" %}</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Oluşturulma:" %}</strong></td>
+                                                <td>{{ vlan.created_at|date:'d.m.Y H:i:s' }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Güncellenme:" %}</strong></td>
+                                                <td>{{ vlan.updated_at|date:'d.m.Y H:i:s' }}</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Network Bilgileri -->
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <div class="info-box-content">
+                                    <h5 class="info-box-text">{% trans "Network Bilgileri" %}</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-borderless">
+                                            <tr>
+                                                <td><strong>{% trans "Subnet:" %}</strong></td>
+                                                <td><code>{{ vlan.subnet }}</code></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Gateway:" %}</strong></td>
+                                                <td>{{ vlan.gateway|default:"-" }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "DNS Sunucuları:" %}</strong></td>
+                                                <td>{{ vlan.dns_servers|default:"-" }}</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Mirror Ayarları -->
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <div class="info-box-content">
+                                    <h5 class="info-box-text">{% trans "Mirror Ayarları" %}</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-borderless">
+                                            <tr>
+                                                <td><strong>{% trans "Mirror Etkin:" %}</strong></td>
+                                                <td>
+                                                    {% if vlan.mirror_enabled %}
+                                                        <span class="badge badge-success">{% trans "Etkin" %}</span>
+                                                    {% else %}
+                                                        <span class="badge badge-secondary">{% trans "Pasif" %}</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Mirror Konfigürasyonu:" %}</strong></td>
+                                                <td>
+                                                    {% if vlan.mirror_config %}
+                                                        <a href="{% url 'mirror_port:configuration_detail' company.slug vlan.mirror_config.id %}" class="text-primary">
+                                                            {{ vlan.mirror_config.name }}
+                                                        </a>
+                                                    {% else %}
+                                                        <span class="text-muted">{% trans "Atanmamış" %}</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- VLAN İstatistikleri -->
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <div class="info-box-content">
+                                    <h5 class="info-box-text">{% trans "VLAN İstatistikleri" %}</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-borderless">
+                                            <tr>
+                                                <td><strong>{% trans "Toplam Cihaz:" %}</strong></td>
+                                                <td><span class="badge badge-info">0</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Aktif Cihaz:" %}</strong></td>
+                                                <td><span class="badge badge-success">0</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Trafik Durumu:" %}</strong></td>
+                                                <td><span class="badge badge-warning">{% trans "Bilinmiyor" %}</span></td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Açıklama -->
+                    {% if vlan.description %}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="info-box">
+                                <div class="info-box-content">
+                                    <h5 class="info-box-text">{% trans "Açıklama" %}</h5>
+                                    <p>{{ vlan.description }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- İşlemler -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card-footer">
+                                <div class="btn-group">
+                                    <a href="{% url 'mirror_port:vlans_list' company.slug %}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>{% trans "Listeye Dön" %}
+                                    </a>
+                                    <a href="{% url 'mirror_port:vlan_add' company.slug %}" class="btn btn-outline-primary">
+                                        <i class="fas fa-plus me-2"></i>{% trans "Yeni VLAN" %}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

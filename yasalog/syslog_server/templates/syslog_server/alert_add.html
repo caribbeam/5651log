@@ -1,0 +1,148 @@
+{% extends "log_kayit/partials/base_dashboard.html" %}
+{% load i18n %}
+
+{% block dashboard_content %}
+<div class="dashboard-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-bell text-primary"></i>
+                {% trans "Yeni Syslog Uyarısı Ekle" %}
+            </h1>
+            <p class="mb-0 text-muted">{% trans "Yeni bir syslog uyarısı konfigürasyonu oluşturun" %}</p>
+        </div>
+        <div>
+            <a href="{% url 'syslog_server:alerts_list' company.slug %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> {% trans "Geri Dön" %}
+            </a>
+            <a href="{% url 'syslog_server:dashboard' company.slug %}" class="btn btn-primary">
+                <i class="fas fa-home"></i> {% trans "Ana Sayfa" %}
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-plus-circle"></i>
+                    {% trans "Syslog Uyarı Bilgileri" %}
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="name">{% trans "Uyarı Adı" %} <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="alert_type">{% trans "Uyarı Tipi" %} <span class="text-danger">*</span></label>
+                                <select class="form-control" id="alert_type" name="alert_type" required>
+                                    <option value="">{% trans "Seçiniz" %}</option>
+                                    <option value="message_count">{% trans "Mesaj Sayısı" %}</option>
+                                    <option value="error_count">{% trans "Hata Sayısı" %}</option>
+                                    <option value="critical_count">{% trans "Kritik Sayısı" %}</option>
+                                    <option value="suspicious_activity">{% trans "Şüpheli Aktivite" %}</option>
+                                    <option value="connection_failure">{% trans "Bağlantı Hatası" %}</option>
+                                    <option value="disk_space">{% trans "Disk Alanı" %}</option>
+                                    <option value="memory_usage">{% trans "Bellek Kullanımı" %}</option>
+                                    <option value="cpu_usage">{% trans "CPU Kullanımı" %}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="condition">{% trans "Koşul" %} <span class="text-danger">*</span></label>
+                                <select class="form-control" id="condition" name="condition" required>
+                                    <option value="">{% trans "Seçiniz" %}</option>
+                                    <option value="greater_than">{% trans "Büyüktür" %}</option>
+                                    <option value="less_than">{% trans "Küçüktür" %}</option>
+                                    <option value="equals">{% trans "Eşittir" %}</option>
+                                    <option value="not_equals">{% trans "Eşit Değildir" %}</option>
+                                    <option value="contains">{% trans "İçerir" %}</option>
+                                    <option value="not_contains">{% trans "İçermez" %}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="threshold_value">{% trans "Eşik Değeri" %} <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="threshold_value" name="threshold_value" value="0" min="0" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="time_window">{% trans "Zaman Penceresi (saniye)" %}</label>
+                                <input type="number" class="form-control" id="time_window" name="time_window" value="300" min="1">
+                                <small class="form-text text-muted">{% trans "Uyarının kontrol edileceği zaman aralığı" %}</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <div class="form-check mt-4">
+                                    <input type="checkbox" class="form-check-input" id="is_active" name="is_active" checked>
+                                    <label class="form-check-label" for="is_active">
+                                        {% trans "Aktif" %}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="notify_email" name="notify_email">
+                                    <label class="form-check-label" for="notify_email">
+                                        {% trans "Email Bildirimi" %}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="notify_sms" name="notify_sms">
+                                    <label class="form-check-label" for="notify_sms">
+                                        {% trans "SMS Bildirimi" %}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="notification_recipients">{% trans "Bildirim Alıcıları" %}</label>
+                        <textarea class="form-control" id="notification_recipients" name="notification_recipients" rows="3" placeholder="{% trans 'Email adresleri veya telefon numaraları (virgülle ayırın)' %}"></textarea>
+                        <small class="form-text text-muted">{% trans "Email: user@example.com, SMS: +905551234567" %}</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> {% trans "Kaydet" %}
+                        </button>
+                        <a href="{% url 'syslog_server:alerts_list' company.slug %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> {% trans "İptal" %}
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Syslog Uyarıları" %} - {{ company.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-bell"></i> {% trans "Syslog Uyarıları" %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">{% trans "Mevcut Uyarılar" %}</h5>
+                        <a href="{% url 'syslog_server:alert_add' company.slug %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> {% trans "Yeni Uyarı Ekle" %}
+                        </a>
+                    </div>
+                    
+                    {% if alerts %}
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>{% trans "Uyarı Adı" %}</th>
+                                        <th>{% trans "Tip" %}</th>
+                                        <th>{% trans "Koşul" %}</th>
+                                        <th>{% trans "Eşik" %}</th>
+                                        <th>{% trans "Zaman Penceresi" %}</th>
+                                        <th>{% trans "Bildirimler" %}</th>
+                                        <th>{% trans "Durum" %}</th>
+                                        <th>{% trans "İşlemler" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for alert in alerts %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ alert.name }}</strong>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">{{ alert.get_alert_type_display }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">{{ alert.get_condition_display }}</span>
+                                        </td>
+                                        <td>
+                                            <code>{{ alert.threshold_value }}</code>
+                                        </td>
+                                        <td>
+                                            {{ alert.time_window }}s
+                                        </td>
+                                        <td>
+                                            {% if alert.notify_email %}
+                                                <span class="badge bg-primary me-1">Email</span>
+                                            {% endif %}
+                                            {% if alert.notify_sms %}
+                                                <span class="badge bg-success">SMS</span>
+                                            {% endif %}
+                                            {% if not alert.notify_email and not alert.notify_sms %}
+                                                <span class="badge bg-secondary">Yok</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if alert.is_active %}
+                                                <span class="badge bg-success">{% trans "Aktif" %}</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{% trans "Pasif" %}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'syslog_server:alert_detail' company.slug alert.id %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i> {% trans "Görüntüle" %}
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <h4 class="alert-heading">{% trans "Henüz Syslog Uyarısı Yok" %}</h4>
+                            <p>{% trans "İlk syslog uyarınızı oluşturmak için aşağıdaki butona tıklayın." %}</p>
+                            <hr>
+                            <a href="{% url 'syslog_server:alert_add' company.slug %}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> {% trans "İlk Uyarıyı Oluştur" %}
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,126 @@
+{% extends "log_kayit/partials/base_dashboard.html" %}
+{% load i18n %}
+{% load dict_filters %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="mb-0">{% trans "User Management" %} - <span class="text-primary">{{ company.name }}</span></h3>
+    {% if request.user.is_superuser and all_companies %}
+    <div class="dropdown">
+        <a class="btn btn-outline-secondary dropdown-toggle" href="#" role="button" id="companyDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            {% trans "Change Company" %}
+        </a>
+        <ul class="dropdown-menu" aria-labelledby="companyDropdown">
+            {% for c in all_companies %}
+            <li><a class="dropdown-item" href="?company={{ c.id }}">{{ c.name }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>{% trans "User" %}</th>
+                        <th>{% trans "Role" %}</th>
+                        <th>{% trans "Last Login" %}</th>
+                        <th>{% trans "Log Count" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th style="width: 250px;">{% trans "Actions" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cu in users %}
+                    <tr>
+                        <td>
+                            <div class="fw-bold">{{ cu.user.get_full_name|default:cu.user.username }}</div>
+                            <div class="small text-muted">{{ cu.user.email }}</div>
+                        </td>
+                        <td><span class="badge bg-primary">{{ cu.get_role_display }}</span></td>
+                        <td>{{ user_stats|dict_get:cu.id|dict_get:'last_login'|date:"d.m.Y H:i"|default:"-" }}</td>
+                        <td>{{ user_stats|dict_get:cu.id|dict_get:'log_count' }}</td>
+                        <td>
+                            {% if user_stats|dict_get:cu.id|dict_get:'is_active' %}
+                                <span class="badge bg-success">{% trans "Active" %}</span>
+                            {% else %}
+                                <span class="badge bg-danger">{% trans "Inactive" %}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <form method="post" action="{% url 'user_management_view' %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="user_id" value="{{ cu.id }}">
+                                    <input type="hidden" name="action" value="toggle_active">
+                                    <input type="hidden" name="company" value="{{ company.id }}">
+                                    {% if user_stats|dict_get:cu.id|dict_get:'is_active' %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" {% if cu.user == request.user %}disabled title="{% trans 'You cannot deactivate your own account.' %}"{% endif %}>{% trans "Deactivate" %}</button>
+                                    {% else %}
+                                        <button type="submit" class="btn btn-sm btn-outline-success">{% trans "Activate" %}</button>
+                                    {% endif %}
+                                </form>
+                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#changeRoleModal-{{ cu.id }}">
+                                    {% trans "Change Role" %}
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">{% trans "No users found for this company." %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+{% for cu in users %}
+<div class="modal fade" id="changeRoleModal-{{ cu.id }}" tabindex="-1" aria-labelledby="changeRoleModalLabel-{{ cu.id }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'user_management_view' %}">
+                {% csrf_token %}
+                <input type="hidden" name="user_id" value="{{ cu.id }}">
+                <input type="hidden" name="action" value="change_role">
+                <input type="hidden" name="company" value="{{ company.id }}">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="changeRoleModalLabel-{{ cu.id }}">{% trans "Change Role for" %} {{ cu.user.get_full_name|default:cu.user.username }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="role-select-{{ cu.id }}" class="form-label">{% trans "Role" %}</label>
+                        <select class="form-select" name="role" id="role-select-{{ cu.id }}">
+                            {% for role_value, role_display in cu.ROLE_CHOICES %}
+                                <option value="{{ role_value }}" {% if cu.role == role_value %}selected{% endif %}>{{ role_display }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-primary">{% trans "Save Changes" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %} 

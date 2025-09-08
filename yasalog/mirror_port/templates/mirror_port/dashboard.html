@@ -1,0 +1,234 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Mirror Port & VLAN Dashboard" %} - {{ company.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.mirror-dashboard {
+    padding: 20px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-left: 4px solid;
+    transition: transform 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-card.rules { border-left-color: #28a745; }
+.stat-card.policies { border-left-color: #17a2b8; }
+.stat-card.events { border-left-color: #ffc107; }
+.stat-card.traffic { border-left-color: #dc3545; }
+
+.chart-container {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.action-buttons .btn {
+    flex: 1;
+    min-width: 150px;
+}
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="mirror-dashboard">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-exchange-alt me-2"></i>{% trans "Mirror Port & VLAN" %}
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <button class="btn btn-primary" onclick="refreshData()">
+                <i class="fas fa-sync-alt me-2"></i>{% trans "Yenile" %}
+            </button>
+            <a href="{% url 'log_kayit:company_dashboard_slug' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Ana Dashboard" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- İstatistik Kartları -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card rules">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h6 class="text-muted mb-1">{% trans "Toplam Konfigürasyon" %}</h6>
+                        <h3 class="mb-0">0</h3>
+                    </div>
+                    <div class="text-success">
+                        <i class="fas fa-cogs fa-2x"></i>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <a href="{% url 'mirror_port:configurations_list' company.slug %}" class="btn btn-sm btn-outline-success">
+                        {% trans "Detaylar" %} <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card policies">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h6 class="text-muted mb-1">{% trans "Aktif Konfigürasyon" %}</h6>
+                        <h3 class="mb-0">0</h3>
+                    </div>
+                    <div class="text-info">
+                        <i class="fas fa-check-circle fa-2x"></i>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <a href="{% url 'mirror_port:configurations_list' company.slug %}" class="btn btn-sm btn-outline-info">
+                        {% trans "Detaylar" %} <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card events">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h6 class="text-muted mb-1">{% trans "Toplam VLAN" %}</h6>
+                        <h3 class="mb-0">0</h3>
+                    </div>
+                    <div class="text-warning">
+                        <i class="fas fa-network-wired fa-2x"></i>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <a href="{% url 'mirror_port:vlans_list' company.slug %}" class="btn btn-sm btn-outline-warning">
+                        {% trans "Detaylar" %} <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card traffic">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h6 class="text-muted mb-1">{% trans "Toplam Trafik" %}</h6>
+                        <h3 class="mb-0">0 GB</h3>
+                    </div>
+                    <div class="text-danger">
+                        <i class="fas fa-chart-line fa-2x"></i>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <a href="{% url 'mirror_port:traffic_analysis' company.slug %}" class="btn btn-sm btn-outline-danger">
+                        {% trans "Detaylar" %} <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hızlı İşlemler ve Özellikler -->
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="fas fa-bolt me-2"></i>{% trans "Hızlı İşlemler" %}
+                </h5>
+                <div class="action-buttons">
+                    <a href="{% url 'mirror_port:configurations_list' company.slug %}" class="btn btn-primary">
+                        <i class="fas fa-cogs me-2"></i>{% trans "Konfigürasyon" %}
+                    </a>
+                    <a href="{% url 'mirror_port:vlans_list' company.slug %}" class="btn btn-success">
+                        <i class="fas fa-network-wired me-2"></i>{% trans "VLAN Yönetimi" %}
+                    </a>
+                    <a href="{% url 'mirror_port:devices_list' company.slug %}" class="btn btn-info">
+                        <i class="fas fa-desktop me-2"></i>{% trans "Cihaz Yönetimi" %}
+                    </a>
+                    <a href="{% url 'mirror_port:traffic_analysis' company.slug %}" class="btn btn-warning">
+                        <i class="fas fa-chart-line me-2"></i>{% trans "Trafik Analizi" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="fas fa-star me-2"></i>{% trans "Mirror Port Özellikleri" %}
+                </h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        {% trans "SPAN/RSPAN/ERSPAN Desteği" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        {% trans "VLAN Uyumluluğu" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        {% trans "Performans Kaybı Olmadan İzleme" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        {% trans "Merkezi Log Toplama" %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Son Aktiviteler -->
+    <div class="row">
+        <div class="col-12">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="fas fa-history me-2"></i>{% trans "Son Aktiviteler" %}
+                </h5>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Cihaz" %}</th>
+                                <th>{% trans "VLAN" %}</th>
+                                <th>{% trans "Durum" %}</th>
+                                <th>{% trans "Son Güncelleme" %}</th>
+                                <th>{% trans "İşlemler" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">
+                                    {% trans "Henüz aktivite bulunmuyor" %}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Yenileme fonksiyonu
+function refreshData() {
+    location.reload();
+}
+</script>
+{% endblock %}

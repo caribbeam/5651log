@@ -1,0 +1,26 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Syslog İstemci Detayı" %} - {{ company.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-desktop"></i> {% trans "Syslog İstemci Detayı" %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h4 class="alert-heading">{% trans "İstemci Detayı" %}</h4>
+                        <p>{% trans "Bu sayfa syslog istemci detaylarını göstermek için kullanılır." %}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

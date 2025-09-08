@@ -1,0 +1,168 @@
+{% extends "log_kayit/partials/base_dashboard.html" %}
+{% load i18n %}
+
+{% block dashboard_content %}
+<div class="dashboard-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-server text-primary"></i>
+                {% trans "Yeni Syslog Sunucusu Ekle" %}
+            </h1>
+            <p class="mb-0 text-muted">{% trans "Yeni bir syslog sunucusu konfigürasyonu oluşturun" %}</p>
+        </div>
+        <div>
+            <a href="{% url 'syslog_server:servers_list' company.slug %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> {% trans "Geri Dön" %}
+            </a>
+            <a href="{% url 'syslog_server:dashboard' company.slug %}" class="btn btn-primary">
+                <i class="fas fa-home"></i> {% trans "Ana Sayfa" %}
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-plus-circle"></i>
+                    {% trans "Syslog Sunucu Bilgileri" %}
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="name">{% trans "Sunucu Adı" %} <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="host">{% trans "Host Adresi" %} <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="host" name="host" placeholder="0.0.0.0" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="port">{% trans "Port" %} <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="port" name="port" value="514" min="1" max="65535" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="protocol">{% trans "Protokol" %} <span class="text-danger">*</span></label>
+                                <select class="form-control" id="protocol" name="protocol" required>
+                                    <option value="UDP">UDP</option>
+                                    <option value="TCP">TCP</option>
+                                    <option value="TLS">TLS</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="max_connections">{% trans "Maksimum Bağlantı" %}</label>
+                                <input type="number" class="form-control" id="max_connections" name="max_connections" value="100" min="1">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="allowed_facilities">{% trans "İzin Verilen Facility'ler" %}</label>
+                                <input type="text" class="form-control" id="allowed_facilities" name="allowed_facilities" placeholder="local0,local1,local2">
+                                <small class="form-text text-muted">{% trans "Virgülle ayırın" %}</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="allowed_priorities">{% trans "İzin Verilen Priority'ler" %}</label>
+                                <input type="text" class="form-control" id="allowed_priorities" name="allowed_priorities" placeholder="info,warning,error">
+                                <small class="form-text text-muted">{% trans "Virgülle ayırın" %}</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="buffer_size">{% trans "Buffer Boyutu" %}</label>
+                                <input type="number" class="form-control" id="buffer_size" name="buffer_size" value="1024" min="1">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="batch_size">{% trans "Batch Boyutu" %}</label>
+                                <input type="number" class="form-control" id="batch_size" name="batch_size" value="100" min="1">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <div class="form-check mt-4">
+                                    <input type="checkbox" class="form-check-input" id="use_tls" name="use_tls">
+                                    <label class="form-check-label" for="use_tls">
+                                        {% trans "TLS Kullan" %}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row" id="tls_settings" style="display: none;">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="certificate_path">{% trans "Sertifika Yolu" %}</label>
+                                <input type="text" class="form-control" id="certificate_path" name="certificate_path" placeholder="/path/to/certificate.crt">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="private_key_path">{% trans "Private Key Yolu" %}</label>
+                                <input type="text" class="form-control" id="private_key_path" name="private_key_path" placeholder="/path/to/private.key">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="is_active" name="is_active" checked>
+                            <label class="form-check-label" for="is_active">
+                                {% trans "Aktif" %}
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> {% trans "Kaydet" %}
+                        </button>
+                        <a href="{% url 'syslog_server:servers_list' company.slug %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> {% trans "İptal" %}
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('use_tls').addEventListener('change', function() {
+    const tlsSettings = document.getElementById('tls_settings');
+    if (this.checked) {
+        tlsSettings.style.display = 'block';
+    } else {
+        tlsSettings.style.display = 'none';
+    }
+});
+</script>
+{% endblock %}

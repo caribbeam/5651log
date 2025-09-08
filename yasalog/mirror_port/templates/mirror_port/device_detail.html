@@ -1,0 +1,222 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Cihaz Detayı" %} - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="mirror-dashboard">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-server me-2"></i>{% trans "Cihaz Detayı" %}
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'mirror_port:devices_list' company.slug %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri Dön" %}
+            </a>
+            <a href="{% url 'log_kayit:company_dashboard_slug' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-home me-2"></i>{% trans "Ana Sayfa" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Cihaz Detayları -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-server"></i> {{ device.name }} ({{ device.get_device_type_display }})
+                        {% if device.is_online %}
+                            <span class="badge badge-success ml-2">{% trans "Çevrimiçi" %}</span>
+                        {% else %}
+                            <span class="badge badge-secondary ml-2">{% trans "Çevrimdışı" %}</span>
+                        {% endif %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Temel Bilgiler -->
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <div class="info-box-content">
+                                    <h5 class="info-box-text">{% trans "Temel Bilgiler" %}</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-borderless">
+                                            <tr>
+                                                <td><strong>{% trans "Cihaz Adı:" %}</strong></td>
+                                                <td>{{ device.name }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Cihaz Tipi:" %}</strong></td>
+                                                <td><span class="badge badge-info">{{ device.get_device_type_display }}</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Model:" %}</strong></td>
+                                                <td>{{ device.model|default:"-" }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Üretici:" %}</strong></td>
+                                                <td>{{ device.manufacturer|default:"-" }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Durum:" %}</strong></td>
+                                                <td>
+                                                    {% if device.is_online %}
+                                                        <span class="badge badge-success">{% trans "Çevrimiçi" %}</span>
+                                                    {% else %}
+                                                        <span class="badge badge-secondary">{% trans "Çevrimdışı" %}</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Oluşturulma:" %}</strong></td>
+                                                <td>{{ device.created_at|date:'d.m.Y H:i:s' }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Güncellenme:" %}</strong></td>
+                                                <td>{{ device.updated_at|date:'d.m.Y H:i:s' }}</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Network Bilgileri -->
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <div class="info-box-content">
+                                    <h5 class="info-box-text">{% trans "Network Bilgileri" %}</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-borderless">
+                                            <tr>
+                                                <td><strong>{% trans "IP Adresi:" %}</strong></td>
+                                                <td><code>{{ device.ip_address }}</code></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "MAC Adresi:" %}</strong></td>
+                                                <td>{{ device.mac_address|default:"-" }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Son Görülme:" %}</strong></td>
+                                                <td>{{ device.last_seen|date:'d.m.Y H:i:s'|default:"-" }}</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Mirror Ayarları -->
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <div class="info-box-content">
+                                    <h5 class="info-box-text">{% trans "Mirror Ayarları" %}</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-borderless">
+                                            <tr>
+                                                <td><strong>{% trans "Mirror Desteği:" %}</strong></td>
+                                                <td>
+                                                    {% if device.mirror_supported %}
+                                                        <span class="badge badge-success">{% trans "Destekleniyor" %}</span>
+                                                    {% else %}
+                                                        <span class="badge badge-secondary">{% trans "Desteklenmiyor" %}</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Maksimum Mirror Port:" %}</strong></td>
+                                                <td><span class="badge badge-info">{{ device.max_mirror_ports }}</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Mevcut Mirror Port:" %}</strong></td>
+                                                <td><span class="badge badge-warning">{{ device.current_mirror_ports }}</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Kullanılabilir Port:" %}</strong></td>
+                                                <td>
+                                                    {% with available=device.max_mirror_ports|add:device.current_mirror_ports|add:"-"|add:device.current_mirror_ports %}
+                                                        <span class="badge badge-success">{{ device.max_mirror_ports|add:"-"|add:device.current_mirror_ports }}</span>
+                                                    {% endwith %}
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cihaz İstatistikleri -->
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <div class="info-box-content">
+                                    <h5 class="info-box-text">{% trans "Cihaz İstatistikleri" %}</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-borderless">
+                                            <tr>
+                                                <td><strong>{% trans "Toplam Port:" %}</strong></td>
+                                                <td><span class="badge badge-info">{{ device.max_mirror_ports }}</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Aktif Port:" %}</strong></td>
+                                                <td><span class="badge badge-success">{{ device.current_mirror_ports }}</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Boş Port:" %}</strong></td>
+                                                <td>
+                                                    {% with available=device.max_mirror_ports|add:"-"|add:device.current_mirror_ports %}
+                                                        <span class="badge badge-warning">{{ device.max_mirror_ports|add:"-"|add:device.current_mirror_ports }}</span>
+                                                    {% endwith %}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Kullanım Oranı:" %}</strong></td>
+                                                <td>
+                                                    {% if device.max_mirror_ports > 0 %}
+                                                        {% widthratio device.current_mirror_ports device.max_mirror_ports 100 as usage_percent %}
+                                                        <div class="progress" style="height: 20px;">
+                                                            <div class="progress-bar {% if usage_percent > 80 %}bg-danger{% elif usage_percent > 60 %}bg-warning{% else %}bg-success{% endif %}" 
+                                                                 role="progressbar" style="width: {{ usage_percent }}%">
+                                                                {{ usage_percent }}%
+                                                            </div>
+                                                        </div>
+                                                    {% else %}
+                                                        <span class="text-muted">{% trans "Hesaplanamıyor" %}</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- İşlemler -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card-footer">
+                                <div class="btn-group">
+                                    <a href="{% url 'mirror_port:devices_list' company.slug %}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>{% trans "Listeye Dön" %}
+                                    </a>
+                                    <a href="/admin/mirror_port/mirrordevice/{{ device.id }}/change/" class="btn btn-outline-warning" target="_blank">
+                                        <i class="fas fa-edit me-2"></i>{% trans "Düzenle" %}
+                                    </a>
+                                    <a href="{% url 'mirror_port:device_add' company.slug %}" class="btn btn-outline-primary">
+                                        <i class="fas fa-plus me-2"></i>{% trans "Yeni Cihaz" %}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

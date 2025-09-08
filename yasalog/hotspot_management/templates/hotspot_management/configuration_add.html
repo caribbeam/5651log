@@ -1,0 +1,290 @@
+{% extends "log_kayit/partials/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Yeni Hotspot Konfigürasyonu - {{ company.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .configuration-form {
+        padding: 20px 0;
+    }
+    
+    .form-card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border-left: 5px solid #007bff;
+    }
+    
+    .form-section {
+        margin-bottom: 30px;
+    }
+    
+    .section-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #f8f9fa;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 8px;
+        display: block;
+    }
+    
+    .form-control, .form-select {
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        padding: 12px 15px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+    
+    .form-check {
+        margin-bottom: 15px;
+    }
+    
+    .form-check-input {
+        width: 20px;
+        height: 20px;
+        margin-top: 0.25rem;
+    }
+    
+    .form-check-label {
+        font-weight: 500;
+        color: #495057;
+        margin-left: 8px;
+    }
+    
+    .btn-group {
+        display: flex;
+        gap: 15px;
+        justify-content: flex-end;
+        margin-top: 30px;
+    }
+    
+    .help-text {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-top: 5px;
+    }
+    
+    .required {
+        color: #dc3545;
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="configuration-form">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-plus me-2"></i>Yeni Hotspot Konfigürasyonu
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'hotspot_management:configurations_list' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Geri Dön
+            </a>
+            <a href="{% url 'log_kayit:company_dashboard_slug' company.slug %}" class="btn btn-outline-primary ms-2">
+                <i class="fas fa-home me-2"></i>Ana Sayfa
+            </a>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="form-card">
+        <form method="post">
+            {% csrf_token %}
+            
+            <!-- Temel Bilgiler -->
+            <div class="form-section">
+                <h4 class="section-title">
+                    <i class="fas fa-info-circle"></i>
+                    Temel Bilgiler
+                </h4>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="name" class="form-label">
+                                Konfigürasyon Adı <span class="required">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                            <div class="help-text">Hotspot konfigürasyonunuz için benzersiz bir ad girin</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="ssid" class="form-label">
+                                SSID (Ağ Adı) <span class="required">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="ssid" name="ssid" required>
+                            <div class="help-text">Kullanıcıların göreceği WiFi ağ adı</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="password" class="form-label">Şifre</label>
+                            <input type="password" class="form-control" id="password" name="password">
+                            <div class="help-text">Boş bırakılırsa şifresiz ağ olur</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="description" class="form-label">Açıklama</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Durum Ayarları -->
+            <div class="form-section">
+                <h4 class="section-title">
+                    <i class="fas fa-toggle-on"></i>
+                    Durum Ayarları
+                </h4>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                            <label class="form-check-label" for="is_active">
+                                Aktif
+                            </label>
+                            <div class="help-text">Konfigürasyon aktif olarak işaretlenir</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="is_public" name="is_public" checked>
+                            <label class="form-check-label" for="is_public">
+                                Herkese Açık
+                            </label>
+                            <div class="help-text">Herkes bu hotspot'a bağlanabilir</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Limit Ayarları -->
+            <div class="form-section">
+                <h4 class="section-title">
+                    <i class="fas fa-sliders-h"></i>
+                    Limit Ayarları
+                </h4>
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="max_users" class="form-label">Maksimum Eş Zamanlı Kullanıcı</label>
+                            <input type="number" class="form-control" id="max_users" name="max_users" min="0" value="100">
+                            <div class="help-text">Varsayılan: 100</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="session_timeout" class="form-label">Oturum Zaman Aşımı (saat)</label>
+                            <input type="number" class="form-control" id="session_timeout" name="session_timeout" min="0" value="24">
+                            <div class="help-text">Varsayılan: 24 saat</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="bandwidth_limit" class="form-label">Maksimum Bant Genişliği (Mbps)</label>
+                            <input type="number" class="form-control" id="bandwidth_limit" name="bandwidth_limit" min="0" value="10">
+                            <div class="help-text">Varsayılan: 10 Mbps</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Butonlar -->
+            <div class="btn-group">
+                <a href="{% url 'hotspot_management:configurations_list' company.slug %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-2"></i>İptal
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i>Konfigürasyonu Kaydet
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Form validation
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const nameInput = document.getElementById('name');
+    const ssidInput = document.getElementById('ssid');
+    
+    // SSID otomatik doldurma
+    nameInput.addEventListener('input', function() {
+        if (!ssidInput.value) {
+            ssidInput.value = this.value.replace(/[^a-zA-Z0-9]/g, '');
+        }
+    });
+    
+    // Form submit validation
+    form.addEventListener('submit', function(e) {
+        if (!nameInput.value.trim()) {
+            e.preventDefault();
+            alert('Konfigürasyon adı zorunludur.');
+            nameInput.focus();
+            return false;
+        }
+        
+        if (!ssidInput.value.trim()) {
+            e.preventDefault();
+            alert('SSID zorunludur.');
+            ssidInput.focus();
+            return false;
+        }
+        
+        // SSID format kontrolü
+        const ssidRegex = /^[a-zA-Z0-9_-]+$/;
+        if (!ssidRegex.test(ssidInput.value)) {
+            e.preventDefault();
+            alert('SSID sadece harf, rakam, tire ve alt çizgi içerebilir.');
+            ssidInput.focus();
+            return false;
+        }
+    });
+    
+    // Sayısal alanlar için validation
+    const numberInputs = document.querySelectorAll('input[type="number"]');
+    numberInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            if (this.value < 0) {
+                this.value = 0;
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

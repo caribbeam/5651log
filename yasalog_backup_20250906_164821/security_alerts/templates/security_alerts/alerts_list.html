@@ -1,0 +1,394 @@
+{% extends "log_kayit/partials/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Güvenlik Uyarıları - {{ company.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .alerts-dashboard {
+        padding: 20px 0;
+    }
+    
+    .filters-section {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    
+    .alert-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border-left: 4px solid #007bff;
+        transition: all 0.3s ease;
+    }
+    
+    .alert-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    }
+    
+    .alert-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 15px;
+    }
+    
+    .alert-title {
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+        font-size: 1.1rem;
+    }
+    
+    .alert-meta {
+        display: flex;
+        gap: 15px;
+        font-size: 0.85rem;
+        color: #666;
+        flex-wrap: wrap;
+    }
+    
+    .priority-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .priority-urgent { background: #dc3545; color: white; }
+    .priority-high { background: #fd7e14; color: white; }
+    .priority-normal { background: #17a2b8; color: white; }
+    .priority-low { background: #28a745; color: white; }
+    
+    .status-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .status-acknowledged { background: #28a745; color: white; }
+    .status-resolved { background: #6c757d; color: white; }
+    .status-open { background: #17a2b8; color: white; }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-item {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 15px;
+        text-align: center;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="alerts-dashboard">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-bell me-2"></i>Güvenlik Uyarıları
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'security_alerts:security_dashboard' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Güvenlik Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- İstatistikler -->
+    <div class="stats-grid">
+        <div class="stat-item">
+            <div class="stat-number">{{ page_obj.paginator.count|default:0 }}</div>
+            <div class="stat-label">Toplam Uyarı</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">{{ page_obj.paginator.count|default:0 }}</div>
+            <div class="stat-label">Açık Uyarı</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">{{ page_obj.paginator.count|default:0 }}</div>
+            <div class="stat-label">Kabul Edilen</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">{{ page_obj.paginator.count|default:0 }}</div>
+            <div class="stat-label">Çözülen</div>
+        </div>
+    </div>
+
+    <!-- Filtreler -->
+    <div class="filters-section">
+        <h5 class="mb-3"><i class="fas fa-filter me-2"></i>Filtreler</h5>
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Uyarı Tipi</label>
+                <select name="alert_type" class="form-select">
+                    <option value="">Tümü</option>
+                    {% for value, label in alert_types %}
+                        <option value="{{ value }}" {% if filters.alert_type == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Öncelik</label>
+                <select name="priority" class="form-select">
+                    <option value="">Tümü</option>
+                    {% for value, label in priority_levels %}
+                        <option value="{{ value }}" {% if filters.priority == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Durum</label>
+                <select name="status" class="form-select">
+                    <option value="">Tümü</option>
+                    <option value="open" {% if filters.status == 'open' %}selected{% endif %}>Açık</option>
+                    <option value="acknowledged" {% if filters.status == 'acknowledged' %}selected{% endif %}>Kabul Edildi</option>
+                    <option value="resolved" {% if filters.status == 'resolved' %}selected{% endif %}>Çözüldü</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Arama</label>
+                <input type="text" name="search" value="{{ filters.search }}" class="form-control" placeholder="Başlık, mesaj...">
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search me-2"></i>Filtrele
+                </button>
+                <a href="{% url 'security_alerts:alerts_list' company.slug %}" class="btn btn-outline-secondary ms-2">
+                    <i class="fas fa-times me-2"></i>Temizle
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Uyarı Listesi -->
+    <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">
+                <i class="fas fa-list me-2"></i>Uyarı Listesi
+                <span class="badge bg-primary ms-2">{{ page_obj.paginator.count|default:0 }}</span>
+            </h5>
+            <div class="d-flex gap-2">
+                <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto;">
+                    <option value="-created_at" {% if filters.sort == '-created_at' %}selected{% endif %}>Oluşturulma (Yeni)</option>
+                    <option value="created_at" {% if filters.sort == 'created_at' %}selected{% endif %}>Oluşturulma (Eski)</option>
+                    <option value="-priority" {% if filters.sort == '-priority' %}selected{% endif %}>Öncelik (Yüksek)</option>
+                    <option value="priority" {% if filters.sort == 'priority' %}selected{% endif %}>Öncelik (Düşük)</option>
+                </select>
+            </div>
+        </div>
+
+        {% for alert in alerts %}
+        <div class="alert-card">
+            <div class="alert-header">
+                <h6 class="alert-title">{{ alert.title }}</h6>
+                <div class="d-flex gap-2">
+                    <span class="priority-badge priority-{{ alert.priority|lower }}">{{ alert.get_priority_display }}</span>
+                    {% if alert.is_acknowledged %}
+                        <span class="status-badge status-acknowledged">Kabul Edildi</span>
+                    {% elif alert.is_resolved %}
+                        <span class="status-badge status-resolved">Çözüldü</span>
+                    {% else %}
+                        <span class="status-badge status-open">Açık</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <p class="mb-3">{{ alert.message }}</p>
+            
+            <div class="alert-meta">
+                <span><i class="fas fa-tag me-1"></i>{{ alert.get_alert_type_display }}</span>
+                <span><i class="fas fa-clock me-1"></i>{{ alert.created_at|date:'d.m.Y H:i' }}</span>
+                {% if alert.acknowledged_at %}
+                <span><i class="fas fa-check me-1"></i>Kabul: {{ alert.acknowledged_at|date:'d.m.Y H:i' }}</span>
+                {% endif %}
+                {% if alert.resolved_at %}
+                <span><i class="fas fa-check-double me-1"></i>Çözüldü: {{ alert.resolved_at|date:'d.m.Y H:i' }}</span>
+                {% endif %}
+                {% if alert.acknowledged_by %}
+                <span><i class="fas fa-user me-1"></i>{{ alert.acknowledged_by.get_full_name|default:alert.acknowledged_by.username }}</span>
+                {% endif %}
+                {% if alert.resolved_by %}
+                <span><i class="fas fa-user-check me-1"></i>{{ alert.resolved_by.get_full_name|default:alert.resolved_by.username }}</span>
+                {% endif %}
+            </div>
+            
+            {% if alert.details %}
+            <div class="mt-3">
+                <strong>Detaylar:</strong>
+                <pre class="bg-light p-2 rounded mt-2" style="font-size: 0.85rem;">{{ alert.details|pprint }}</pre>
+            </div>
+            {% endif %}
+            
+            {% if alert.related_threat %}
+            <div class="mt-3">
+                <strong>İlişkili Tehdit:</strong>
+                <a href="{% url 'security_alerts:threat_detail' company.slug alert.related_threat.id %}" class="btn btn-outline-info btn-sm ms-2">
+                    <i class="fas fa-bug me-1"></i>{{ alert.related_threat.title }}
+                </a>
+            </div>
+            {% endif %}
+            
+            <div class="mt-3">
+                {% if not alert.is_acknowledged %}
+                <button class="btn btn-success btn-sm me-2" onclick="acknowledgeAlert({{ alert.id }})">
+                    <i class="fas fa-check me-1"></i>Kabul Et
+                </button>
+                {% endif %}
+                {% if not alert.is_resolved %}
+                <button class="btn btn-primary btn-sm me-2" onclick="resolveAlert({{ alert.id }})">
+                    <i class="fas fa-check-double me-1"></i>Çözüldü
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center text-muted py-5">
+            <i class="fas fa-bell fa-3x mb-3"></i>
+            <h5>Henüz uyarı bulunmuyor</h5>
+            <p>Yeni güvenlik uyarısı oluşturulduğunda burada görünecek.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Sayfalama -->
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1&{{ request.GET.urlencode }}">&laquo; İlk</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}">Önceki</a>
+                </li>
+            {% endif %}
+
+            <li class="page-item disabled">
+                <span class="page-link">Sayfa {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+            </li>
+
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}">Sonraki</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&{{ request.GET.urlencode }}">Son &raquo;</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Sıralama değiştiğinde formu otomatik gönder
+document.querySelector('select[name="sort"]').addEventListener('change', function() {
+    const form = document.createElement('form');
+    form.method = 'GET';
+    form.action = window.location.pathname;
+    
+    // Mevcut parametreleri ekle
+    const urlParams = new URLSearchParams(window.location.search);
+    for (let [key, value] of urlParams) {
+        if (key !== 'sort') {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = value;
+            form.appendChild(input);
+        }
+    }
+    
+    // Yeni sıralama parametresini ekle
+    const sortInput = document.createElement('input');
+    sortInput.type = 'hidden';
+    sortInput.name = 'sort';
+    sortInput.value = this.value;
+    form.appendChild(sortInput);
+    
+    document.body.appendChild(form);
+    form.submit();
+});
+
+// Uyarı kabul et
+function acknowledgeAlert(alertId) {
+    if (confirm('Bu uyarıyı kabul etmek istediğinizden emin misiniz?')) {
+        // AJAX ile uyarı kabul et
+        fetch(`/security/alerts/${alertId}/acknowledge/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Hata: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Hata:', error);
+            alert('Bir hata oluştu.');
+        });
+    }
+}
+
+// Uyarı çözüldü
+function resolveAlert(alertId) {
+    if (confirm('Bu uyarıyı çözüldü olarak işaretlemek istediğinizden emin misiniz?')) {
+        // AJAX ile uyarı çözüldü
+        fetch(`/security/alerts/${alertId}/resolve/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Hata: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Hata:', error);
+            alert('Bir hata oluştu.');
+        });
+    }
+}
+</script>
+{% endblock %}

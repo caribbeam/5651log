@@ -1,0 +1,332 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-06-21 01:39+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: .\log_kayit\forms.py:10
+msgid "Select a country"
+msgstr ""
+
+#: .\log_kayit\forms.py:14
+msgid "ID Type"
+msgstr "ID Type"
+
+#: .\log_kayit\forms.py:15
+msgid "Turkish ID"
+msgstr "Turkish ID"
+
+#: .\log_kayit\forms.py:15
+msgid "Passport"
+msgstr "Passport"
+
+#: .\log_kayit\forms.py:20
+msgid "Passport Country"
+msgstr "Passport Country"
+
+#: .\log_kayit\forms.py:26
+msgid "I accept the KVKK and internet usage terms"
+msgstr "I accept the KVKK and internet usage terms"
+
+#: .\log_kayit\forms.py:35 .\log_kayit\forms.py:41
+msgid "Turkish ID Number"
+msgstr "Turkish ID Number"
+
+#: .\log_kayit\forms.py:36 .\log_kayit\forms.py:42
+msgid "Passport Number"
+msgstr "Passport Number"
+
+#: .\log_kayit\forms.py:37 .\log_kayit\forms.py:43
+msgid "Full Name"
+msgstr "Full Name"
+
+#: .\log_kayit\forms.py:38 .\log_kayit\forms.py:44
+msgid "Phone (optional)"
+msgstr "Phone (optional)"
+
+#: .\log_kayit\forms.py:66
+#, fuzzy
+#| msgid "Turkish ID Number is required!"
+msgid "This field is required."
+msgstr "Turkish ID Number is required!"
+
+#: .\log_kayit\forms.py:69
+#, fuzzy
+#| msgid "Invalid Turkish ID Number!"
+msgid "Invalid Turkish ID Number."
+msgstr "Invalid Turkish ID Number!"
+
+#: .\log_kayit\forms.py:76
+msgid "This field is required for passport holders."
+msgstr ""
+
+#: .\log_kayit\forms.py:83
+#, fuzzy
+#| msgid "Country selection is required!"
+msgid "Country selection is required for passport holders."
+msgstr "Country selection is required!"
+
+#: .\log_kayit\forms.py:89
+msgid "You must accept the terms to continue."
+msgstr ""
+
+#: .\log_kayit\models.py:6
+msgid "Firma Adı"
+msgstr ""
+
+#: .\log_kayit\models.py:7
+msgid "Adres"
+msgstr ""
+
+#: .\log_kayit\models.py:8
+msgid "Yetkili Kişi"
+msgstr ""
+
+#: .\log_kayit\models.py:9 .\log_kayit\models.py:32
+msgid "Telefon"
+msgstr ""
+
+#: .\log_kayit\models.py:10
+msgid "Logo"
+msgstr ""
+
+#: .\log_kayit\models.py:12
+msgid "KVKK Metni"
+msgstr ""
+
+#: .\log_kayit\models.py:13
+msgid "Giriş Formu Açıklaması"
+msgstr ""
+
+#: .\log_kayit\models.py:14
+msgid "Tema Rengi (hex)"
+msgstr ""
+
+#: .\log_kayit\models.py:15
+msgid "Yabancı Girişine İzin Ver"
+msgstr ""
+
+#: .\log_kayit\models.py:21 .\log_kayit\models.py:49
+msgid "Firma"
+msgstr ""
+
+#: .\log_kayit\models.py:22
+msgid "TC Kimlik No"
+msgstr ""
+
+#: .\log_kayit\models.py:24
+msgid "Kimlik Türü"
+msgstr ""
+
+#: .\log_kayit\models.py:26
+msgid "TC Kimlik"
+msgstr ""
+
+#: .\log_kayit\models.py:26
+#, fuzzy
+#| msgid "Passport"
+msgid "Pasaport"
+msgstr "Passport"
+
+#: .\log_kayit\models.py:29
+#, fuzzy
+#| msgid "Passport"
+msgid "Pasaport No"
+msgstr "Passport"
+
+#: .\log_kayit\models.py:30
+msgid "Pasaport Ülkesi"
+msgstr ""
+
+#: .\log_kayit\models.py:31
+msgid "Ad Soyad"
+msgstr ""
+
+#: .\log_kayit\models.py:33
+msgid "IP Adresi"
+msgstr ""
+
+#: .\log_kayit\models.py:34
+msgid "MAC Adresi"
+msgstr ""
+
+#: .\log_kayit\models.py:35
+msgid "Giriş Zamanı"
+msgstr ""
+
+#: .\log_kayit\models.py:36
+msgid "SHA256 Hash"
+msgstr ""
+
+#: .\log_kayit\models.py:37
+msgid "Şüpheli/Geçersiz Giriş"
+msgstr ""
+
+#: .\log_kayit\models.py:43
+msgid "Log Kaydı"
+msgstr ""
+
+#: .\log_kayit\models.py:44
+msgid "Log Kayıtları"
+msgstr ""
+
+#: .\log_kayit\models.py:48
+msgid "Kullanıcı"
+msgstr ""
+
+#: .\log_kayit\models.py:51
+msgid "Firma Yöneticisi"
+msgstr ""
+
+#: .\log_kayit\models.py:52
+msgid "Personel"
+msgstr ""
+
+#: .\log_kayit\models.py:53
+msgid "Sadece Görüntüleyici"
+msgstr ""
+
+#: .\log_kayit\models.py:55
+msgid "Rol"
+msgstr ""
+
+#: .\log_kayit\models.py:60
+msgid "Firma Kullanıcısı"
+msgstr ""
+
+#: .\log_kayit\models.py:61
+msgid "Firma Kullanıcıları"
+msgstr ""
+
+#: .\log_kayit\templates\log_kayit\giris.html:8
+msgid "İnternet Giriş Kaydı"
+msgstr "Internet Access Log"
+
+#: .\log_kayit\templates\log_kayit\giris.html:95
+msgid "5651 Yasal Kayıt & Güvenli Erişim"
+msgstr "5651 Legal Record & Secure Access"
+
+#: .\log_kayit\templates\log_kayit\giris.html:97
+msgid "İnternet Giriş Paneli"
+msgstr "Internet Access Panel"
+
+#: .\log_kayit\templates\log_kayit\giris.html:98
+msgid ""
+"Yasalara uygun, güvenli ve hızlı internet erişimi için lütfen giriş yapınız."
+msgstr "Please log in for legally compliant, secure and fast internet access."
+
+#: .\log_kayit\templates\log_kayit\giris.html:100
+msgid "5651 sayılı kanuna tam uyum"
+msgstr "Full compliance with Law No. 5651"
+
+#: .\log_kayit\templates\log_kayit\giris.html:101
+msgid "Kişisel verileriniz 2 yıl güvenle saklanır"
+msgstr "Your personal data is securely stored for 2 years"
+
+#: .\log_kayit\templates\log_kayit\giris.html:102
+msgid "Kolay ve hızlı kayıt"
+msgstr "Easy and fast registration"
+
+#: .\log_kayit\templates\log_kayit\giris.html:103
+msgid "Yönetici ve ziyaretçi için ayrı giriş"
+msgstr "Separate login for administrators and visitors"
+
+#: .\log_kayit\templates\log_kayit\giris.html:110
+#: .\log_kayit\templates\log_kayit\giris.html:161
+msgid "Ziyaretçi Girişi"
+msgstr "Visitor Login"
+
+#: .\log_kayit\templates\log_kayit\giris.html:113
+#: .\log_kayit\templates\log_kayit\giris.html:199
+msgid "Yönetici Girişi"
+msgstr "Administrator Login"
+
+#: .\log_kayit\templates\log_kayit\giris.html:163
+msgid "5651 sayılı yasa gereği bilgileriniz 2 yıl saklanacaktır."
+msgstr "As per Law No. 5651, your information will be stored for 2 years."
+
+#: .\log_kayit\templates\log_kayit\giris.html:192
+msgid "Kullanıcı Adı veya E-posta"
+msgstr "Username or Email"
+
+#: .\log_kayit\templates\log_kayit\giris.html:196
+msgid "Şifre"
+msgstr "Password"
+
+#: .\log_kayit\templates\log_kayit\giris.html:202
+msgid "Yalnızca yetkili personel için"
+msgstr "For authorized personnel only"
+
+#: .\log_kayit\views.py:79
+msgid "You are not authorized to access this company's dashboard."
+msgstr ""
+
+#: .\log_kayit\views.py:132
+msgid "Superuser"
+msgstr ""
+
+#: .\log_kayit\views.py:258 .\log_kayit\views.py:379
+msgid "You are not authorized to view this page."
+msgstr ""
+
+#: .\log_kayit\views.py:383
+msgid "You are not assigned to any company. Cannot show settings."
+msgstr ""
+
+#: .\log_kayit\views.py:389
+msgid "Settings saved successfully."
+msgstr ""
+
+#: .\log_kayit\views.py:392
+msgid "Could not save settings. Please check the form."
+msgstr ""
+
+#~ msgid "Germany"
+#~ msgstr "Germany"
+
+#~ msgid "United Kingdom"
+#~ msgstr "United Kingdom"
+
+#~ msgid "Russia"
+#~ msgstr "Russia"
+
+#~ msgid "France"
+#~ msgstr "France"
+
+#~ msgid "Italy"
+#~ msgstr "Italy"
+
+#~ msgid "USA"
+#~ msgstr "USA"
+
+#~ msgid "Turkey"
+#~ msgstr "Turkey"
+
+#~ msgid "Other"
+#~ msgstr "Other"
+
+#~ msgid "Company"
+#~ msgstr "Company"
+
+#~ msgid "Company selection is required!"
+#~ msgstr "Company selection is required!"
+
+#~ msgid "Passport number is required!"
+#~ msgstr "Passport number is required!"
+
+#~ msgid "Invalid passport number for the selected country!"
+#~ msgstr "Invalid passport number for the selected country!"

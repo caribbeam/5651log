@@ -1,0 +1,411 @@
+{% extends "log_kayit/partials/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Firewall Management - {{ company.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.firewall-dashboard {
+    padding: 20px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-left: 4px solid;
+    transition: transform 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-card.rules { border-left-color: #28a745; }
+.stat-card.policies { border-left-color: #17a2b8; }
+.stat-card.events { border-left-color: #ffc107; }
+.stat-card.traffic { border-left-color: #dc3545; }
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.rule-table {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.rule-status {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.status-allow { background: #d4edda; color: #155724; }
+.status-deny { background: #f8d7da; color: #721c24; }
+.status-drop { background: #fff3cd; color: #856404; }
+.status-reject { background: #f8d7da; color: #721c24; }
+
+.event-item {
+    padding: 10px;
+    border-left: 3px solid;
+    margin-bottom: 10px;
+    background: #f8f9fa;
+    border-radius: 5px;
+}
+
+.event-low { border-left-color: #28a745; }
+.event-medium { border-left-color: #ffc107; }
+.event-high { border-left-color: #fd7e14; }
+.event-critical { border-left-color: #dc3545; }
+
+.progress {
+    height: 20px;
+    border-radius: 10px;
+}
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="firewall-dashboard">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-shield-alt me-2"></i>Firewall Management
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <button class="btn btn-primary" onclick="refreshData()">
+                <i class="fas fa-sync-alt me-2"></i>Yenile
+            </button>
+                            <a href="{% url 'log_kayit:dashboard' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Ana Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- İstatistik Kartları -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card rules">
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+                        <i class="fas fa-list-alt fa-2x text-success"></i>
+                    </div>
+                    <div>
+                        <div class="stat-number text-success">{{ rule_stats.total }}</div>
+                        <div class="text-muted">Toplam Kural</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card policies">
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+                        <i class="fas fa-cogs fa-2x text-info"></i>
+                    </div>
+                    <div>
+                        <div class="stat-number text-info">{{ policy_stats.total }}</div>
+                        <div class="text-muted">Toplam Politika</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card events">
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+                        <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
+                    </div>
+                    <div>
+                        <div class="stat-number text-warning">{{ event_stats.unresolved }}</div>
+                        <div class="text-muted">Çözülmemiş Olay</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card traffic">
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+                        <i class="fas fa-ban fa-2x text-danger"></i>
+                    </div>
+                    <div>
+                        <div class="stat-number text-danger">{{ traffic_stats.blocked_connections }}</div>
+                        <div class="text-muted">Engellenen Bağlantı</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detay İstatistikleri -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-list me-2"></i>Kural Dağılımı</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-3">
+                            <div class="h4 text-success">{{ rule_stats.allow }}</div>
+                            <small class="text-muted">İzin</small>
+                        </div>
+                        <div class="col-3">
+                            <div class="h4 text-danger">{{ rule_stats.deny }}</div>
+                            <small class="text-muted">Reddet</small>
+                        </div>
+                        <div class="col-3">
+                            <div class="h4 text-warning">{{ rule_stats.drop }}</div>
+                            <small class="text-muted">Düşür</small>
+                        </div>
+                        <div class="col-3">
+                            <div class="h4 text-info">{{ rule_stats.reject }}</div>
+                            <small class="text-muted">Reddet</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Olay Önem Seviyeleri</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-3">
+                            <div class="h4 text-success">{{ event_stats.low }}</div>
+                            <small class="text-muted">Düşük</small>
+                        </div>
+                        <div class="col-3">
+                            <div class="h4 text-warning">{{ event_stats.medium }}</div>
+                            <small class="text-muted">Orta</small>
+                        </div>
+                        <div class="col-3">
+                            <div class="h4 text-danger">{{ event_stats.high }}</div>
+                            <small class="text-muted">Yüksek</small>
+                        </div>
+                        <div class="col-3">
+                            <div class="h4 text-danger">{{ event_stats.critical }}</div>
+                            <small class="text-muted">Kritik</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- En Çok Eşleşen Kurallar -->
+    <div class="card rule-table mb-4">
+        <div class="card-header">
+            <h6 class="mb-0"><i class="fas fa-star me-2"></i>En Çok Eşleşen Kurallar</h6>
+        </div>
+        <div class="card-body">
+            {% if top_rules %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Kural Adı</th>
+                            <th>Tip</th>
+                            <th>Protokol</th>
+                            <th>Eşleşme Sayısı</th>
+                            <th>Son Eşleşme</th>
+                            <th>Durum</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rule in top_rules %}
+                        <tr>
+                            <td>
+                                <strong>{{ rule.name }}</strong>
+                                {% if rule.description %}
+                                <br><small class="text-muted">{{ rule.description|truncatechars:50 }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="rule-status status-{{ rule.rule_type|lower }}">
+                                    {{ rule.get_rule_type_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">{{ rule.protocol }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-primary">{{ rule.hit_count }}</span>
+                            </td>
+                            <td>
+                                {% if rule.last_hit %}
+                                    {{ rule.last_hit|timesince }} önce
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if rule.is_active %}
+                                    <span class="badge bg-success">Aktif</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Pasif</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-shield-alt fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Henüz firewall kuralı eklenmemiş</h5>
+                <p class="text-muted">Firewall kurallarını admin panelinden ekleyin.</p>
+                <a href="/admin/firewall_management/firewallrule/add/" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>İlk Kuralı Ekle
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Son Olaylar ve Trafik -->
+    <div class="row">
+        <div class="col-xl-8 col-lg-7">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-chart-area me-2"></i>24 Saatlik Güvenlik Olayları</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="securityChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-lg-5">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-list me-2"></i>Son Güvenlik Olayları</h6>
+                </div>
+                <div class="card-body">
+                    {% if recent_events %}
+                    <div class="event-list">
+                        {% for event in recent_events %}
+                        <div class="event-item event-{{ event.severity|lower }}">
+                            <div class="d-flex justify-content-between">
+                                <strong>{{ event.get_event_type_display }}</strong>
+                                <small class="text-muted">{{ event.timestamp|timesince }} önce</small>
+                            </div>
+                            <div class="text-sm">{{ event.message|truncatechars:40 }}</div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-{{ event.severity|lower }}">{{ event.get_severity_display }}</span>
+                                <small class="text-muted">{{ event.source_ip }} → {{ event.destination_ip }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-shield-alt fa-2x text-muted mb-2"></i>
+                        <p class="text-muted">Henüz güvenlik olayı yok</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hızlı Erişim -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-link me-2"></i>Hızlı Erişim</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex gap-3 flex-wrap">
+                        <a href="{% url 'firewall_management:rules_list' company.slug %}" class="btn btn-outline-primary">
+                            <i class="fas fa-list me-2"></i>Tüm Kurallar
+                        </a>
+                        <a href="{% url 'firewall_management:events_list' company.slug %}" class="btn btn-outline-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Güvenlik Olayları
+                        </a>
+                        <a href="{% url 'firewall_management:logs_list' company.slug %}" class="btn btn-outline-info">
+                            <i class="fas fa-file-alt me-2"></i>Firewall Logları
+                        </a>
+                        <a href="/admin/firewall_management/firewallrule/add/" class="btn btn-success">
+                            <i class="fas fa-plus me-2"></i>Yeni Kural Ekle
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Güvenlik olayları grafiği
+const ctx = document.getElementById('securityChart').getContext('2d');
+const securityChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: [{% for stat in hourly_events %}'{{ stat.hour }}'{% if not forloop.last %}, {% endif %}{% endfor %}],
+        datasets: [{
+            label: 'Toplam Olaylar',
+            data: [{% for stat in hourly_events %}{{ stat.total_events }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            tension: 0.1
+        }, {
+            label: 'Kritik Olaylar',
+            data: [{% for stat in hourly_events %}{{ stat.critical_events }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+            borderColor: 'rgb(255, 99, 132)',
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            tension: 0.1
+        }, {
+            label: 'Engellenen Bağlantılar',
+            data: [{% for stat in hourly_events %}{{ stat.blocked_connections }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+            borderColor: 'rgb(255, 159, 64)',
+            backgroundColor: 'rgba(255, 159, 64, 0.2)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            title: {
+                display: true,
+                text: 'Son 24 Saat Güvenlik Aktivitesi'
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Veri yenileme fonksiyonu
+function refreshData() {
+    location.reload();
+}
+
+// Her 30 saniyede bir otomatik yenileme
+setInterval(function() {
+    if (!document.hidden) {
+        console.log('Firewall data updating...');
+    }
+}, 30000);
+</script>
+{% endblock %}

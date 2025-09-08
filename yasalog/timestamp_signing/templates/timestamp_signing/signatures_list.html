@@ -1,0 +1,195 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "İmza Listesi" %} - {{ company.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.timestamp-dashboard {
+    padding: 20px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-left: 4px solid;
+    transition: transform 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.chart-container {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="timestamp-dashboard">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-signature me-2"></i>{% trans "Zaman Damgası İmzaları" %}
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'timestamp_signing:dashboard' company.slug %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri Dön" %}
+            </a>
+            <a href="{% url 'log_kayit:company_dashboard_slug' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-home me-2"></i>{% trans "Ana Sayfa" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- İçerik -->
+            <!-- Filtreler -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">{% trans "Filtreler" %}</h3>
+                        </div>
+                        <div class="card-body">
+                            <form method="get" class="row">
+                                <div class="col-md-3">
+                                    <label class="form-label">{% trans "Durum" %}</label>
+                                    <select name="status" class="form-control">
+                                        <option value="">{% trans "Tümü" %}</option>
+                                        <option value="PENDING" {% if filters.status == 'PENDING' %}selected{% endif %}>{% trans "Beklemede" %}</option>
+                                        <option value="SIGNED" {% if filters.status == 'SIGNED' %}selected{% endif %}>{% trans "İmzalandı" %}</option>
+                                        <option value="VERIFIED" {% if filters.status == 'VERIFIED' %}selected{% endif %}>{% trans "Doğrulandı" %}</option>
+                                        <option value="FAILED" {% if filters.status == 'FAILED' %}selected{% endif %}>{% trans "Başarısız" %}</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">{% trans "Otorite" %}</label>
+                                    <select name="authority" class="form-control">
+                                        <option value="">{% trans "Tümü" %}</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">{% trans "Arama" %}</label>
+                                    <input type="text" name="search" class="form-control" 
+                                           placeholder="{% trans 'Ad, TC No, Seri No...' %}" 
+                                           value="{{ filters.search }}">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">&nbsp;</label>
+                                    <button type="submit" class="btn btn-primary btn-block">
+                                        <i class="fas fa-search"></i> {% trans "Filtrele" %}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- İmza Listesi -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">{% trans "İmza Listesi" %}</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>{% trans "Log Kaydı" %}</th>
+                                            <th>{% trans "TC No" %}</th>
+                                            <th>{% trans "Otorite" %}</th>
+                                            <th>{% trans "Durum" %}</th>
+                                            <th>{% trans "İmzalama Zamanı" %}</th>
+                                            <th>{% trans "Seri No" %}</th>
+                                            <th>{% trans "İşlemler" %}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for signature in page_obj %}
+                                        <tr>
+                                            <td>{{ signature.log_entry.ad_soyad }}</td>
+                                            <td>{{ signature.log_entry.tc_no }}</td>
+                                            <td>{{ signature.authority.name }}</td>
+                                            <td>
+                                                {% if signature.status == 'SIGNED' %}
+                                                    <span class="badge badge-success">{% trans "İmzalandı" %}</span>
+                                                {% elif signature.status == 'VERIFIED' %}
+                                                    <span class="badge badge-info">{% trans "Doğrulandı" %}</span>
+                                                {% elif signature.status == 'FAILED' %}
+                                                    <span class="badge badge-danger">{% trans "Başarısız" %}</span>
+                                                {% else %}
+                                                    <span class="badge badge-warning">{% trans "Beklemede" %}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ signature.signed_at|date:"d.m.Y H:i"|default:"-" }}</td>
+                                            <td>{{ signature.serial_number|default:"-" }}</td>
+                                            <td>
+                                                <a href="{% url 'timestamp_signing:signature_detail' company.slug signature.id %}" 
+                                                   class="btn btn-sm btn-info">
+                                                    <i class="fas fa-eye"></i> {% trans "Detay" %}
+                                                </a>
+                                                {% if signature.status == 'SIGNED' %}
+                                                <a href="{% url 'timestamp_signing:verify_signature' company.slug signature.id %}" 
+                                                   class="btn btn-sm btn-success" 
+                                                   onclick="return confirm('{% trans "İmzayı doğrulamak istediğinizden emin misiniz?" %}')">
+                                                    <i class="fas fa-shield-alt"></i> {% trans "Doğrula" %}
+                                                </a>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="7" class="text-center">{% trans "Henüz imza bulunmuyor" %}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Sayfalama -->
+                            {% if page_obj.has_other_pages %}
+                            <nav aria-label="{% trans 'Sayfa navigasyonu' %}">
+                                <ul class="pagination justify-content-center">
+                                    {% if page_obj.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=1{% if filters.status %}&status={{ filters.status }}{% endif %}{% if filters.authority %}&authority={{ filters.authority }}{% endif %}{% if filters.search %}&search={{ filters.search }}{% endif %}">{% trans "İlk" %}</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if filters.status %}&status={{ filters.status }}{% endif %}{% if filters.authority %}&authority={{ filters.authority }}{% endif %}{% if filters.search %}&search={{ filters.search }}{% endif %}">{% trans "Önceki" %}</a>
+                                        </li>
+                                    {% endif %}
+
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+                                    </li>
+
+                                    {% if page_obj.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if filters.status %}&status={{ filters.status }}{% endif %}{% if filters.authority %}&authority={{ filters.authority }}{% endif %}{% if filters.search %}&search={{ filters.search }}{% endif %}">{% trans "Sonraki" %}</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if filters.status %}&status={{ filters.status }}{% endif %}{% if filters.authority %}&authority={{ filters.authority }}{% endif %}{% if filters.search %}&search={{ filters.search }}{% endif %}">{% trans "Son" %}</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </div>
+</div>
+{% endblock %}

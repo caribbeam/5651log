@@ -1,0 +1,21 @@
+{% extends "log_kayit/partials/base_visitor.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Invalid Access" %}{% endblock %}
+
+{% block content %}
+<div class="container text-center">
+    <div class="py-5">
+        <i class="bi bi-exclamation-triangle-fill text-warning" style="font-size: 4rem;"></i>
+        <h1 class="display-5 fw-bold mt-4">{% trans "Invalid Access" %}</h1>
+        <div class="col-lg-6 mx-auto">
+            <p class="lead mb-4">
+                {% trans "To log in, please use the specific address (URL link or QR code) provided to you by the institution you are visiting." %}
+            </p>
+            <p class="text-muted">
+                {% trans "Generic access to this page is not available." %}
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %} 

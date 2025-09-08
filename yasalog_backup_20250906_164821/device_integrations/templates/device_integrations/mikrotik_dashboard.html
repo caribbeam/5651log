@@ -1,0 +1,351 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}MikroTik Dashboard - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-shield-alt me-2"></i>MikroTik Dashboard
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'device_integrations:device_dashboard' company_slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Device Management
+            </a>
+            <button onclick="refreshMikroTikData()" class="btn btn-primary">
+                <i class="fas fa-sync me-2"></i>Yenile
+            </button>
+        </div>
+    </div>
+
+    <!-- Genel İstatistikler -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ total_mikrotik_devices }}</h4>
+                            <p class="mb-0">MikroTik Cihazları</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-shield-alt fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ total_rules }}</h4>
+                            <p class="mb-0">Toplam Kural</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-list fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ total_interfaces }}</h4>
+                            <p class="mb-0">Toplam Interface</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-ethernet fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ total_vpns }}</h4>
+                            <p class="mb-0">Toplam VPN</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-network-wired fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Durum İstatistikleri -->
+    <div class="row mb-4">
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Firewall Kuralları</h5>
+                    <div class="progress mb-2" style="height: 20px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ rule_usage_percent }}%">
+                            {{ active_rules }}/{{ total_rules }}
+                        </div>
+                    </div>
+                    <small class="text-muted">{{ rule_usage_percent|floatformat:1 }}% Aktif</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Interface Durumu</h5>
+                    <div class="progress mb-2" style="height: 20px;">
+                        <div class="progress-bar bg-info" role="progressbar" style="width: {{ interface_usage_percent }}%">
+                            {{ up_interfaces }}/{{ total_interfaces }}
+                        </div>
+                    </div>
+                    <small class="text-muted">{{ interface_usage_percent|floatformat:1 }}% Online</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">VPN Durumu</h5>
+                    <div class="progress mb-2" style="height: 20px;">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: {{ vpn_usage_percent }}%">
+                            {{ connected_vpns }}/{{ total_vpns }}
+                        </div>
+                    </div>
+                    <small class="text-muted">{{ vpn_usage_percent|floatformat:1 }}% Bağlı</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MikroTik Cihazları -->
+    {% for mikrotik in mikrotik_data %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-shield-alt me-2"></i>{{ mikrotik.device.name }}
+                    <span class="badge bg-{% if mikrotik.status == 'connected' %}success{% elif mikrotik.status == 'disconnected' %}danger{% else %}warning{% endif %} ms-2">
+                        {% if mikrotik.status == 'connected' %}Bağlı{% elif mikrotik.status == 'disconnected' %}Bağlantısız{% else %}Hata{% endif %}
+                    </span>
+                </h5>
+                <div>
+                    <small class="text-muted">{{ mikrotik.device.ip_address }}:{{ mikrotik.device.port|default:443 }}</small>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if mikrotik.status == 'connected' %}
+                <div class="row">
+                    <!-- Firewall Kuralları -->
+                    <div class="col-lg-6 mb-4">
+                        <h6 class="text-primary">
+                            <i class="fas fa-list me-2"></i>Firewall Kuralları ({{ mikrotik.total_rules }})
+                        </h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Chain</th>
+                                        <th>Action</th>
+                                        <th>Protocol</th>
+                                        <th>Source</th>
+                                        <th>Destination</th>
+                                        <th>Port</th>
+                                        <th>Comment</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for rule in mikrotik.rules %}
+                                    <tr>
+                                        <td>{{ rule.rule_id }}</td>
+                                        <td>
+                                            <span class="badge bg-secondary">{{ rule.chain }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{% if rule.action == 'accept' %}success{% elif rule.action == 'drop' %}danger{% else %}warning{% endif %}">
+                                                {{ rule.action }}
+                                            </span>
+                                        </td>
+                                        <td>{{ rule.protocol|upper }}</td>
+                                        <td><small>{{ rule.src_address }}</small></td>
+                                        <td><small>{{ rule.dst_address }}</small></td>
+                                        <td>{{ rule.dst_port }}</td>
+                                        <td><small>{{ rule.comment }}</small></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Interface'ler -->
+                    <div class="col-lg-6 mb-4">
+                        <h6 class="text-info">
+                            <i class="fas fa-ethernet me-2"></i>Interface'ler ({{ mikrotik.total_interfaces }})
+                        </h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Interface</th>
+                                        <th>Type</th>
+                                        <th>Status</th>
+                                        <th>Speed</th>
+                                        <th>TX</th>
+                                        <th>RX</th>
+                                        <th>Comment</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for interface in mikrotik.interfaces %}
+                                    <tr>
+                                        <td><strong>{{ interface.name }}</strong></td>
+                                        <td>{{ interface.type }}</td>
+                                        <td>
+                                            <span class="badge bg-{% if interface.status == 'up' %}success{% else %}danger{% endif %}">
+                                                {% if interface.status == 'up' %}Online{% else %}Offline{% endif %}
+                                            </span>
+                                        </td>
+                                        <td>{{ interface.speed }}</td>
+                                        <td><small>{{ interface.tx_byte|filesizeformat }}</small></td>
+                                        <td><small>{{ interface.rx_byte|filesizeformat }}</small></td>
+                                        <td><small>{{ interface.comment }}</small></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VPN Bağlantıları -->
+                {% if mikrotik.vpns %}
+                <div class="row">
+                    <div class="col-12">
+                        <h6 class="text-warning">
+                            <i class="fas fa-network-wired me-2"></i>VPN Bağlantıları ({{ mikrotik.total_vpns }})
+                        </h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>VPN Name</th>
+                                        <th>Status</th>
+                                        <th>Remote IP</th>
+                                        <th>Local IP</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for vpn in mikrotik.vpns %}
+                                    <tr>
+                                        <td><strong>{{ vpn.name }}</strong></td>
+                                        <td>
+                                            <span class="badge bg-{% if vpn.status == 'connected' %}success{% else %}danger{% endif %}">
+                                                {% if vpn.status == 'connected' %}Bağlı{% else %}Bağlantısız{% endif %}
+                                            </span>
+                                        </td>
+                                        <td><code>{{ vpn.remote_ip }}</code></td>
+                                        <td><code>{{ vpn.local_ip }}</code></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Cihaz İstatistikleri -->
+                <div class="row mt-3">
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h6 class="text-muted">Aktif Kurallar</h6>
+                            <h4 class="text-success">{{ mikrotik.active_rules }}/{{ mikrotik.total_rules }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h6 class="text-muted">Online Interface'ler</h6>
+                            <h4 class="text-info">{{ mikrotik.up_interfaces }}/{{ mikrotik.total_interfaces }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h6 class="text-muted">Bağlı VPN'ler</h6>
+                            <h4 class="text-warning">{{ mikrotik.connected_vpns }}/{{ mikrotik.total_vpns }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h6 class="text-muted">Genel Durum</h6>
+                            <h4 class="text-success">
+                                <i class="fas fa-check-circle"></i> Sağlıklı
+                            </h4>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="alert alert-{% if mikrotik.status == 'disconnected' %}danger{% else %}warning{% endif %}">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    {% if mikrotik.status == 'disconnected' %}
+                        MikroTik cihazına bağlanılamıyor. Lütfen bağlantı ayarlarını kontrol edin.
+                    {% else %}
+                        MikroTik cihazına bağlanırken hata oluştu: {{ mikrotik.status }}
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="card">
+        <div class="card-body text-center">
+            <i class="fas fa-shield-alt fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">MikroTik Cihazı Bulunamadı</h5>
+            <p class="text-muted">MikroTik entegrasyonu için önce bir MikroTik cihazı ekleyin.</p>
+            <a href="{% url 'device_integrations:device_add' company_slug %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>MikroTik Cihazı Ekle
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+function refreshMikroTikData() {
+    showToast('info', 'MikroTik verileri yenileniyor...');
+    setTimeout(() => {
+        location.reload();
+    }, 1000);
+}
+
+function showToast(type, message) {
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} alert-dismissible fade show position-fixed`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    toast.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }, 3000);
+}
+</script>
+{% endblock %}

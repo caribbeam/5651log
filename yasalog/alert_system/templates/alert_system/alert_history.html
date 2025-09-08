@@ -1,0 +1,307 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Uyarı Geçmişi - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-history me-2"></i>Uyarı Geçmişi
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="/dashboard/{{ company_slug }}/" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Ana Dashboard
+            </a>
+            <a href="/alerts/dashboard/{{ company_slug }}/" class="btn btn-outline-primary">
+                <i class="fas fa-tachometer-alt me-2"></i>Alert Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtreler -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Durum</label>
+                    <select name="status" class="form-select">
+                        <option value="">Tümü</option>
+                        <option value="new" {% if request.GET.status == 'new' %}selected{% endif %}>Yeni</option>
+                        <option value="acknowledged" {% if request.GET.status == 'acknowledged' %}selected{% endif %}>Kabul Edildi</option>
+                        <option value="in_progress" {% if request.GET.status == 'in_progress' %}selected{% endif %}>İşlemde</option>
+                        <option value="resolved" {% if request.GET.status == 'resolved' %}selected{% endif %}>Çözüldü</option>
+                        <option value="closed" {% if request.GET.status == 'closed' %}selected{% endif %}>Kapatıldı</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Önem Seviyesi</label>
+                    <select name="severity" class="form-select">
+                        <option value="">Tümü</option>
+                        <option value="info" {% if request.GET.severity == 'info' %}selected{% endif %}>Bilgi</option>
+                        <option value="warning" {% if request.GET.severity == 'warning' %}selected{% endif %}>Uyarı</option>
+                        <option value="error" {% if request.GET.severity == 'error' %}selected{% endif %}>Hata</option>
+                        <option value="critical" {% if request.GET.severity == 'critical' %}selected{% endif %}>Kritik</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Tip</label>
+                    <select name="type" class="form-select">
+                        <option value="">Tümü</option>
+                        <option value="security" {% if request.GET.type == 'security' %}selected{% endif %}>Güvenlik</option>
+                        <option value="performance" {% if request.GET.type == 'performance' %}selected{% endif %}>Performans</option>
+                        <option value="network" {% if request.GET.type == 'network' %}selected{% endif %}>Network</option>
+                        <option value="device" {% if request.GET.type == 'device' %}selected{% endif %}>Cihaz</option>
+                        <option value="user" {% if request.GET.type == 'user' %}selected{% endif %}>Kullanıcı</option>
+                        <option value="system" {% if request.GET.type == 'system' %}selected{% endif %}>Sistem</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search me-2"></i>Filtrele
+                        </button>
+                        <a href="/alerts/history/{{ company_slug }}/" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Temizle
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Uyarı Geçmişi -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-list"></i> Uyarı Geçmişi
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if alerts %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Uyarı</th>
+                            <th>Tip</th>
+                            <th>Önem</th>
+                            <th>Durum</th>
+                            <th>Cihaz</th>
+                            <th>Tetiklenme</th>
+                            <th>Çözülme</th>
+                            <th>Çözen</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for alert in alerts %}
+                        <tr>
+                            <td>
+                                <div>
+                                    <strong>{{ alert.title }}</strong>
+                                    {% if alert.resolution_notes %}
+                                    <br><small class="text-muted">{{ alert.resolution_notes|truncatechars:50 }}</small>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">{{ alert.type|title }}</span>
+                            </td>
+                            <td>
+                                {% if alert.severity == 'critical' %}
+                                    <span class="badge bg-danger">Kritik</span>
+                                {% elif alert.severity == 'error' %}
+                                    <span class="badge bg-warning">Hata</span>
+                                {% elif alert.severity == 'warning' %}
+                                    <span class="badge bg-primary">Uyarı</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Bilgi</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if alert.status == 'resolved' %}
+                                    <span class="badge bg-success">Çözüldü</span>
+                                {% elif alert.status == 'in_progress' %}
+                                    <span class="badge bg-warning">İşlemde</span>
+                                {% elif alert.status == 'acknowledged' %}
+                                    <span class="badge bg-info">Kabul Edildi</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Yeni</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <i class="fas fa-server me-1"></i>{{ alert.device }}
+                            </td>
+                            <td>
+                                <small>{{ alert.triggered_at|date:"d.m.Y H:i" }}</small>
+                            </td>
+                            <td>
+                                {% if alert.resolved_at %}
+                                    <small>{{ alert.resolved_at|date:"d.m.Y H:i" }}</small>
+                                {% else %}
+                                    <small class="text-muted">-</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if alert.resolved_by %}
+                                    <small>{{ alert.resolved_by }}</small>
+                                {% else %}
+                                    <small class="text-muted">-</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-primary" onclick="viewAlert({{ alert.id }})" title="Detayları Görüntüle">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    {% if alert.status != 'resolved' %}
+                                    <button class="btn btn-outline-success" onclick="resolveAlert({{ alert.id }})" title="Çöz">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    {% endif %}
+                                    {% if alert.status == 'new' %}
+                                    <button class="btn btn-outline-warning" onclick="acknowledgeAlert({{ alert.id }})" title="Kabul Et">
+                                        <i class="fas fa-hand-paper"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Henüz uyarı geçmişi bulunmuyor</h5>
+                <p class="text-muted">Sistem uyarıları burada görüntülenecek.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+// Uyarı detaylarını görüntüleme
+function viewAlert(alertId) {
+    alert('Uyarı detayları görüntüleme özelliği yakında eklenecek!');
+}
+
+// Uyarıyı çözme
+function resolveAlert(alertId) {
+    if (confirm('Bu uyarıyı çözüldü olarak işaretlemek istediğinizden emin misiniz?')) {
+        // AJAX ile uyarıyı çöz
+        fetch('/alerts/history/{{ company_slug }}/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                'action': 'resolve',
+                'alert_id': alertId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Başarı mesajını göster
+                showSuccessMessage(data.message);
+                // Sayfayı yenile
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else {
+                alert('Hata: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Bir hata oluştu!');
+        });
+    }
+}
+
+// Uyarıyı kabul etme
+function acknowledgeAlert(alertId) {
+    if (confirm('Bu uyarıyı kabul etmek istediğinizden emin misiniz?')) {
+        // AJAX ile uyarıyı kabul et
+        fetch('/alerts/history/{{ company_slug }}/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                'action': 'acknowledge',
+                'alert_id': alertId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Başarı mesajını göster
+                showSuccessMessage(data.message);
+                // Sayfayı yenile
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else {
+                alert('Hata: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Bir hata oluştu!');
+        });
+    }
+}
+
+// Başarı mesajını gösterme fonksiyonu
+function showSuccessMessage(message) {
+    // Toast mesajı oluştur
+    const toast = document.createElement('div');
+    toast.className = 'toast-message';
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #28a745;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 5px;
+        z-index: 9999;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        animation: slideIn 0.3s ease;
+    `;
+    toast.innerHTML = `
+        <i class="fas fa-check-circle me-2"></i>
+        ${message}
+    `;
+    
+    // CSS animasyonu ekle
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Toast'ı sayfaya ekle
+    document.body.appendChild(toast);
+    
+    // 3 saniye sonra kaldır
+    setTimeout(() => {
+        toast.remove();
+        style.remove();
+    }, 3000);
+}
+</script>
+{% endblock %}

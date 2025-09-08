@@ -1,0 +1,198 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Alarm Entegrasyonu" %} - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="alarm-integration-dashboard">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-bell me-2"></i>{% trans "Alarm Entegrasyonu" %}
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'log_kayit:company_dashboard_slug' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-home me-2"></i>{% trans "Ana Sayfa" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- İstatistik Kartları -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ rules.count }}</h4>
+                            <p class="mb-0">{% trans "Toplam Kural" %}</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-cogs fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ active_rules.count }}</h4>
+                            <p class="mb-0">{% trans "Aktif Kural" %}</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-check-circle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ active_events.count }}</h4>
+                            <p class="mb-0">{% trans "Aktif Alarm" %}</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-exclamation-triangle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ events.count }}</h4>
+                            <p class="mb-0">{% trans "Toplam Olay" %}</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-bell fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hızlı Erişim -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bolt me-2"></i>{% trans "Hızlı Erişim" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <a href="{% url 'alarm_integration:rules_list' company.slug %}" class="btn btn-primary btn-block">
+                                <i class="fas fa-cogs me-2"></i>{% trans "Kurallar" %}
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'alarm_integration:events_list' company.slug %}" class="btn btn-warning btn-block">
+                                <i class="fas fa-bell me-2"></i>{% trans "Alarmlar" %}
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'alarm_integration:notifications_list' company.slug %}" class="btn btn-info btn-block">
+                                <i class="fas fa-envelope me-2"></i>{% trans "Bildirimler" %}
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="/admin/alarm_integration/alarmrule/add/" class="btn btn-success btn-block" target="_blank">
+                                <i class="fas fa-plus me-2"></i>{% trans "Yeni Kural" %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Son Alarmlar -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bell me-2"></i>{% trans "Son Alarm Olayları" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if events %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>{% trans "Başlık" %}</th>
+                                        <th>{% trans "Kural" %}</th>
+                                        <th>{% trans "Önem" %}</th>
+                                        <th>{% trans "Durum" %}</th>
+                                        <th>{% trans "Tetiklenme" %}</th>
+                                        <th>{% trans "İşlemler" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for event in events|slice:":10" %}
+                                    <tr>
+                                        <td>{{ event.title }}</td>
+                                        <td>{{ event.rule.name }}</td>
+                                        <td>
+                                            {% if event.severity == 'CRITICAL' %}
+                                                <span class="badge badge-danger">{% trans "Kritik" %}</span>
+                                            {% elif event.severity == 'HIGH' %}
+                                                <span class="badge badge-warning">{% trans "Yüksek" %}</span>
+                                            {% elif event.severity == 'MEDIUM' %}
+                                                <span class="badge badge-info">{% trans "Orta" %}</span>
+                                            {% else %}
+                                                <span class="badge badge-secondary">{% trans "Düşük" %}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if event.status == 'ACTIVE' %}
+                                                <span class="badge badge-danger">{% trans "Aktif" %}</span>
+                                            {% elif event.status == 'ACKNOWLEDGED' %}
+                                                <span class="badge badge-warning">{% trans "Kabul Edildi" %}</span>
+                                            {% elif event.status == 'RESOLVED' %}
+                                                <span class="badge badge-success">{% trans "Çözüldü" %}</span>
+                                            {% else %}
+                                                <span class="badge badge-secondary">{% trans "Bastırıldı" %}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ event.triggered_at|date:'d.m.Y H:i:s' }}</td>
+                                        <td>
+                                            <a href="{% url 'alarm_integration:event_detail' company.slug event.id %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-bell fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">{% trans "Henüz alarm olayı bulunmuyor" %}</h5>
+                            <p class="text-muted">{% trans "İlk alarm kuralınızı oluşturmak için yukarıdaki butonu kullanın." %}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

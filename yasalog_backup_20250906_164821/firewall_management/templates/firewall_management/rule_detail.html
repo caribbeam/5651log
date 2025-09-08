@@ -1,0 +1,336 @@
+{% extends "log_kayit/partials/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ rule.name }} - {{ company.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.rule-detail-container {
+    padding: 20px;
+}
+
+.rule-header {
+    background: white;
+    border-radius: 10px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+    border-left: 5px solid;
+}
+
+.rule-header.allow { border-left-color: #28a745; }
+.rule-header.deny { border-left-color: #dc3545; }
+.rule-header.drop { border-left-color: #ffc107; }
+.rule-header.reject { border-left-color: #fd7e14; }
+
+.rule-status {
+    padding: 8px 15px;
+    border-radius: 25px;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.status-allow { background: #d4edda; color: #155724; }
+.status-deny { background: #f8d7da; color: #721c24; }
+.status-drop { background: #fff3cd; color: #856404; }
+.status-reject { background: #f8d7da; color: #721c24; }
+
+.priority-badge {
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.priority-1 { background: #e9ecef; color: #495057; }
+.priority-2 { background: #d1ecf1; color: #0c5460; }
+.priority-3 { background: #d4edda; color: #155724; }
+.priority-4 { background: #fff3cd; color: #856404; }
+.priority-5 { background: #f8d7da; color: #721c24; }
+
+.rule-info-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.rule-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.stat-label {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -30px;
+    top: 0;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #007bff;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 2px #007bff;
+}
+
+.timeline-item::after {
+    content: '';
+    position: absolute;
+    left: -24px;
+    top: 12px;
+    width: 2px;
+    height: calc(100% + 8px);
+    background: #e9ecef;
+}
+
+.timeline-item:last-child::after {
+    display: none;
+}
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="rule-detail-container">
+    <!-- Kural Başlığı -->
+    <div class="rule-header {{ rule.rule_type|lower }}">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <div class="d-flex align-items-center mb-3">
+                    <h1 class="h2 mb-0 me-3">{{ rule.name }}</h1>
+                    <span class="rule-status status-{{ rule.rule_type|lower }}">
+                        {{ rule.get_rule_type_display }}
+                    </span>
+                    <span class="priority-badge priority-{{ rule.priority }} ms-3">
+                        Öncelik: {{ rule.priority }}
+                    </span>
+                </div>
+                {% if rule.description %}
+                <p class="lead mb-0">{{ rule.description }}</p>
+                {% endif %}
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="mb-3">
+                    {% if rule.is_active %}
+                    <span class="badge bg-success fs-6 px-3 py-2">Aktif</span>
+                    {% else %}
+                    <span class="badge bg-secondary fs-6 px-3 py-2">Pasif</span>
+                    {% endif %}
+                </div>
+                <div class="d-flex gap-2 justify-content-end">
+                    <a href="/admin/firewall_management/firewallrule/{{ rule.id }}/change/" class="btn btn-warning">
+                        <i class="fas fa-edit me-2"></i>Düzenle
+                    </a>
+                    <a href="{% url 'firewall_management:rules_list' company.slug %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Geri Dön
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kural İstatistikleri -->
+    <div class="rule-stats">
+        <div class="stat-item">
+            <div class="stat-number text-primary">{{ rule.hit_count|default:0 }}</div>
+            <div class="stat-label">Toplam Eşleşme</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number text-success">{{ rule.last_hit|timesince|default:"-" }}</div>
+            <div class="stat-label">Son Eşleşme</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number text-info">{{ rule.created_at|date:"d.m.Y" }}</div>
+            <div class="stat-label">Oluşturulma Tarihi</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number text-warning">{{ rule.updated_at|date:"d.m.Y" }}</div>
+            <div class="stat-label">Son Güncelleme</div>
+        </div>
+    </div>
+
+    <!-- Kural Detayları -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="rule-info-card">
+                <h5 class="card-title mb-3">
+                    <i class="fas fa-cogs me-2"></i>Kural Ayarları
+                </h5>
+                <div class="row">
+                    <div class="col-6">
+                        <strong>Protokol:</strong><br>
+                        <span class="badge bg-info">{{ rule.protocol }}</span>
+                    </div>
+                    <div class="col-6">
+                        <strong>Kaynak IP:</strong><br>
+                        <code>{{ rule.source_ip|default:"Any" }}</code>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-6">
+                        <strong>Hedef IP:</strong><br>
+                        <code>{{ rule.destination_ip|default:"Any" }}</code>
+                    </div>
+                    <div class="col-6">
+                        <strong>Kaynak Port:</strong><br>
+                        <code>{{ rule.source_port|default:"Any" }}</code>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-6">
+                        <strong>Hedef Port:</strong><br>
+                        <code>{{ rule.destination_port|default:"Any" }}</code>
+                    </div>
+                    <div class="col-6">
+                        <strong>Durum:</strong><br>
+                        {% if rule.is_active %}
+                        <span class="badge bg-success">Aktif</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Pasif</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="rule-info-card">
+                <h5 class="card-title mb-3">
+                    <i class="fas fa-info-circle me-2"></i>Ek Bilgiler
+                </h5>
+                <div class="mb-3">
+                    <strong>Oluşturan:</strong><br>
+                    <span>{{ rule.created_by|default:"Sistem" }}</span>
+                </div>
+                <div class="mb-3">
+                    <strong>Güncelleyen:</strong><br>
+                    <span>{{ rule.updated_by|default:"Sistem" }}</span>
+                </div>
+                <div class="mb-3">
+                    <strong>Etiketler:</strong><br>
+                    {% if rule.tags %}
+                    {% for tag in rule.tags.all %}
+                    <span class="badge bg-light text-dark me-1">{{ tag }}</span>
+                    {% endfor %}
+                    {% else %}
+                    <span class="text-muted">Etiket yok</span>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <strong>Notlar:</strong><br>
+                    <span>{{ rule.notes|default:"Not yok" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Son Eşleşmeler -->
+    <div class="rule-info-card">
+        <h5 class="card-title mb-3">
+            <i class="fas fa-history me-2"></i>Son Eşleşmeler
+        </h5>
+        {% if recent_hits %}
+        <div class="timeline">
+            {% for hit in recent_hits %}
+            <div class="timeline-item">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <strong>{{ hit.timestamp|date:"d.m.Y H:i:s" }}</strong>
+                        <p class="mb-1">{{ hit.source_ip|default:"-" }}:{{ hit.source_port|default:"-" }} → {{ hit.destination_ip|default:"-" }}:{{ hit.destination_port|default:"-" }}</p>
+                        <small class="text-muted">Protokol: {{ hit.protocol|default:"-" }}</small>
+                    </div>
+                    <span class="badge bg-primary">{{ hit.get_action_display }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+            <i class="fas fa-clock fa-2x text-muted mb-2"></i>
+            <p class="text-muted">Henüz eşleşme yok</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- İlgili Olaylar -->
+    <div class="rule-info-card">
+        <h5 class="card-title mb-3">
+            <i class="fas fa-exclamation-triangle me-2"></i>İlgili Güvenlik Olayları
+        </h5>
+        {% if related_events %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Tarih</th>
+                        <th>Olay Tipi</th>
+                        <th>Önem</th>
+                        <th>Mesaj</th>
+                        <th>Durum</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for event in related_events %}
+                    <tr>
+                        <td>{{ event.timestamp|date:"d.m.Y H:i" }}</td>
+                        <td>{{ event.get_event_type_display }}</td>
+                        <td>
+                            <span class="badge bg-{{ event.severity|lower }}">
+                                {{ event.get_severity_display }}
+                            </span>
+                        </td>
+                        <td>{{ event.message|truncatechars:50 }}</td>
+                        <td>
+                            {% if event.is_resolved %}
+                            <span class="badge bg-success">Çözüldü</span>
+                            {% else %}
+                            <span class="badge bg-warning">Çözülmemiş</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+            <i class="fas fa-shield-alt fa-2x text-muted mb-2"></i>
+            <p class="text-muted">Bu kural ile ilgili güvenlik olayı yok</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

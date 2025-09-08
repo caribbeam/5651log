@@ -1,0 +1,299 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Cihaz Düzenle" %} - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="mirror-dashboard">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-edit me-2"></i>{% trans "Cihaz Düzenle" %}
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'mirror_port:devices_list' company.slug %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri Dön" %}
+            </a>
+            <a href="{% url 'log_kayit:company_dashboard_slug' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-home me-2"></i>{% trans "Ana Sayfa" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-server"></i> {% trans "Cihaz Düzenle" %} - {{ device.name }}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="deviceEditForm">
+                        {% csrf_token %}
+                        
+                        <!-- Temel Bilgiler -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="name" class="form-label">
+                                        <i class="fas fa-tag me-1"></i>{% trans "Cihaz Adı" %} <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" id="name" name="name" 
+                                           value="{{ device.name }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="device_type" class="form-label">
+                                        <i class="fas fa-cog me-1"></i>{% trans "Cihaz Tipi" %} <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-control" id="device_type" name="device_type" required>
+                                        <option value="">{% trans "Seçiniz" %}</option>
+                                        <option value="SWITCH" {% if device.device_type == 'SWITCH' %}selected{% endif %}>{% trans "Switch" %}</option>
+                                        <option value="ROUTER" {% if device.device_type == 'ROUTER' %}selected{% endif %}>{% trans "Router" %}</option>
+                                        <option value="FIREWALL" {% if device.device_type == 'FIREWALL' %}selected{% endif %}>{% trans "Firewall" %}</option>
+                                        <option value="ACCESS_POINT" {% if device.device_type == 'ACCESS_POINT' %}selected{% endif %}>{% trans "Access Point" %}</option>
+                                        <option value="OTHER" {% if device.device_type == 'OTHER' %}selected{% endif %}>{% trans "Diğer" %}</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Network Bilgileri -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="ip_address" class="form-label">
+                                        <i class="fas fa-network-wired me-1"></i>{% trans "IP Adresi" %} <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" id="ip_address" name="ip_address" 
+                                           value="{{ device.ip_address }}" placeholder="192.168.1.1" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="mac_address" class="form-label">
+                                        <i class="fas fa-ethernet me-1"></i>{% trans "MAC Adresi" %}
+                                    </label>
+                                    <input type="text" class="form-control" id="mac_address" name="mac_address" 
+                                           value="{{ device.mac_address }}" placeholder="00:11:22:33:44:55">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cihaz Bilgileri -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="model" class="form-label">
+                                        <i class="fas fa-microchip me-1"></i>{% trans "Model" %}
+                                    </label>
+                                    <input type="text" class="form-control" id="model" name="model" 
+                                           value="{{ device.model }}" placeholder="Cisco Catalyst 2960">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="manufacturer" class="form-label">
+                                        <i class="fas fa-industry me-1"></i>{% trans "Üretici" %}
+                                    </label>
+                                    <input type="text" class="form-control" id="manufacturer" name="manufacturer" 
+                                           value="{{ device.manufacturer }}" placeholder="Cisco">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mirror Ayarları -->
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="max_mirror_ports" class="form-label">
+                                        <i class="fas fa-plug me-1"></i>{% trans "Maksimum Mirror Port" %}
+                                    </label>
+                                    <input type="number" class="form-control" id="max_mirror_ports" name="max_mirror_ports" 
+                                           value="{{ device.max_mirror_ports }}" min="1" max="100">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="current_mirror_ports" class="form-label">
+                                        <i class="fas fa-plug me-1"></i>{% trans "Mevcut Mirror Port" %}
+                                    </label>
+                                    <input type="number" class="form-control" id="current_mirror_ports" name="current_mirror_ports" 
+                                           value="{{ device.current_mirror_ports }}" min="0" max="100">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        <i class="fas fa-cog me-1"></i>{% trans "Ayarlar" %}
+                                    </label>
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="mirror_supported" name="mirror_supported" 
+                                               {% if device.mirror_supported %}checked{% endif %}>
+                                        <label class="form-check-label" for="mirror_supported">
+                                            {% trans "Mirror Desteği" %}
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="is_online" name="is_online" 
+                                               {% if device.is_online %}checked{% endif %}>
+                                        <label class="form-check-label" for="is_online">
+                                            {% trans "Çevrimiçi" %}
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Butonları -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>{% trans "Güncelle" %}
+                                    </button>
+                                    <a href="{% url 'mirror_port:devices_list' company.slug %}" class="btn btn-secondary">
+                                        <i class="fas fa-times me-2"></i>{% trans "İptal" %}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('deviceEditForm');
+    const maxPortsInput = document.getElementById('max_mirror_ports');
+    const currentPortsInput = document.getElementById('current_mirror_ports');
+    
+    // Form validation
+    form.addEventListener('submit', function(e) {
+        const name = document.getElementById('name').value;
+        const deviceType = document.getElementById('device_type').value;
+        const ipAddress = document.getElementById('ip_address').value;
+        const maxPorts = parseInt(maxPortsInput.value) || 0;
+        const currentPorts = parseInt(currentPortsInput.value) || 0;
+        
+        if (!name || !deviceType || !ipAddress) {
+            e.preventDefault();
+            alert('{% trans "Cihaz adı, tip ve IP adresi alanları zorunludur." %}');
+            return false;
+        }
+        
+        if (maxPorts < 1) {
+            e.preventDefault();
+            alert('{% trans "Maksimum mirror port 1\'den büyük olmalıdır." %}');
+            return false;
+        }
+        
+        if (currentPorts < 0) {
+            e.preventDefault();
+            alert('{% trans "Mevcut mirror port negatif olamaz." %}');
+            return false;
+        }
+        
+        if (currentPorts > maxPorts) {
+            e.preventDefault();
+            alert('{% trans "Mevcut mirror port maksimum port sayısından fazla olamaz." %}');
+            return false;
+        }
+    });
+    
+    // IP address validation
+    document.getElementById('ip_address').addEventListener('blur', function() {
+        const ip = this.value;
+        const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
+        
+        if (ip && !ipRegex.test(ip)) {
+            this.classList.add('is-invalid');
+            if (!this.nextElementSibling || !this.nextElementSibling.classList.contains('invalid-feedback')) {
+                const feedback = document.createElement('div');
+                feedback.className = 'invalid-feedback';
+                feedback.textContent = '{% trans "Geçerli bir IP adresi girin" %}';
+                this.parentNode.appendChild(feedback);
+            }
+        } else {
+            this.classList.remove('is-invalid');
+            const feedback = this.parentNode.querySelector('.invalid-feedback');
+            if (feedback) {
+                feedback.remove();
+            }
+        }
+    });
+    
+    // MAC address validation
+    document.getElementById('mac_address').addEventListener('blur', function() {
+        const mac = this.value;
+        const macRegex = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/;
+        
+        if (mac && !macRegex.test(mac)) {
+            this.classList.add('is-invalid');
+            if (!this.nextElementSibling || !this.nextElementSibling.classList.contains('invalid-feedback')) {
+                const feedback = document.createElement('div');
+                feedback.className = 'invalid-feedback';
+                feedback.textContent = '{% trans "Geçerli bir MAC adresi girin (örn: 00:11:22:33:44:55)" %}';
+                this.parentNode.appendChild(feedback);
+            }
+        } else {
+            this.classList.remove('is-invalid');
+            const feedback = this.parentNode.querySelector('.invalid-feedback');
+            if (feedback) {
+                feedback.remove();
+            }
+        }
+    });
+    
+    // Port validation
+    maxPortsInput.addEventListener('input', function() {
+        const maxPorts = parseInt(this.value) || 0;
+        const currentPorts = parseInt(currentPortsInput.value) || 0;
+        
+        if (currentPorts > maxPorts) {
+            currentPortsInput.classList.add('is-invalid');
+            if (!currentPortsInput.nextElementSibling || !currentPortsInput.nextElementSibling.classList.contains('invalid-feedback')) {
+                const feedback = document.createElement('div');
+                feedback.className = 'invalid-feedback';
+                feedback.textContent = '{% trans "Mevcut port sayısı maksimum port sayısından fazla olamaz" %}';
+                currentPortsInput.parentNode.appendChild(feedback);
+            }
+        } else {
+            currentPortsInput.classList.remove('is-invalid');
+            const feedback = currentPortsInput.parentNode.querySelector('.invalid-feedback');
+            if (feedback) {
+                feedback.remove();
+            }
+        }
+    });
+    
+    currentPortsInput.addEventListener('input', function() {
+        const maxPorts = parseInt(maxPortsInput.value) || 0;
+        const currentPorts = parseInt(this.value) || 0;
+        
+        if (currentPorts > maxPorts) {
+            this.classList.add('is-invalid');
+            if (!this.nextElementSibling || !this.nextElementSibling.classList.contains('invalid-feedback')) {
+                const feedback = document.createElement('div');
+                feedback.className = 'invalid-feedback';
+                feedback.textContent = '{% trans "Mevcut port sayısı maksimum port sayısından fazla olamaz" %}';
+                this.parentNode.appendChild(feedback);
+            }
+        } else {
+            this.classList.remove('is-invalid');
+            const feedback = this.parentNode.querySelector('.invalid-feedback');
+            if (feedback) {
+                feedback.remove();
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

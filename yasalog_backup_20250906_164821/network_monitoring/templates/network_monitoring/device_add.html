@@ -1,0 +1,218 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Yeni Cihaz Ekle{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-plus"></i> Yeni Network Cihazı Ekle
+                    </h3>
+                    <div class="card-tools">
+                        <a href="{% url 'network_monitoring:device_list' company.slug %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Geri Dön
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Temel Bilgiler -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5 class="mb-3"><i class="fas fa-info-circle"></i> Temel Bilgiler</h5>
+                                
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Cihaz Adı <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="name" name="name" required>
+                                    <small class="form-text text-muted">Cihazın tanımlayıcı adı</small>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="device_type" class="form-label">Cihaz Türü <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="device_type" name="device_type" required>
+                                        <option value="">Seçiniz...</option>
+                                        {% for value, label in device_types %}
+                                            <option value="{{ value }}">{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="ip_address" class="form-label">IP Adresi <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="ip_address" name="ip_address" 
+                                           placeholder="192.168.1.1" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="mac_address" class="form-label">MAC Adresi</label>
+                                    <input type="text" class="form-control" id="mac_address" name="mac_address" 
+                                           placeholder="00:11:22:33:44:55">
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <h5 class="mb-3"><i class="fas fa-cogs"></i> Cihaz Detayları</h5>
+                                
+                                <div class="mb-3">
+                                    <label for="model" class="form-label">Model</label>
+                                    <input type="text" class="form-control" id="model" name="model">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="manufacturer" class="form-label">Üretici</label>
+                                    <input type="text" class="form-control" id="manufacturer" name="manufacturer">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="firmware_version" class="form-label">Firmware Versiyonu</label>
+                                    <input type="text" class="form-control" id="firmware_version" name="firmware_version">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="serial_no" class="form-label">Seri No</label>
+                                    <input type="text" class="form-control" id="serial_no" name="serial_no">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <!-- Network Bilgileri -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5 class="mb-3"><i class="fas fa-network-wired"></i> Network Bilgileri</h5>
+                                
+                                <div class="mb-3">
+                                    <label for="subnet_mask" class="form-label">Subnet Mask</label>
+                                    <input type="text" class="form-control" id="subnet_mask" name="subnet_mask" 
+                                           value="255.255.255.0" placeholder="255.255.255.0">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="gateway" class="form-label">Gateway</label>
+                                    <input type="text" class="form-control" id="gateway" name="gateway" 
+                                           placeholder="192.168.1.1">
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <h5 class="mb-3"><i class="fas fa-chart-line"></i> Durum Bilgileri</h5>
+                                
+                                <div class="mb-3">
+                                    <label for="status" class="form-label">Durum</label>
+                                    <select class="form-select" id="status" name="status">
+                                        {% for value, label in status_choices %}
+                                            <option value="{{ value }}" {% if value == 'OFFLINE' %}selected{% endif %}>
+                                                {{ label }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="cpu_usage" class="form-label">CPU Kullanımı (%)</label>
+                                    <input type="number" class="form-control" id="cpu_usage" name="cpu_usage" 
+                                           min="0" max="100" value="0">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="memory_usage" class="form-label">RAM Kullanımı (%)</label>
+                                    <input type="number" class="form-control" id="memory_usage" name="memory_usage" 
+                                           min="0" max="100" value="0">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="temperature" class="form-label">Sıcaklık (°C)</label>
+                                    <input type="number" class="form-control" id="temperature" name="temperature" 
+                                           step="0.1" placeholder="25.0">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="uptime" class="form-label">Çalışma Süresi</label>
+                                    <input type="text" class="form-control" id="uptime" name="uptime" 
+                                           placeholder="7 days, 12:30:45">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <!-- Form Butonları -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'network_monitoring:device_list' company.slug %}" class="btn btn-secondary">
+                                        <i class="fas fa-times"></i> İptal
+                                    </a>
+                                    <div>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save"></i> Kaydet
+                                        </button>
+                                        <button type="submit" name="save_and_add_another" class="btn btn-success">
+                                            <i class="fas fa-plus"></i> Kaydet ve Yeni Ekle
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Form validasyonu
+document.querySelector('form').addEventListener('submit', function(e) {
+    const name = document.getElementById('name').value.trim();
+    const deviceType = document.getElementById('device_type').value;
+    const ipAddress = document.getElementById('ip_address').value.trim();
+    
+    if (!name) {
+        alert('Cihaz adı gereklidir!');
+        e.preventDefault();
+        return;
+    }
+    
+    if (!deviceType) {
+        alert('Cihaz türü seçilmelidir!');
+        e.preventDefault();
+        return;
+    }
+    
+    if (!ipAddress) {
+        alert('IP adresi gereklidir!');
+        e.preventDefault();
+        return;
+    }
+    
+    // IP adresi format kontrolü
+    const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+    if (!ipRegex.test(ipAddress)) {
+        alert('Geçerli bir IP adresi giriniz!');
+        e.preventDefault();
+        return;
+    }
+});
+
+// MAC adresi format kontrolü
+document.getElementById('mac_address').addEventListener('blur', function() {
+    const mac = this.value.trim();
+    if (mac) {
+        const macRegex = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/;
+        if (!macRegex.test(mac)) {
+            alert('Geçerli bir MAC adresi giriniz! (örn: 00:11:22:33:44:55)');
+            this.focus();
+        }
+    }
+});
+</script>
+{% endblock %}

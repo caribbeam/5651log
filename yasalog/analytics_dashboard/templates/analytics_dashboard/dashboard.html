@@ -1,0 +1,518 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Analytics Dashboard - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<!-- TEST DIV - Bu görünüyorsa template çalışıyor -->
+<div style="background: red; color: white; padding: 20px; margin: 20px; border: 3px solid black;">
+    <h1>🧪 TEST: Analytics Dashboard Template Çalışıyor!</h1>
+    <p>Company: {{ company.name }}</p>
+    <p>Total Metrics: {{ analytics_data.total_metrics }}</p>
+    <p>AI Insights: {{ analytics_data.active_insights }}</p>
+    <p>Timestamp: {{ daily_metrics.0.date }}</p>
+</div>
+
+<div class="analytics-dashboard">
+    <!-- Header -->
+    <div class="dashboard-header">
+        <h1><i class="fas fa-chart-line"></i> Analytics Dashboard</h1>
+        <p class="subtitle">AI destekli analizler ve tahminler</p>
+    </div>
+
+    <!-- Analytics Overview Cards -->
+    <div class="analytics-overview">
+        <div class="overview-card">
+            <div class="card-icon">
+                <i class="fas fa-chart-bar"></i>
+            </div>
+            <div class="card-content">
+                <h3>{{ analytics_data.total_metrics }}</h3>
+                <p>Toplam Metrik</p>
+            </div>
+        </div>
+        
+        <div class="overview-card">
+            <div class="card-icon">
+                <i class="fas fa-lightbulb"></i>
+            </div>
+            <div class="card-content">
+                <h3>{{ analytics_data.active_insights }}</h3>
+                <p>Aktif İçgörü</p>
+            </div>
+        </div>
+        
+        <div class="overview-card">
+            <div class="card-icon">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="card-content">
+                <h3>{{ analytics_data.ai_models }}</h3>
+                <p>AI Model</p>
+            </div>
+        </div>
+        
+        <div class="overview-card">
+            <div class="card-icon">
+                <i class="fas fa-percentage"></i>
+            </div>
+            <div class="card-content">
+                <h3>{{ analytics_data.prediction_accuracy }}%</h3>
+                <p>Tahmin Doğruluğu</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="analytics-grid">
+        <!-- AI Insights Section -->
+        <div class="grid-item insights-section">
+            <div class="section-header">
+                <h2><i class="fas fa-lightbulb"></i> AI İçgörüleri</h2>
+                <a href="{% url 'analytics_dashboard:ai_insights' company.slug %}" class="view-all">Tümünü Gör</a>
+            </div>
+            <div class="insights-list">
+                {% for insight in ai_insights %}
+                <div class="insight-card insight-{{ insight.severity }}">
+                    <div class="insight-header">
+                        <span class="insight-type">{{ insight.get_insight_type_display }}</span>
+                        <span class="insight-severity severity-{{ insight.severity }}">
+                            {{ insight.get_severity_display }}
+                        </span>
+                    </div>
+                    <h4>{{ insight.title }}</h4>
+                    <p>{{ insight.description }}</p>
+                    <div class="insight-footer">
+                        <span class="confidence">Güven: {{ insight.confidence }}%</span>
+                        <span class="timestamp">{{ insight.timestamp|timesince }} önce</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Performance Metrics Section -->
+        <div class="grid-item performance-section">
+            <div class="section-header">
+                <h2><i class="fas fa-tachometer-alt"></i> Performans Metrikleri</h2>
+            </div>
+            <div class="metrics-grid">
+                <div class="metric-item">
+                    <div class="metric-label">CPU Kullanımı</div>
+                    <div class="metric-value">{{ performance_metrics.cpu_usage }}%</div>
+                    <div class="metric-bar">
+                        <div class="bar-fill" style="width: {{ performance_metrics.cpu_usage }}%"></div>
+                    </div>
+                </div>
+                
+                <div class="metric-item">
+                    <div class="metric-label">Memory Kullanımı</div>
+                    <div class="metric-value">{{ performance_metrics.memory_usage }}%</div>
+                    <div class="metric-bar">
+                        <div class="bar-fill" style="width: {{ performance_metrics.memory_usage }}%"></div>
+                    </div>
+                </div>
+                
+                <div class="metric-item">
+                    <div class="metric-label">Disk Kullanımı</div>
+                    <div class="metric-value">{{ performance_metrics.disk_usage }}%</div>
+                    <div class="metric-bar">
+                        <div class="bar-fill" style="width: {{ performance_metrics.disk_usage }}%"></div>
+                    </div>
+                </div>
+                
+                <div class="metric-item">
+                    <div class="metric-label">Network Bandwidth</div>
+                    <div class="metric-value">{{ performance_metrics.network_bandwidth }}%</div>
+                    <div class="metric-bar">
+                        <div class="bar-fill" style="width: {{ performance_metrics.network_bandwidth }}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Metrics Section -->
+        <div class="grid-item security-section">
+            <div class="section-header">
+                <h2><i class="fas fa-shield-alt"></i> Güvenlik Metrikleri</h2>
+            </div>
+            <div class="security-stats">
+                <div class="stat-item">
+                    <div class="stat-number">{{ security_metrics.threats_blocked }}</div>
+                    <div class="stat-label">Engellenen Tehdit</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ security_metrics.vulnerabilities_found }}</div>
+                    <div class="stat-label">Bulunan Açık</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ security_metrics.incidents_resolved }}</div>
+                    <div class="stat-label">Çözülen Olay</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ security_metrics.risk_score }}</div>
+                    <div class="stat-label">Risk Skoru</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Metrics Chart -->
+        <div class="grid-item chart-section">
+            <div class="section-header">
+                <h2><i class="fas fa-chart-area"></i> Son 7 Günlük Trend</h2>
+            </div>
+            <div class="chart-container">
+                <canvas id="dailyMetricsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <a href="{% url 'analytics_dashboard:predictive_analytics' company.slug %}" class="action-btn">
+            <i class="fas fa-crystal-ball"></i>
+            Tahmin Analizleri
+        </a>
+        <a href="{% url 'analytics_dashboard:user_behavior' company.slug %}" class="action-btn">
+            <i class="fas fa-user-chart"></i>
+            Kullanıcı Davranışı
+        </a>
+        <a href="#" class="action-btn" onclick="refreshAnalytics()">
+            <i class="fas fa-sync-alt"></i>
+            Verileri Yenile
+        </a>
+    </div>
+</div>
+
+<!-- Analytics Dashboard CSS -->
+<style>
+.analytics-dashboard {
+    padding: 20px;
+}
+
+.dashboard-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.dashboard-header h1 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    color: #7f8c8d;
+    font-size: 16px;
+}
+
+.analytics-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.overview-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.card-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+}
+
+.card-content h3 {
+    margin: 0;
+    font-size: 24px;
+    color: #2c3e50;
+}
+
+.card-content p {
+    margin: 5px 0 0 0;
+    color: #7f8c8d;
+    font-size: 14px;
+}
+
+.analytics-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.grid-item {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #ecf0f1;
+}
+
+.section-header h2 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 18px;
+}
+
+.view-all {
+    color: #3498db;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.insights-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.insight-card {
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid;
+}
+
+.insight-high { border-left-color: #e74c3c; }
+.insight-medium { border-left-color: #f39c12; }
+.insight-warning { border-left-color: #f1c40f; }
+
+.insight-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.insight-type {
+    background: #ecf0f1;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    color: #2c3e50;
+}
+
+.insight-severity {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    color: white;
+}
+
+.severity-critical { background: #e74c3c; }
+.severity-high { background: #e67e22; }
+.severity-medium { background: #f39c12; }
+.severity-low { background: #27ae60; }
+
+.insight-card h4 {
+    margin: 0 0 10px 0;
+    color: #2c3e50;
+    font-size: 14px;
+}
+
+.insight-card p {
+    margin: 0 0 10px 0;
+    color: #7f8c8d;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.insight-footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #95a5a6;
+}
+
+.metrics-grid {
+    display: grid;
+    gap: 15px;
+}
+
+.metric-item {
+    padding: 10px 0;
+}
+
+.metric-label {
+    font-size: 14px;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.metric-value {
+    font-size: 18px;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.metric-bar {
+    width: 100%;
+    height: 8px;
+    background: #ecf0f1;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3498db, #2ecc71);
+    transition: width 0.3s ease;
+}
+
+.security-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.stat-number {
+    font-size: 24px;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #7f8c8d;
+}
+
+.chart-container {
+    height: 300px;
+    position: relative;
+}
+
+.quick-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 25px;
+    transition: transform 0.2s ease;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .analytics-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .analytics-overview {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .security-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .quick-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+</style>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// Daily Metrics Chart
+const ctx = document.getElementById('dailyMetricsChart').getContext('2d');
+const dailyMetricsChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: [{% for metric in daily_metrics %}'{{ metric.date }}'{% if not forloop.last %}, {% endif %}{% endfor %}],
+        datasets: [{
+            label: 'Network Trafik',
+            data: [{% for metric in daily_metrics %}{{ metric.network_traffic }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+            borderColor: '#3498db',
+            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+            tension: 0.4
+        }, {
+            label: 'Güvenlik Olayları',
+            data: [{% for metric in daily_metrics %}{{ metric.security_events }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+            borderColor: '#e74c3c',
+            backgroundColor: 'rgba(231, 76, 60, 0.1)',
+            tension: 0.4
+        }, {
+            label: 'Kullanıcı Aktivitesi',
+            data: [{% for metric in daily_metrics %}{{ metric.user_activity }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+            borderColor: '#2ecc71',
+            backgroundColor: 'rgba(46, 204, 113, 0.1)',
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'top',
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Refresh Analytics Data
+function refreshAnalytics() {
+    fetch(`{% url 'analytics_dashboard:get_analytics_data' company.slug %}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error refreshing analytics:', error);
+        });
+}
+
+// Auto-refresh every 30 seconds
+setInterval(refreshAnalytics, 30000);
+</script>
+{% endblock dashboard_content %}

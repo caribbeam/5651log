@@ -1,0 +1,322 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Tahmin Analizleri - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-crystal-ball me-2"></i>Tahmin Analizleri
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="/dashboard/{{ company_slug }}/" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Ana Dashboard
+            </a>
+            <a href="/analytics/dashboard/{{ company_slug }}/" class="btn btn-outline-primary">
+                <i class="fas fa-chart-line me-2"></i>Analytics Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Tahmin Kartları -->
+    <div class="row mb-4">
+        <!-- Network Trafik Tahmini -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-network-wired"></i> Network Trafik Tahmini
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <h4 class="text-primary">{{ predictions.traffic_prediction.next_hour }}</h4>
+                            <small class="text-muted">1 Saat</small>
+                        </div>
+                        <div class="col-4">
+                            <h4 class="text-warning">{{ predictions.traffic_prediction.next_6_hours }}</h4>
+                            <small class="text-muted">6 Saat</small>
+                        </div>
+                        <div class="col-4">
+                            <h4 class="text-success">{{ predictions.traffic_prediction.next_24_hours }}</h4>
+                            <small class="text-muted">24 Saat</small>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="text-center">
+                        <small class="text-muted">Güven Skoru: {{ predictions.traffic_prediction.confidence }}%</small>
+                        <div class="progress mt-1" style="height: 5px;">
+                            <div class="progress-bar bg-primary" style="width: {{ predictions.traffic_prediction.confidence }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performans Tahmini -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tachometer-alt"></i> Performans Tahmini
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between">
+                            <span>CPU Kullanımı</span>
+                            <span>{{ predictions.performance_prediction.cpu_next_hour }}%</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-danger" style="width: {{ predictions.performance_prediction.cpu_next_hour }}%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between">
+                            <span>Memory Kullanımı</span>
+                            <span>{{ predictions.performance_prediction.memory_next_hour }}%</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-warning" style="width: {{ predictions.performance_prediction.memory_next_hour }}%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between">
+                            <span>Disk Kullanımı</span>
+                            <span>{{ predictions.performance_prediction.disk_next_hour }}%</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-success" style="width: {{ predictions.performance_prediction.disk_next_hour }}%"></div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="text-center">
+                        <small class="text-muted">Güven Skoru: {{ predictions.performance_prediction.confidence }}%</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Güvenlik Tahmini -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-shield-alt"></i> Güvenlik Tahmini
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <h4 class="text-danger">{{ predictions.security_prediction.threats_next_hour }}</h4>
+                            <small class="text-muted">Tehdit (1s)</small>
+                        </div>
+                        <div class="col-4">
+                            <h4 class="text-warning">{{ predictions.security_prediction.vulnerabilities_next_day }}</h4>
+                            <small class="text-muted">Açık (1g)</small>
+                        </div>
+                        <div class="col-4">
+                            <h4 class="text-info">{{ predictions.security_prediction.incidents_next_week }}</h4>
+                            <small class="text-muted">Olay (1h)</small>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="text-center">
+                        <small class="text-muted">Güven Skoru: {{ predictions.security_prediction.confidence }}%</small>
+                        <div class="progress mt-1" style="height: 5px;">
+                            <div class="progress-bar bg-danger" style="width: {{ predictions.security_prediction.confidence }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trend Analizi -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-line"></i> Trend Analizi
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if trends %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Metrik</th>
+                                    <th>Trend</th>
+                                    <th>Değişim</th>
+                                    <th>Güven Skoru</th>
+                                    <th>Durum</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for trend in trends %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ trend.metric }}</strong>
+                                    </td>
+                                    <td>
+                                        {% if trend.trend == 'increasing' %}
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-arrow-up"></i> Artış
+                                            </span>
+                                        {% elif trend.trend == 'decreasing' %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-arrow-down"></i> Azalış
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-minus"></i> Sabit
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold 
+                                            {% if trend.change|slice:'0:1' == '+' %}text-danger
+                                            {% elif trend.change|slice:'0:1' == '-' %}text-success
+                                            {% else %}text-secondary{% endif %}">
+                                            {{ trend.change }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar 
+                                                {% if trend.confidence >= 90 %}bg-success
+                                                {% elif trend.confidence >= 75 %}bg-warning
+                                                {% else %}bg-danger{% endif %}" 
+                                                role="progressbar" 
+                                                style="width: {{ trend.confidence }}%"
+                                                aria-valuenow="{{ trend.confidence }}" 
+                                                aria-valuemin="0" 
+                                                aria-valuemax="100">
+                                                {{ trend.confidence }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if trend.confidence >= 90 %}
+                                            <span class="badge bg-success">Yüksek Güven</span>
+                                        {% elif trend.confidence >= 75 %}
+                                            <span class="badge bg-warning">Orta Güven</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Düşük Güven</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">Henüz trend analizi bulunmuyor</h5>
+                        <p class="text-muted">Sistem verileri analiz ediyor.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tahmin Grafikleri -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-area"></i> Network Trafik Tahmini
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="trafficPredictionChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-bar"></i> Performans Tahmini
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="performancePredictionChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Network Trafik Tahmini Grafiği
+const trafficCtx = document.getElementById('trafficPredictionChart').getContext('2d');
+const trafficChart = new Chart(trafficCtx, {
+    type: 'line',
+    data: {
+        labels: ['Şimdi', '1 Saat', '6 Saat', '24 Saat'],
+        datasets: [{
+            label: 'Tahmin Edilen Trafik',
+            data: [1000, {{ predictions.traffic_prediction.next_hour }}, {{ predictions.traffic_prediction.next_6_hours }}, {{ predictions.traffic_prediction.next_24_hours }}],
+            borderColor: '#007bff',
+            backgroundColor: 'rgba(0, 123, 255, 0.1)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Performans Tahmini Grafiği
+const performanceCtx = document.getElementById('performancePredictionChart').getContext('2d');
+const performanceChart = new Chart(performanceCtx, {
+    type: 'bar',
+    data: {
+        labels: ['CPU', 'Memory', 'Disk'],
+        datasets: [{
+            label: 'Tahmin Edilen Kullanım (%)',
+            data: [{{ predictions.performance_prediction.cpu_next_hour }}, {{ predictions.performance_prediction.memory_next_hour }}, {{ predictions.performance_prediction.disk_next_hour }}],
+            backgroundColor: [
+                'rgba(220, 53, 69, 0.8)',
+                'rgba(255, 193, 7, 0.8)',
+                'rgba(40, 167, 69, 0.8)'
+            ],
+            borderColor: [
+                'rgba(220, 53, 69, 1)',
+                'rgba(255, 193, 7, 1)',
+                'rgba(40, 167, 69, 1)'
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 100
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

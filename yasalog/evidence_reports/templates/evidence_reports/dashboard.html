@@ -1,0 +1,202 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "İbraz Raporları" %} - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="evidence-reports-dashboard">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-gavel me-2"></i>{% trans "İbraz Raporları" %}
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'log_kayit:company_dashboard_slug' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-home me-2"></i>{% trans "Ana Sayfa" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- İstatistik Kartları -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ reports.count }}</h4>
+                            <p class="mb-0">{% trans "Toplam Rapor" %}</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-file-pdf fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">0</h4>
+                            <p class="mb-0">{% trans "Teslim Edildi" %}</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-check-circle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">0</h4>
+                            <p class="mb-0">{% trans "Beklemede" %}</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-clock fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">0</h4>
+                            <p class="mb-0">{% trans "Onay Bekliyor" %}</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-user-check fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hızlı Erişim -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bolt me-2"></i>{% trans "Hızlı Erişim" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <a href="{% url 'evidence_reports:reports_list' company.slug %}" class="btn btn-primary btn-block">
+                                <i class="fas fa-file-pdf me-2"></i>{% trans "Raporlar" %}
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'evidence_reports:templates_list' company.slug %}" class="btn btn-info btn-block">
+                                <i class="fas fa-file-code me-2"></i>{% trans "Şablonlar" %}
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="/admin/evidence_reports/evidencereport/add/" class="btn btn-success btn-block" target="_blank">
+                                <i class="fas fa-plus me-2"></i>{% trans "Yeni Rapor" %}
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="/admin/evidence_reports/evidencereporttemplate/add/" class="btn btn-warning btn-block" target="_blank">
+                                <i class="fas fa-plus me-2"></i>{% trans "Yeni Şablon" %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Son Raporlar -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-file-pdf me-2"></i>{% trans "Son İbraz Raporları" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_reports %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>{% trans "Talep No" %}</th>
+                                        <th>{% trans "Rapor Başlığı" %}</th>
+                                        <th>{% trans "Tip" %}</th>
+                                        <th>{% trans "Durum" %}</th>
+                                        <th>{% trans "Öncelik" %}</th>
+                                        <th>{% trans "Oluşturulma" %}</th>
+                                        <th>{% trans "İşlemler" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for report in recent_reports %}
+                                    <tr>
+                                        <td>{{ report.request_number }}</td>
+                                        <td>{{ report.report_title }}</td>
+                                        <td><span class="badge badge-info">{{ report.get_report_type_display }}</span></td>
+                                        <td>
+                                            {% if report.status == 'DELIVERED' %}
+                                                <span class="badge badge-success">{% trans "Teslim Edildi" %}</span>
+                                            {% elif report.status == 'GENERATED' %}
+                                                <span class="badge badge-info">{% trans "Oluşturuldu" %}</span>
+                                            {% elif report.status == 'APPROVED' %}
+                                                <span class="badge badge-primary">{% trans "Onaylandı" %}</span>
+                                            {% elif report.status == 'PENDING_APPROVAL' %}
+                                                <span class="badge badge-warning">{% trans "Onay Bekliyor" %}</span>
+                                            {% else %}
+                                                <span class="badge badge-secondary">{% trans "Taslak" %}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if report.priority == 'CRITICAL' %}
+                                                <span class="badge badge-danger">{% trans "Kritik" %}</span>
+                                            {% elif report.priority == 'HIGH' %}
+                                                <span class="badge badge-warning">{% trans "Yüksek" %}</span>
+                                            {% elif report.priority == 'NORMAL' %}
+                                                <span class="badge badge-info">{% trans "Normal" %}</span>
+                                            {% else %}
+                                                <span class="badge badge-secondary">{% trans "Düşük" %}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ report.created_at|date:'d.m.Y H:i:s' }}</td>
+                                        <td>
+                                            <a href="{% url 'evidence_reports:report_detail' company.slug report.id %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-file-pdf fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">{% trans "Henüz ibraz raporu bulunmuyor" %}</h5>
+                            <p class="text-muted">{% trans "İlk ibraz raporunuzu oluşturmak için yukarıdaki butonu kullanın." %}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

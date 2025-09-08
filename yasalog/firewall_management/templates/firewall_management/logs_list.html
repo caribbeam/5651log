@@ -1,0 +1,318 @@
+{% extends "log_kayit/partials/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Firewall Logları - {{ company.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.logs-container {
+    padding: 20px;
+}
+
+.log-entry {
+    background: white;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+    border-left: 4px solid;
+    transition: transform 0.2s ease;
+}
+
+.log-entry:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+}
+
+.log-entry.allow { border-left-color: #28a745; }
+.log-entry.deny { border-left-color: #dc3545; }
+.log-entry.drop { border-left-color: #ffc107; }
+.log-entry.reject { border-left-color: #fd7e14; }
+
+.log-timestamp {
+    font-size: 0.8rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.log-action {
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: bold;
+}
+
+.action-allow { background: #d4edda; color: #155724; }
+.action-deny { background: #f8d7da; color: #721c24; }
+.action-drop { background: #fff3cd; color: #856404; }
+.action-reject { background: #f8d7da; color: #721c24; }
+
+.log-details {
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 10px;
+}
+
+.export-buttons {
+    margin-bottom: 20px;
+}
+
+.export-buttons .btn {
+    margin-right: 10px;
+}
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="logs-container">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-file-alt me-2"></i>Firewall Logları
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'firewall_management:firewall_dashboard' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Firewall Dashboard
+            </a>
+            <button class="btn btn-primary" onclick="refreshData()">
+                <i class="fas fa-sync-alt me-2"></i>Yenile
+            </button>
+        </div>
+    </div>
+
+    <!-- İstatistik Kartları -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <div class="h2 text-primary mb-0">{{ log_stats.total }}</div>
+                    <div class="text-muted">Toplam Log</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <div class="h2 text-success mb-0">{{ log_stats.allowed }}</div>
+                    <div class="text-muted">İzin Verilen</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <div class="h2 text-danger mb-0">{{ log_stats.blocked }}</div>
+                    <div class="text-muted">Engellenen</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <div class="h2 text-info mb-0">{{ log_stats.today }}</div>
+                    <div class="text-muted">Bugün</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dışa Aktarma Butonları -->
+    <div class="export-buttons">
+        <a href="?export=excel&{{ request.GET.urlencode }}" class="btn btn-success">
+            <i class="fas fa-file-excel me-2"></i>Excel'e Aktar
+        </a>
+        <a href="?export=csv&{{ request.GET.urlencode }}" class="btn btn-info">
+            <i class="fas fa-file-csv me-2"></i>CSV'ye Aktar
+        </a>
+        <a href="?export=json&{{ request.GET.urlencode }}" class="btn btn-warning">
+            <i class="fas fa-file-code me-2"></i>JSON'a Aktar
+        </a>
+    </div>
+
+    <!-- Filtreler -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-2">
+                    <label class="form-label">İşlem</label>
+                    <select name="action" class="form-select">
+                        <option value="">Tümü</option>
+                        <option value="ALLOW" {% if filters.action == 'ALLOW' %}selected{% endif %}>İzin Ver</option>
+                        <option value="DENY" {% if filters.action == 'DENY' %}selected{% endif %}>Reddet</option>
+                        <option value="DROP" {% if filters.action == 'DROP' %}selected{% endif %}>Düşür</option>
+                        <option value="REJECT" {% if filters.action == 'REJECT' %}selected{% endif %}>Reddet ve Bildir</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Protokol</label>
+                    <select name="protocol" class="form-select">
+                        <option value="">Tümü</option>
+                        <option value="TCP" {% if filters.protocol == 'TCP' %}selected{% endif %}>TCP</option>
+                        <option value="UDP" {% if filters.protocol == 'UDP' %}selected{% endif %}>UDP</option>
+                        <option value="ICMP" {% if filters.protocol == 'ICMP' %}selected{% endif %}>ICMP</option>
+                        <option value="ANY" {% if filters.protocol == 'ANY' %}selected{% endif %}>Tümü</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Kaynak IP</label>
+                    <input type="text" name="source_ip" value="{{ filters.source_ip }}" class="form-control" placeholder="192.168.1.1">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Hedef IP</label>
+                    <input type="text" name="destination_ip" value="{{ filters.destination_ip }}" class="form-control" placeholder="10.0.0.1">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Tarih</label>
+                    <input type="date" name="date" value="{{ filters.date }}" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search me-2"></i>Filtrele
+                        </button>
+                    </div>
+                </div>
+            </form>
+            <div class="mt-3">
+                <a href="{% url 'firewall_management:logs_list' company.slug %}" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-times me-2"></i>Filtreleri Temizle
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loglar Listesi -->
+    {% if logs %}
+    <div class="logs-list">
+        {% for log in logs %}
+        <div class="log-entry {{ log.action|lower }}">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="log-action action-{{ log.action|lower }} me-3">
+                            {{ log.get_action_display }}
+                        </span>
+                        <span class="log-timestamp">{{ log.timestamp|date:"d.m.Y H:i:s" }}</span>
+                    </div>
+                    
+                    <div class="log-details">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Kaynak:</strong> {{ log.source_ip|default:"-" }}:{{ log.source_port|default:"-" }}<br>
+                                <strong>Hedef:</strong> {{ log.destination_ip|default:"-" }}:{{ log.destination_port|default:"-" }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Protokol:</strong> {{ log.protocol|default:"-" }}<br>
+                                <strong>Kural:</strong> {{ log.rule_name|default:"Otomatik" }}
+                            </div>
+                        </div>
+                        {% if log.additional_info %}
+                        <div class="mt-2">
+                            <strong>Ek Bilgi:</strong> {{ log.additional_info }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="d-flex gap-2 justify-content-end">
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewLogDetails({{ log.id }})">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <a href="/admin/firewall_management/firewalllog/{{ log.id }}/change/" class="btn btn-sm btn-outline-warning">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <button class="btn btn-sm btn-outline-info" onclick="copyLogToClipboard({{ log.id }})">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Sayfalama -->
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Sayfa navigasyonu" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1&{{ request.GET.urlencode }}">&laquo; İlk</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}">Önceki</a>
+            </li>
+            {% endif %}
+
+            <li class="page-item disabled">
+                <span class="page-link">Sayfa {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+            </li>
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}">Sonraki</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&{{ request.GET.urlencode }}">Son &raquo;</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+        <h5 class="text-muted">Henüz firewall logu yok</h5>
+        <p class="text-muted">Firewall kuralları aktif olduğunda loglar burada görünecek.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function refreshData() {
+    location.reload();
+}
+
+function viewLogDetails(logId) {
+    // Log detaylarını görüntüleme fonksiyonu
+    console.log('Log detayları:', logId);
+    // Modal veya popup ile detayları göster
+}
+
+function copyLogToClipboard(logId) {
+    // Log bilgilerini panoya kopyalama
+    const logElement = document.querySelector(`[onclick="copyLogToClipboard(${logId})"]`).closest('.log-entry');
+    const logText = logElement.textContent.trim();
+    
+    navigator.clipboard.writeText(logText).then(function() {
+        // Başarılı kopyalama bildirimi
+        const button = document.querySelector(`[onclick="copyLogToClipboard(${logId})"]`);
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check"></i>';
+        button.classList.remove('btn-outline-info');
+        button.classList.add('btn-success');
+        
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.classList.remove('btn-success');
+            button.classList.add('btn-outline-info');
+        }, 2000);
+    });
+}
+
+// Her 30 saniyede bir otomatik yenileme
+setInterval(function() {
+    if (!document.hidden) {
+        console.log('Logs data updating...');
+    }
+}, 30000);
+</script>
+{% endblock %}

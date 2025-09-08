@@ -1,0 +1,54 @@
+Oluşturulan Dokümantasyon
+1. README.md - Ana Tanıtım
+Proje genel tanıtımı
+Ana özellikler ve teknolojiler
+Çalışma mantığı ve mimari
+Kurulum ve deployment
+Yasal uyumluluk bilgileri
+2. TECHNICAL_SPECS.md - Teknik Detaylar
+Sistem mimarisi ve teknoloji stack
+Veri modeli detayları
+Çalışma mantığı ve algoritmalar
+Güvenlik önlemleri
+Performans optimizasyonları
+Deployment konfigürasyonları
+3. USER_GUIDE.md - Kullanım Kılavuzu
+Hızlı başlangıç adımları
+Şirket kurulumu
+Wi-Fi entegrasyonu
+Kullanıcı yönetimi
+Dashboard kullanımı
+Raporlama
+Sık sorulan sorular
+🎯 Uygulamanızın Çalışma Matriksi
+Ana Bileşenler:
+Django Backend - Ana web framework
+Nginx + Gunicorn - Web sunucusu
+PostgreSQL/MySQL - Veritabanı
+Bootstrap + Chart.js - Frontend
+Supervisor - Process yönetimi
+Çalışma Akışı:
+Apply
+Kullanılan Teknolojiler:
+Backend: Python, Django, SQLAlchemy
+Frontend: HTML, CSS, JavaScript, Bootstrap, Chart.js
+Database: PostgreSQL/MySQL/SQLite
+Server: Nginx, Gunicorn, Supervisor
+Security: SHA256, TC Kimlik Algoritması, CSRF Protection
+Ne İşe Yarar:
+5651 Kanun Uyumluluğu: Wi-Fi giriş kayıtları
+Çoklu Şirket Desteği: Her şirket bağımsız çalışır
+Güvenlik: Veri izolasyonu ve hash doğrulama
+Raporlama: Excel, PDF, ZIP export
+Analitik: Gerçek zamanlı istatistikler
+KVKK Uyumluluğu: Veri işleme şartları
+Özellikler:
+✅ TC Kimlik doğrulama
+✅ Pasaport desteği
+✅ Cihaz hatırlama (24 saat)
+✅ Şüpheli giriş tespiti
+✅ Çoklu dil desteği
+✅ Responsive tasarım
+✅ Rol tabanlı yetkilendirme
+✅ Gerçek zamanlı dashboard
+Bu dokümantasyonlar sayesinde uygulamanızın tüm özellikleri, çalışma mantığı ve kullanım şekli detaylı olarak açıklanmış oldu. Müşterileriniz veya kullanıcılarınız bu dokümantasyonları kullanarak sistemi kolayca anlayabilir ve kullanabilirler.

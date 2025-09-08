@@ -1,0 +1,346 @@
+{% extends "log_kayit/partials/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Hotspot Konfigürasyonu Sil - {{ configuration.name }} - {{ company.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .delete-confirmation {
+        padding: 20px 0;
+    }
+    
+    .delete-card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border-left: 5px solid #dc3545;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .warning-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .warning-icon {
+        font-size: 4rem;
+        color: #dc3545;
+        margin-bottom: 20px;
+    }
+    
+    .warning-title {
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: #dc3545;
+        margin-bottom: 10px;
+    }
+    
+    .warning-subtitle {
+        color: #666;
+        font-size: 1.1rem;
+    }
+    
+    .config-info {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .config-info h5 {
+        color: #333;
+        margin-bottom: 15px;
+        font-weight: 600;
+    }
+    
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+    }
+    
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .info-label {
+        font-size: 0.85rem;
+        color: #666;
+        font-weight: 500;
+    }
+    
+    .info-value {
+        font-size: 1rem;
+        color: #333;
+        font-weight: 600;
+    }
+    
+    .impact-warning {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .impact-warning h6 {
+        color: #856404;
+        margin-bottom: 15px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .impact-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .impact-list li {
+        padding: 8px 0;
+        color: #856404;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .impact-list li i {
+        color: #f39c12;
+    }
+    
+    .btn-group {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 30px;
+    }
+    
+    .btn-delete {
+        background: #dc3545;
+        border-color: #dc3545;
+        color: white;
+        padding: 12px 30px;
+        font-weight: 600;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-delete:hover {
+        background: #c82333;
+        border-color: #bd2130;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+    }
+    
+    .btn-cancel {
+        background: #6c757d;
+        border-color: #6c757d;
+        color: white;
+        padding: 12px 30px;
+        font-weight: 600;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-cancel:hover {
+        background: #5a6268;
+        border-color: #545b62;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+    }
+    
+    .stats-warning {
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .stats-warning h6 {
+        color: #721c24;
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+    
+    .stats-warning p {
+        color: #721c24;
+        margin: 0;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="delete-confirmation">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-trash me-2"></i>Konfigürasyon Silme
+            <small class="text-muted">- {{ configuration.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'hotspot_management:configuration_detail' company.slug configuration.id %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Geri Dön
+            </a>
+            <a href="{% url 'log_kayit:company_dashboard_slug' company.slug %}" class="btn btn-outline-primary ms-2">
+                <i class="fas fa-home me-2"></i>Ana Sayfa
+            </a>
+        </div>
+    </div>
+
+    <!-- Silme Onay Kartı -->
+    <div class="delete-card">
+        <!-- Uyarı Başlığı -->
+        <div class="warning-header">
+            <div class="warning-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h2 class="warning-title">Konfigürasyonu Silmek İstediğinizden Emin misiniz?</h2>
+            <p class="warning-subtitle">Bu işlem geri alınamaz ve tüm ilişkili veriler silinecektir.</p>
+        </div>
+
+        <!-- Konfigürasyon Bilgileri -->
+        <div class="config-info">
+            <h5><i class="fas fa-info-circle me-2"></i>Silinecek Konfigürasyon</h5>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Konfigürasyon Adı</div>
+                    <div class="info-value">{{ configuration.name }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">SSID</div>
+                    <div class="info-value">{{ configuration.ssid }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Durum</div>
+                    <div class="info-value">
+                        <span class="badge bg-{% if configuration.is_active %}success{% else %}secondary{% endif %}">
+                            {% if configuration.is_active %}Aktif{% else %}Pasif{% endif %}
+                        </span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Erişim</div>
+                    <div class="info-value">
+                        <span class="badge bg-{% if configuration.is_public %}info{% else %}warning{% endif %}">
+                            {% if configuration.is_public %}Herkese Açık{% else %}Özel{% endif %}
+                        </span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Oluşturulma Tarihi</div>
+                    <div class="info-value">{{ configuration.created_at|date:'d.m.Y H:i' }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Son Güncelleme</div>
+                    <div class="info-value">{{ configuration.updated_at|date:'d.m.Y H:i' }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- İlişkili Veri Uyarısı -->
+        {% if total_users > 0 or total_sessions > 0 %}
+        <div class="stats-warning">
+            <h6><i class="fas fa-exclamation-circle me-2"></i>İlişkili Veriler Bulundu</h6>
+            <p>
+                Bu konfigürasyonla ilişkili <strong>{{ total_users }} kullanıcı</strong> ve 
+                <strong>{{ total_sessions }} oturum</strong> bulunmaktadır. 
+                Konfigürasyon silindiğinde bu veriler de silinecektir.
+            </p>
+        </div>
+        {% endif %}
+
+        <!-- Etki Uyarısı -->
+        <div class="impact-warning">
+            <h6>
+                <i class="fas fa-exclamation-triangle"></i>
+                Bu İşlemin Etkileri
+            </h6>
+            <ul class="impact-list">
+                <li>
+                    <i class="fas fa-times"></i>
+                    Konfigürasyon kalıcı olarak silinecek
+                </li>
+                <li>
+                    <i class="fas fa-users"></i>
+                    Tüm ilişkili kullanıcılar silinecek ({{ total_users }} kullanıcı)
+                </li>
+                <li>
+                    <i class="fas fa-history"></i>
+                    Tüm oturum geçmişi silinecek ({{ total_sessions }} oturum)
+                </li>
+                <li>
+                    <i class="fas fa-chart-line"></i>
+                    Tüm istatistikler ve metrikler silinecek
+                </li>
+                <li>
+                    <i class="fas fa-ban"></i>
+                    Bu işlem geri alınamaz
+                </li>
+            </ul>
+        </div>
+
+        <!-- Onay Formu -->
+        <form method="post" id="deleteForm">
+            {% csrf_token %}
+            <div class="btn-group">
+                <a href="{% url 'hotspot_management:configuration_detail' company.slug configuration.id %}" class="btn btn-cancel">
+                    <i class="fas fa-times me-2"></i>İptal Et
+                </a>
+                <button type="submit" class="btn btn-delete" id="deleteBtn">
+                    <i class="fas fa-trash me-2"></i>Evet, Sil
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteForm = document.getElementById('deleteForm');
+    const deleteBtn = document.getElementById('deleteBtn');
+    
+    // Silme butonuna tıklandığında
+    deleteBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Son onay
+        if (confirm('Bu konfigürasyonu kalıcı olarak silmek istediğinizden emin misiniz?\n\nBu işlem geri alınamaz!')) {
+            // Butonu devre dışı bırak
+            deleteBtn.disabled = true;
+            deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Siliniyor...';
+            
+            // Formu gönder
+            deleteForm.submit();
+        }
+    });
+    
+    // Form submit edildiğinde
+    deleteForm.addEventListener('submit', function(e) {
+        // Butonu devre dışı bırak
+        deleteBtn.disabled = true;
+        deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Siliniyor...';
+    });
+    
+    // Sayfa yüklendiğinde animasyon
+    const deleteCard = document.querySelector('.delete-card');
+    deleteCard.style.opacity = '0';
+    deleteCard.style.transform = 'translateY(20px)';
+    deleteCard.style.transition = 'all 0.5s ease';
+    
+    setTimeout(() => {
+        deleteCard.style.opacity = '1';
+        deleteCard.style.transform = 'translateY(0)';
+    }, 100);
+});
+</script>
+{% endblock %}

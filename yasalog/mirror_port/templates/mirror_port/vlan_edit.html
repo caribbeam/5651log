@@ -1,0 +1,252 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "VLAN Düzenle" %} - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="mirror-dashboard">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-edit me-2"></i>{% trans "VLAN Düzenle" %}
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'mirror_port:vlans_list' company.slug %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri Dön" %}
+            </a>
+            <a href="{% url 'log_kayit:company_dashboard_slug' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-home me-2"></i>{% trans "Ana Sayfa" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-network-wired"></i> {% trans "VLAN Düzenle" %} - {{ vlan.name }}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="vlanEditForm">
+                        {% csrf_token %}
+                        
+                        <!-- Temel Bilgiler -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="vlan_id" class="form-label">
+                                        <i class="fas fa-hashtag me-1"></i>{% trans "VLAN ID" %} <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="number" class="form-control" id="vlan_id" name="vlan_id" 
+                                           value="{{ vlan.vlan_id }}" min="1" max="4094" required>
+                                    <small class="form-text text-muted">1-4094 arasında bir değer girin</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="name" class="form-label">
+                                        <i class="fas fa-tag me-1"></i>{% trans "VLAN Adı" %} <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" id="name" name="name" 
+                                           value="{{ vlan.name }}" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Açıklama -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="description" class="form-label">
+                                        <i class="fas fa-align-left me-1"></i>{% trans "Açıklama" %}
+                                    </label>
+                                    <textarea class="form-control" id="description" name="description" rows="3">{{ vlan.description }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Network Bilgileri -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="subnet" class="form-label">
+                                        <i class="fas fa-network-wired me-1"></i>{% trans "Subnet" %} <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" id="subnet" name="subnet" 
+                                           value="{{ vlan.subnet }}" placeholder="192.168.1.0/24" required>
+                                    <small class="form-text text-muted">Örnek: 192.168.1.0/24</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="gateway" class="form-label">
+                                        <i class="fas fa-route me-1"></i>{% trans "Gateway" %}
+                                    </label>
+                                    <input type="text" class="form-control" id="gateway" name="gateway" 
+                                           value="{{ vlan.gateway }}" placeholder="192.168.1.1">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- DNS Sunucuları -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="dns_servers" class="form-label">
+                                        <i class="fas fa-server me-1"></i>{% trans "DNS Sunucuları" %}
+                                    </label>
+                                    <input type="text" class="form-control" id="dns_servers" name="dns_servers" 
+                                           value="{{ vlan.dns_servers }}" placeholder="8.8.8.8, 8.8.4.4">
+                                    <small class="form-text text-muted">Virgülle ayrılmış DNS sunucu adresleri</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mirror Ayarları -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="mirror_config" class="form-label">
+                                        <i class="fas fa-mirror me-1"></i>{% trans "Mirror Konfigürasyonu" %}
+                                    </label>
+                                    <select class="form-control" id="mirror_config" name="mirror_config">
+                                        <option value="">{% trans "Seçiniz" %}</option>
+                                        {% for config in mirror_configs %}
+                                            <option value="{{ config.id }}" {% if vlan.mirror_config and vlan.mirror_config.id == config.id %}selected{% endif %}>
+                                                {{ config.name }} ({{ config.get_config_type_display }})
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        <i class="fas fa-cog me-1"></i>{% trans "Ayarlar" %}
+                                    </label>
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="mirror_enabled" name="mirror_enabled" 
+                                               {% if vlan.mirror_enabled %}checked{% endif %}>
+                                        <label class="form-check-label" for="mirror_enabled">
+                                            {% trans "Mirror Etkin" %}
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="is_active" name="is_active" 
+                                               {% if vlan.is_active %}checked{% endif %}>
+                                        <label class="form-check-label" for="is_active">
+                                            {% trans "Aktif" %}
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Butonları -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>{% trans "Güncelle" %}
+                                    </button>
+                                    <a href="{% url 'mirror_port:vlans_list' company.slug %}" class="btn btn-secondary">
+                                        <i class="fas fa-times me-2"></i>{% trans "İptal" %}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Form validation
+    $('#vlanEditForm').on('submit', function(e) {
+        var vlanId = $('#vlan_id').val();
+        var name = $('#name').val();
+        var subnet = $('#subnet').val();
+        
+        if (!vlanId || !name || !subnet) {
+            e.preventDefault();
+            alert('VLAN ID, Ad ve Subnet alanları zorunludur.');
+            return false;
+        }
+        
+        if (vlanId < 1 || vlanId > 4094) {
+            e.preventDefault();
+            alert('VLAN ID 1-4094 arasında olmalıdır.');
+            return false;
+        }
+    });
+    
+    // Subnet format validation
+    $('#subnet').on('blur', function() {
+        var subnet = $(this).val();
+        var subnetRegex = /^(\d{1,3}\.){3}\d{1,3}\/\d{1,2}$/;
+        
+        if (subnet && !subnetRegex.test(subnet)) {
+            $(this).addClass('is-invalid');
+            if (!$(this).next('.invalid-feedback').length) {
+                $(this).after('<div class="invalid-feedback">Geçerli bir subnet formatı girin (örn: 192.168.1.0/24)</div>');
+            }
+        } else {
+            $(this).removeClass('is-invalid');
+            $(this).next('.invalid-feedback').remove();
+        }
+    });
+    
+    // Gateway format validation
+    $('#gateway').on('blur', function() {
+        var gateway = $(this).val();
+        var ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
+        
+        if (gateway && !ipRegex.test(gateway)) {
+            $(this).addClass('is-invalid');
+            if (!$(this).next('.invalid-feedback').length) {
+                $(this).after('<div class="invalid-feedback">Geçerli bir IP adresi girin</div>');
+            }
+        } else {
+            $(this).removeClass('is-invalid');
+            $(this).next('.invalid-feedback').remove();
+        }
+    });
+    
+    // DNS servers format validation
+    $('#dns_servers').on('blur', function() {
+        var dnsServers = $(this).val();
+        var ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
+        
+        if (dnsServers) {
+            var servers = dnsServers.split(',');
+            var valid = true;
+            
+            for (var i = 0; i < servers.length; i++) {
+                var server = servers[i].trim();
+                if (server && !ipRegex.test(server)) {
+                    valid = false;
+                    break;
+                }
+            }
+            
+            if (!valid) {
+                $(this).addClass('is-invalid');
+                if (!$(this).next('.invalid-feedback').length) {
+                    $(this).after('<div class="invalid-feedback">Geçerli IP adresleri girin (virgülle ayrılmış)</div>');
+                }
+            } else {
+                $(this).removeClass('is-invalid');
+                $(this).next('.invalid-feedback').remove();
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

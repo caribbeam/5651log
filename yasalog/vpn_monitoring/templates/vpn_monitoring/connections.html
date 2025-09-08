@@ -1,0 +1,477 @@
+{% extends "log_kayit/partials/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}VPN Bağlantıları - {{ company.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .vpn-connections-header {
+        text-align: center;
+        margin-bottom: 40px;
+        padding: 30px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        color: white;
+    }
+    
+    .vpn-connections-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+    
+    .vpn-connections-subtitle {
+        font-size: 1.2rem;
+        opacity: 0.9;
+    }
+    
+    .vpn-filters-section {
+        background: white;
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 4px 25px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+    }
+    
+    .vpn-filters-form {
+        display: flex;
+        gap: 20px;
+        align-items: end;
+        flex-wrap: wrap;
+    }
+    
+    .vpn-filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .vpn-filter-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .vpn-filter-input {
+        padding: 10px 15px;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+    
+    .vpn-filter-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .vpn-filter-btn {
+        padding: 12px 24px;
+        background: #667eea;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .vpn-filter-btn:hover {
+        background: #5a6fd8;
+        transform: translateY(-2px);
+    }
+    
+    .vpn-connections-section {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 4px 25px rgba(0,0,0,0.08);
+    }
+    
+    .vpn-connection-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        border: 1px solid #f1f3f4;
+        border-radius: 15px;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+        background: #f8f9fa;
+    }
+    
+    .vpn-connection-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        border-color: #667eea;
+    }
+    
+    .vpn-connection-info {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    
+    .vpn-connection-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+    
+    .vpn-connection-details h5 {
+        margin: 0 0 5px 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .vpn-connection-details p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    
+    .vpn-connection-meta {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+    }
+    
+    .vpn-connection-status {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .vpn-connection-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+    }
+    
+    .vpn-connection-indicator.connected {
+        background: #28a745;
+    }
+    
+    .vpn-connection-indicator.disconnected {
+        background: #dc3545;
+    }
+    
+    .vpn-connection-indicator.connecting {
+        background: #ffc107;
+    }
+    
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+    
+    .vpn-connection-ip {
+        font-size: 0.9rem;
+        color: #6c757d;
+        font-family: monospace;
+        background: #e9ecef;
+        padding: 5px 10px;
+        border-radius: 8px;
+    }
+    
+    .vpn-connection-duration {
+        font-size: 0.9rem;
+        color: #6c757d;
+        font-weight: 500;
+    }
+    
+    .vpn-connection-bandwidth {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+    
+    .vpn-bandwidth-item {
+        text-align: center;
+    }
+    
+    .vpn-bandwidth-label {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-bottom: 5px;
+    }
+    
+    .vpn-bandwidth-value {
+        font-size: 0.9rem;
+        color: #333;
+        font-weight: 600;
+    }
+    
+    .vpn-connection-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .vpn-action-btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .vpn-action-btn.primary {
+        background: #667eea;
+        color: white;
+    }
+    
+    .vpn-action-btn.primary:hover {
+        background: #5a6fd8;
+        transform: translateY(-2px);
+    }
+    
+    .vpn-action-btn.secondary {
+        background: #6c757d;
+        color: white;
+    }
+    
+    .vpn-action-btn.secondary:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+    }
+    
+    .vpn-action-btn.danger {
+        background: #dc3545;
+        color: white;
+    }
+    
+    .vpn-action-btn.danger:hover {
+        background: #c82333;
+        transform: translateY(-2px);
+    }
+    
+    .vpn-pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        margin-top: 30px;
+    }
+    
+    .vpn-page-btn {
+        padding: 10px 15px;
+        border: 1px solid #dee2e6;
+        background: white;
+        color: #667eea;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    
+    .vpn-page-btn:hover {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+    
+    .vpn-page-btn.active {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+    
+    .vpn-page-btn.disabled {
+        color: #6c757d;
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+    
+    .vpn-page-btn.disabled:hover {
+        background: white;
+        color: #6c757d;
+        border-color: #dee2e6;
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="vpn-connections-header">
+        <h1 class="vpn-connections-title">🔗 VPN Bağlantıları</h1>
+        <p class="vpn-connections-subtitle">5651log Platform - Tüm VPN Bağlantı Takibi</p>
+    </div>
+    
+    <!-- Filtreler -->
+    <div class="vpn-filters-section">
+        <form method="get" class="vpn-filters-form">
+            <div class="vpn-filter-group">
+                <label class="vpn-filter-label">Durum</label>
+                <select name="status" class="vpn-filter-input">
+                    <option value="">Tümü</option>
+                    <option value="connected" {% if status_filter == 'connected' %}selected{% endif %}>Bağlı</option>
+                    <option value="disconnected" {% if status_filter == 'disconnected' %}selected{% endif %}>Bağlantı Kesildi</option>
+                    <option value="connecting" {% if status_filter == 'connecting' %}selected{% endif %}>Bağlanıyor</option>
+                </select>
+            </div>
+            
+            <div class="vpn-filter-group">
+                <label class="vpn-filter-label">Proje</label>
+                <select name="project" class="vpn-filter-input">
+                    <option value="">Tümü</option>
+                    <option value="Ana Ofis VPN" {% if project_filter == 'Ana Ofis VPN' %}selected{% endif %}>Ana Ofis VPN</option>
+                    <option value="Şube VPN" {% if project_filter == 'Şube VPN' %}selected{% endif %}>Şube VPN</option>
+                    <option value="Mobil VPN" {% if project_filter == 'Mobil VPN' %}selected{% endif %}>Mobil VPN</option>
+                </select>
+            </div>
+            
+            <div class="vpn-filter-group">
+                <label class="vpn-filter-label">Kullanıcı</label>
+                <input type="text" name="user" value="{{ user_filter }}" placeholder="Kullanıcı adı..." class="vpn-filter-input">
+            </div>
+            
+            <button type="submit" class="vpn-filter-btn">
+                <i class="fas fa-filter"></i> Filtrele
+            </button>
+        </form>
+    </div>
+    
+    <!-- Bağlantı Listesi -->
+    <div class="vpn-connections-section">
+        <div class="section-header">
+            <h2 class="section-title">VPN Bağlantıları ({{ total_connections }})</h2>
+            <div class="section-actions">
+                <a href="{% url 'vpn_monitoring:vpn_dashboard' company.slug %}" class="vpn-action-btn secondary">
+                    <i class="fas fa-arrow-left"></i> Geri Dön
+                </a>
+            </div>
+        </div>
+        
+        {% if connections %}
+            {% for connection in connections %}
+            <div class="vpn-connection-item">
+                <div class="vpn-connection-info">
+                    <div class="vpn-connection-avatar">
+                        {{ connection.user|first|upper }}
+                    </div>
+                    <div class="vpn-connection-details">
+                        <h5>{{ connection.user }}</h5>
+                        <p>{{ connection.project }} • {{ connection.location }}</p>
+                    </div>
+                </div>
+                
+                <div class="vpn-connection-meta">
+                    <div class="vpn-connection-status">
+                        <div class="vpn-connection-indicator {{ connection.status }}"></div>
+                        <span class="vpn-connection-duration">{{ connection.duration }}</span>
+                    </div>
+                    
+                    <div class="vpn-connection-ip">
+                        {{ connection.vpn_ip }} ← {{ connection.real_ip }}
+                    </div>
+                    
+                    <div class="vpn-connection-bandwidth">
+                        <div class="vpn-bandwidth-item">
+                            <div class="vpn-bandwidth-label">Gelen</div>
+                            <div class="vpn-bandwidth-value">{{ connection.bandwidth_in }}</div>
+                        </div>
+                        <div class="vpn-bandwidth-item">
+                            <div class="vpn-bandwidth-label">Giden</div>
+                            <div class="vpn-bandwidth-value">{{ connection.bandwidth_out }}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="vpn-connection-actions">
+                    <a href="#" class="vpn-action-btn primary">
+                        <i class="fas fa-eye"></i> Detay
+                    </a>
+                    <a href="#" class="vpn-action-btn secondary">
+                        <i class="fas fa-chart-line"></i> Log
+                    </a>
+                    {% if connection.status == 'connected' %}
+                    <a href="#" class="vpn-action-btn danger">
+                        <i class="fas fa-times"></i> Kes
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+            
+            <!-- Pagination -->
+            {% if connections.has_other_pages %}
+            <div class="vpn-pagination">
+                {% if connections.has_previous %}
+                    <a href="?page={{ connections.previous_page_number }}&status={{ status_filter }}&project={{ project_filter }}&user={{ user_filter }}" class="vpn-page-btn">
+                        <i class="fas fa-chevron-left"></i> Önceki
+                    </a>
+                {% else %}
+                    <span class="vpn-page-btn disabled">
+                        <i class="fas fa-chevron-left"></i> Önceki
+                    </span>
+                {% endif %}
+                
+                {% for num in connections.paginator.page_range %}
+                    {% if connections.number == num %}
+                        <span class="vpn-page-btn active">{{ num }}</span>
+                    {% elif num > connections.number|add:'-3' and num < connections.number|add:'3' %}
+                        <a href="?page={{ num }}&status={{ status_filter }}&project={{ project_filter }}&user={{ user_filter }}" class="vpn-page-btn">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if connections.has_next %}
+                    <a href="?page={{ connections.next_page_number }}&status={{ status_filter }}&project={{ project_filter }}&user={{ user_filter }}" class="vpn-page-btn">
+                        Sonraki <i class="fas fa-chevron-right"></i>
+                    </a>
+                {% else %}
+                    <span class="vpn-page-btn disabled">
+                        Sonraki <i class="fas fa-chevron-right"></i>
+                    </span>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">Bağlantı Bulunamadı</h4>
+                <p class="text-muted">Filtre kriterlerinize uygun VPN bağlantısı bulunamadı.</p>
+                <a href="{% url 'vpn_monitoring:vpn_connections' company.slug %}" class="vpn-action-btn primary">
+                    <i class="fas fa-refresh"></i> Filtreleri Temizle
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // VPN Connections için özel JavaScript
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-refresh bağlantı listesi (her 30 saniyede bir)
+        setInterval(function() {
+            // Burada AJAX ile bağlantı listesi güncellenebilir
+            console.log('Bağlantı listesi güncelleniyor...');
+        }, 30000);
+        
+        // Filtre formu submit olduğunda loading göster
+        document.querySelector('.vpn-filters-form').addEventListener('submit', function() {
+            // Loading göstergesi eklenebilir
+            console.log('Filtreler uygulanıyor...');
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,187 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Mirror Konfigürasyon Detayı" %} - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="mirror-dashboard">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-cog me-2"></i>{% trans "Mirror Konfigürasyon Detayı" %}
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'mirror_port:configurations_list' company.slug %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri Dön" %}
+            </a>
+            <a href="{% url 'log_kayit:company_dashboard_slug' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-home me-2"></i>{% trans "Ana Sayfa" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Konfigürasyon Detayları -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-cog"></i> {{ configuration.name }}
+                        {% if configuration.is_active %}
+                            <span class="badge badge-success ml-2">{% trans "Aktif" %}</span>
+                        {% else %}
+                            <span class="badge badge-secondary ml-2">{% trans "Pasif" %}</span>
+                        {% endif %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Temel Bilgiler -->
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <div class="info-box-content">
+                                    <h5 class="info-box-text">{% trans "Temel Bilgiler" %}</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-borderless">
+                                            <tr>
+                                                <td><strong>{% trans "Ad:" %}</strong></td>
+                                                <td>{{ configuration.name }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Tip:" %}</strong></td>
+                                                <td><span class="badge badge-info">{{ configuration.get_config_type_display }}</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Durum:" %}</strong></td>
+                                                <td>
+                                                    {% if configuration.is_active %}
+                                                        <span class="badge badge-success">{% trans "Aktif" %}</span>
+                                                    {% else %}
+                                                        <span class="badge badge-secondary">{% trans "Pasif" %}</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Oluşturulma:" %}</strong></td>
+                                                <td>{{ configuration.created_at|date:'d.m.Y H:i:s' }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Güncellenme:" %}</strong></td>
+                                                <td>{{ configuration.updated_at|date:'d.m.Y H:i:s' }}</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Port Bilgileri -->
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <div class="info-box-content">
+                                    <h5 class="info-box-text">{% trans "Port Bilgileri" %}</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-borderless">
+                                            <tr>
+                                                <td><strong>{% trans "Kaynak Portlar:" %}</strong></td>
+                                                <td>{{ configuration.source_ports|default:"-" }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Kaynak VLAN'lar:" %}</strong></td>
+                                                <td>{{ configuration.source_vlans|default:"-" }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Hedef Port:" %}</strong></td>
+                                                <td>{{ configuration.destination_port|default:"-" }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Hedef IP:" %}</strong></td>
+                                                <td>{{ configuration.destination_ip|default:"-" }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Yön:" %}</strong></td>
+                                                <td>{{ configuration.get_direction_display }}</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Performans Ayarları -->
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <div class="info-box-content">
+                                    <h5 class="info-box-text">{% trans "Performans Ayarları" %}</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-borderless">
+                                            <tr>
+                                                <td><strong>{% trans "Maksimum Bant Genişliği:" %}</strong></td>
+                                                <td>{{ configuration.max_bandwidth }} Mbps</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>{% trans "Buffer Boyutu:" %}</strong></td>
+                                                <td>{{ configuration.buffer_size }} MB</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Filtreleme -->
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <div class="info-box-content">
+                                    <h5 class="info-box-text">{% trans "Filtreleme" %}</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-borderless">
+                                            <tr>
+                                                <td><strong>{% trans "Protokol Filtresi:" %}</strong></td>
+                                                <td>{{ configuration.protocol_filter|default:"-" }}</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Açıklama -->
+                    {% if configuration.description %}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="info-box">
+                                <div class="info-box-content">
+                                    <h5 class="info-box-text">{% trans "Açıklama" %}</h5>
+                                    <p>{{ configuration.description }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- İşlemler -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card-footer">
+                                <div class="btn-group">
+                                    <a href="{% url 'mirror_port:configurations_list' company.slug %}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>{% trans "Listeye Dön" %}
+                                    </a>
+                                    <a href="{% url 'mirror_port:configuration_add' company.slug %}" class="btn btn-outline-primary">
+                                        <i class="fas fa-plus me-2"></i>{% trans "Yeni Konfigürasyon" %}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

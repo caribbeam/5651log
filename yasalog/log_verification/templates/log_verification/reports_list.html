@@ -1,0 +1,315 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Doğrulama Raporları" %} - {{ session.session_name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="reports-list">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-file-alt me-2"></i>{% trans "Doğrulama Raporları" %}
+            <small class="text-muted">- {{ session.session_name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'log_verification:session_detail' company.slug session.id %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri" %}
+            </a>
+            <button class="btn btn-primary" onclick="generateNewReport()">
+                <i class="fas fa-plus me-2"></i>{% trans "Yeni Rapor" %}
+            </button>
+        </div>
+    </div>
+
+    <!-- Oturum Özeti -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-info-circle me-2"></i>{% trans "Oturum Özeti" %}
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <h4 class="mb-0">{{ session.total_records }}</h4>
+                        <p class="mb-0 text-muted">{% trans "Toplam Kayıt" %}</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <h4 class="mb-0 text-success">{{ session.verified_records }}</h4>
+                        <p class="mb-0 text-muted">{% trans "Doğrulanan" %}</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <h4 class="mb-0 text-warning">{{ session.modified_records }}</h4>
+                        <p class="mb-0 text-muted">{% trans "Değiştirilmiş" %}</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <h4 class="mb-0 text-danger">{{ session.failed_records }}</h4>
+                        <p class="mb-0 text-muted">{% trans "Başarısız" %}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Raporlar Grid -->
+    <div class="row">
+        {% for report in reports %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-file-alt me-2"></i>{{ report.report_title }}
+                    </h6>
+                    <span class="badge 
+                        {% if report.report_type == 'SUMMARY' %}bg-info
+                        {% elif report.report_type == 'DETAILED' %}bg-primary
+                        {% elif report.report_type == 'COMPLIANCE' %}bg-success
+                        {% else %}bg-warning{% endif %}">
+                        {{ report.get_report_type_display }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <small class="text-muted">
+                            <strong>{% trans "Format:" %}</strong> {{ report.get_report_format_display }}<br>
+                            <strong>{% trans "Oluşturulma:" %}</strong> {{ report.generated_at|date:"d.m.Y H:i" }}<br>
+                            <strong>{% trans "Analiz Edilen Kayıt:" %}</strong> {{ report.total_records_analyzed }}
+                        </small>
+                    </div>
+
+                    <!-- İstatistikler -->
+                    <div class="mb-3">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <small class="text-success">
+                                    <strong>{{ report.valid_records_count }}</strong><br>
+                                    {% trans "Geçerli" %}
+                                </small>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-warning">
+                                    <strong>{{ report.modified_records_count }}</strong><br>
+                                    {% trans "Değiştirilmiş" %}
+                                </small>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-danger">
+                                    <strong>{{ report.invalid_records_count }}</strong><br>
+                                    {% trans "Geçersiz" %}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Uyumluluk Skoru -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">{% trans "Uyumluluk Skoru:" %}</span>
+                            <span class="badge 
+                                {% if report.compliance_score >= 95 %}bg-success
+                                {% elif report.compliance_score >= 70 %}bg-warning
+                                {% else %}bg-danger{% endif %}">
+                                {{ report.compliance_score }}%
+                            </span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar 
+                                {% if report.compliance_score >= 95 %}bg-success
+                                {% elif report.compliance_score >= 70 %}bg-warning
+                                {% else %}bg-danger{% endif %}" 
+                                 style="width: {{ report.compliance_score }}%"></div>
+                        </div>
+                        <small class="text-muted">
+                            {% trans "Durum:" %} 
+                            <span class="badge 
+                                {% if report.compliance_status == 'COMPLIANT' %}bg-success
+                                {% elif report.compliance_status == 'PARTIALLY_COMPLIANT' %}bg-warning
+                                {% else %}bg-danger{% endif %}">
+                                {{ report.get_compliance_status_display }}
+                            </span>
+                        </small>
+                    </div>
+
+                    <!-- Rapor Önizleme -->
+                    {% if report.report_content %}
+                    <div class="mb-3">
+                        <small class="text-muted">
+                            <strong>{% trans "Önizleme:" %}</strong><br>
+                            {{ report.report_content|truncatechars:150 }}
+                        </small>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <div class="btn-group w-100">
+                        <a href="{% url 'log_verification:report_detail' company.slug report.id %}" 
+                           class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-eye me-1"></i>{% trans "Görüntüle" %}
+                        </a>
+                        <a href="{% url 'log_verification:report_download' company.slug report.id %}" 
+                           class="btn btn-outline-success btn-sm">
+                            <i class="fas fa-download me-1"></i>{% trans "İndir" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">{% trans "Henüz rapor bulunmuyor" %}</h5>
+                <p class="text-muted">{% trans "Doğrulama işlemi tamamlandığında raporlar burada görünecek." %}</p>
+                <button class="btn btn-primary" onclick="generateNewReport()">
+                    <i class="fas fa-plus me-2"></i>{% trans "İlk Raporu Oluştur" %}
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Rapor İstatistikleri -->
+    {% if reports %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-chart-bar me-2"></i>{% trans "Rapor İstatistikleri" %}
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <h4 class="mb-0">{{ reports|length }}</h4>
+                        <p class="mb-0 text-muted">{% trans "Toplam Rapor" %}</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <h4 class="mb-0">
+                            {% for report in reports %}
+                                {% if report.compliance_status == 'COMPLIANT' %}
+                                    {% if forloop.first %}{{ forloop.counter }}{% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        </h4>
+                        <p class="mb-0 text-muted">{% trans "Uyumlu Rapor" %}</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <h4 class="mb-0">
+                            {% for report in reports %}
+                                {% if report.report_format == 'PDF' %}
+                                    {% if forloop.first %}{{ forloop.counter }}{% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        </h4>
+                        <p class="mb-0 text-muted">{% trans "PDF Rapor" %}</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <h4 class="mb-0">
+                            {% if reports %}
+                                {% widthratio reports|length 1 100 %}
+                            {% else %}
+                                0
+                            {% endif %}%
+                        </h4>
+                        <p class="mb-0 text-muted">{% trans "Tamamlanma Oranı" %}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Yeni Rapor Modal -->
+<div class="modal fade" id="newReportModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus me-2"></i>{% trans "Yeni Rapor Oluştur" %}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="newReportForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Rapor Tipi" %}</label>
+                        <select class="form-select" name="report_type" required>
+                            <option value="SUMMARY">{% trans "Özet Rapor" %}</option>
+                            <option value="DETAILED">{% trans "Detaylı Rapor" %}</option>
+                            <option value="COMPLIANCE">{% trans "Uyumluluk Raporu" %}</option>
+                            <option value="EVIDENCE">{% trans "İbraz Raporu" %}</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Rapor Formatı" %}</label>
+                        <select class="form-select" name="report_format" required>
+                            <option value="PDF">PDF</option>
+                            <option value="CSV">CSV</option>
+                            <option value="JSON">JSON</option>
+                            <option value="XML">XML</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Rapor Başlığı" %}</label>
+                        <input type="text" class="form-control" name="report_title" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "İptal" %}</button>
+                <button type="button" class="btn btn-primary" onclick="createReport()">{% trans "Oluştur" %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function generateNewReport() {
+    new bootstrap.Modal(document.getElementById('newReportModal')).show();
+}
+
+function createReport() {
+    // Form verilerini al
+    const form = document.getElementById('newReportForm');
+    const formData = new FormData(form);
+    
+    // AJAX ile rapor oluştur
+    fetch('{% url "log_verification:report_create" company.slug session.id %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            // Başarılı ise sayfayı yenile
+            window.location.reload();
+        } else {
+            alert('{% trans "Rapor oluşturma hatası!" %}');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('{% trans "Rapor oluşturma hatası!" %}');
+    });
+    
+    bootstrap.Modal.getInstance(document.getElementById('newReportModal')).hide();
+}
+</script>
+{% endblock %}

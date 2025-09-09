@@ -1,0 +1,236 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Depolama Detayı" %} - {{ storage.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="storage-detail">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-hdd me-2"></i>{{ storage.name }}
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'archiving_policy:storage_list' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri" %}
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Sol Kolon - Depolama Bilgileri -->
+        <div class="col-lg-8">
+            <!-- Depolama Bilgileri -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>{% trans "Depolama Bilgileri" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>{% trans "Depolama Adı:" %}</strong> {{ storage.name }}</p>
+                            <p><strong>{% trans "Depolama Tipi:" %}</strong> 
+                                <span class="badge bg-info">{{ storage.get_storage_type_display }}</span>
+                            </p>
+                            <p><strong>{% trans "Durum:" %}</strong> 
+                                <span class="badge bg-{% if storage.status == 'ACTIVE' %}success{% elif storage.status == 'FULL' %}warning{% elif storage.status == 'ERROR' %}danger{% else %}secondary{% endif %}">
+                                    {{ storage.get_status_display }}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>{% trans "Depolama Yolu:" %}</strong> 
+                                <code>{{ storage.storage_path }}</code>
+                            </p>
+                            <p><strong>{% trans "Oluşturulma:" %}</strong> {{ storage.created_at|date:'d.m.Y H:i:s' }}</p>
+                            <p><strong>{% trans "Son Güncelleme:" %}</strong> {{ storage.updated_at|date:'d.m.Y H:i:s' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kapasite Bilgileri -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>{% trans "Kapasite Bilgileri" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <h4 class="text-primary">{{ storage.total_capacity_gb }} GB</h4>
+                                <p class="mb-0">{% trans "Toplam Kapasite" %}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <h4 class="text-warning">{{ storage.used_capacity_gb }} GB</h4>
+                                <p class="mb-0">{% trans "Kullanılan" %}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <h4 class="text-success">{{ storage.available_capacity_gb }} GB</h4>
+                                <p class="mb-0">{% trans "Kullanılabilir" %}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>{% trans "Kullanım Oranı" %}</span>
+                            <span>{{ storage.get_usage_percentage|floatformat:1 }}%</span>
+                        </div>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar {% if storage.get_usage_percentage > 90 %}bg-danger{% elif storage.get_usage_percentage > 75 %}bg-warning{% else %}bg-success{% endif %}" 
+                                 style="width: {{ storage.get_usage_percentage }}%">
+                                {{ storage.get_usage_percentage|floatformat:1 }}%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Özellikler -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-cogs me-2"></i>{% trans "Depolama Özellikleri" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span>{% trans "Şifreleme:" %}</span>
+                                <span class="badge bg-{% if storage.is_encrypted %}success{% else %}secondary{% endif %}">
+                                    {% if storage.is_encrypted %}{% trans "Aktif" %}{% else %}{% trans "Pasif" %}{% endif %}
+                                </span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span>{% trans "Sıkıştırma:" %}</span>
+                                <span class="badge bg-{% if storage.is_compressed %}success{% else %}secondary{% endif %}">
+                                    {% if storage.is_compressed %}{% trans "Aktif" %}{% else %}{% trans "Pasif" %}{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span>{% trans "WORM Disk:" %}</span>
+                                <span class="badge bg-{% if storage.is_worm %}success{% else %}secondary{% endif %}">
+                                    {% if storage.is_worm %}{% trans "Aktif" %}{% else %}{% trans "Pasif" %}{% endif %}
+                                </span>
+                            </div>
+                            {% if storage.is_worm %}
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span>{% trans "Sadece Ekleme:" %}</span>
+                                <span class="badge bg-{% if storage.worm_append_only %}success{% else %}secondary{% endif %}">
+                                    {% if storage.worm_append_only %}{% trans "Aktif" %}{% else %}{% trans "Pasif" %}{% endif %}
+                                </span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- İstatistikler -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>{% trans "İstatistikler" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <h4 class="text-info">{{ storage.total_archives }}</h4>
+                                <p class="mb-0">{% trans "Toplam Arşiv" %}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <h4 class="text-primary">{{ storage.total_size_bytes|filesizeformat }}</h4>
+                                <p class="mb-0">{% trans "Toplam Boyut" %}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <h4 class="text-success">
+                                    {% if storage.last_archive_date %}
+                                        {{ storage.last_archive_date|date:'d.m.Y' }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </h4>
+                                <p class="mb-0">{% trans "Son Arşiv" %}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sağ Kolon - İşlemler -->
+        <div class="col-lg-4">
+            <!-- İşlemler -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tools me-2"></i>{% trans "İşlemler" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'archiving_policy:storage_edit' company.slug storage.id %}" 
+                           class="btn btn-warning">
+                            <i class="fas fa-edit me-2"></i>{% trans "Düzenle" %}
+                        </a>
+                        <a href="{% url 'archiving_policy:storage_delete' company.slug storage.id %}" 
+                           class="btn btn-danger">
+                            <i class="fas fa-trash me-2"></i>{% trans "Sil" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hızlı Bilgiler -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info me-2"></i>{% trans "Hızlı Bilgiler" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span>{% trans "Depolama Tipi" %}</span>
+                            <span class="badge bg-info">{{ storage.get_storage_type_display }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span>{% trans "Durum" %}</span>
+                            <span class="badge bg-{% if storage.status == 'ACTIVE' %}success{% elif storage.status == 'FULL' %}warning{% elif storage.status == 'ERROR' %}danger{% else %}secondary{% endif %}">
+                                {{ storage.get_status_display }}
+                            </span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span>{% trans "Kullanım" %}</span>
+                            <span>{{ storage.get_usage_percentage|floatformat:1 }}%</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span>{% trans "Boş Alan" %}</span>
+                            <span>{{ storage.available_capacity_gb }} GB</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

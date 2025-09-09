@@ -17,6 +17,8 @@ from django import forms
 from django.urls import reverse
 from django.contrib.auth.models import User
 from django.utils.translation import gettext as _
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm
 
 # Import user management views
 from .views.user_management import (
@@ -475,3 +477,5 @@ class CompanySettingsForm(forms.ModelForm):
             "login_info_text": forms.TextInput(attrs={"class": "form-control"}),
             "theme_color": forms.TextInput(attrs={"type": "color", "class": "form-control form-control-color"}),
         }
+
+

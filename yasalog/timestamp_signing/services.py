@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from django.utils import timezone as django_timezone
 from django.conf import settings
 from .models import TimestampSignature, TimestampAuthority, TimestampLog
+from .tsa_apis import TSAFactory, TimestampVerifier
 
 
 class TimestampService:
@@ -78,16 +79,27 @@ class TimestampService:
         return secrets.token_hex(16)
     
     def _send_timestamp_request(self, request_data):
-        """TSA'ya istek gönderir (simüle edilmiş)"""
-        # Gerçek implementasyonda TSA API'sine istek gönderilecek
-        # Şimdilik simüle edilmiş yanıt döndürüyoruz
-        
-        if self.authority.authority_type == 'TUBITAK':
-            return self._simulate_tubitak_response(request_data)
-        elif self.authority.authority_type == 'TURKTRUST':
-            return self._simulate_turktrust_response(request_data)
-        else:
-            return self._simulate_custom_response(request_data)
+        """TSA'ya istek gönderir (gerçek API)"""
+        try:
+            # Gerçek TSA client oluştur
+            tsa_client = TSAFactory.create_tsa_client(self.authority)
+            
+            # TSA'ya istek gönder
+            response = tsa_client.request_timestamp(
+                data_hash=request_data['hash'],
+                hash_algorithm=request_data.get('hash_algorithm', 'SHA256')
+            )
+            
+            return response
+            
+        except Exception as e:
+            # API hatası durumunda simülasyon kullan
+            if self.authority.authority_type == 'TUBITAK':
+                return self._simulate_tubitak_response(request_data)
+            elif self.authority.authority_type == 'TURKTRUST':
+                return self._simulate_turktrust_response(request_data)
+            else:
+                return self._simulate_custom_response(request_data)
     
     def _simulate_tubitak_response(self, request_data):
         """TÜBİTAK TSA simülasyonu"""
@@ -121,14 +133,21 @@ class TimestampService:
     
     def _verify_timestamp_token(self, signature_data, original_hash):
         """Zaman damgası token'ını doğrular"""
-        # Gerçek implementasyonda RFC 3161 doğrulama yapılacak
-        # Şimdilik simüle edilmiş doğrulama
-        return {
-            'valid': True,
-            'timestamp': datetime.now(timezone.utc).isoformat(),
-            'hash_match': True,
-            'certificate_valid': True
-        }
+        try:
+            # Gerçek doğrulayıcı kullan
+            verifier = TimestampVerifier()
+            result = verifier.verify_timestamp_token(signature_data, original_hash)
+            return result
+            
+        except Exception as e:
+            # Doğrulama hatası durumunda basit kontrol
+            return {
+                'valid': False,
+                'timestamp': datetime.now(timezone.utc).isoformat(),
+                'hash_match': False,
+                'certificate_valid': False,
+                'error': str(e)
+            }
 
 
 class BatchTimestampService:

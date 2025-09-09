@@ -1,0 +1,119 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Yeni İbraz Raporu Oluştur" %} - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="report-add">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-plus me-2"></i>{% trans "Yeni İbraz Raporu Oluştur" %}
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'evidence_reports:dashboard' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Rapor Oluşturma Formu -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-gavel me-2"></i>{% trans "Rapor Bilgileri" %}
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Rapor Başlığı" %} <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="report_title" 
+                                   placeholder="{% trans 'Rapor başlığını girin' %}" required>
+                        </div>
+                    </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "Rapor Tipi" %} <span class="text-danger">*</span></label>
+                                <select class="form-select" name="report_type" required>
+                                    <option value="">{% trans "Rapor tipi seçin" %}</option>
+                                    <option value="COURT_ORDER">{% trans "Mahkeme Kararı" %}</option>
+                                    <option value="BTK_REQUEST">{% trans "BTK Talebi" %}</option>
+                                    <option value="LEGAL_REQUEST">{% trans "Yasal Talep" %}</option>
+                                    <option value="AUDIT_REQUEST">{% trans "Denetim Talebi" %}</option>
+                                    <option value="COMPLIANCE_CHECK">{% trans "Uyumluluk Kontrolü" %}</option>
+                                </select>
+                            </div>
+                        </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Öncelik" %} <span class="text-danger">*</span></label>
+                            <select class="form-select" name="priority" required>
+                                <option value="">{% trans "Öncelik seçin" %}</option>
+                                <option value="LOW">{% trans "Düşük" %}</option>
+                                <option value="NORMAL">{% trans "Normal" %}</option>
+                                <option value="HIGH">{% trans "Yüksek" %}</option>
+                                <option value="URGENT">{% trans "Acil" %}</option>
+                                <option value="CRITICAL">{% trans "Kritik" %}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Teslim Tarihi" %}</label>
+                            <input type="date" class="form-control" name="due_date">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Talep Eden" %}</label>
+                            <input type="text" class="form-control" name="requested_by" 
+                                   placeholder="{% trans 'Talep eden kişi' %}">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Talep Eden Kurum" %}</label>
+                            <input type="text" class="form-control" name="requester_authority" 
+                                   placeholder="{% trans 'Talep eden kurum' %}">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">{% trans "Talep Edilen Veri Dönemi" %}</label>
+                    <input type="text" class="form-control" name="requested_data_period" 
+                           placeholder="{% trans 'Örn: Son 30 gün, 2024 yılı' %}" value="Son 30 gün">
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">{% trans "Açıklama" %}</label>
+                    <textarea class="form-control" name="description" rows="4" 
+                              placeholder="{% trans 'Rapor hakkında detaylı açıklama' %}"></textarea>
+                </div>
+                
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'evidence_reports:dashboard' company.slug %}" 
+                       class="btn btn-secondary">
+                        <i class="fas fa-times me-2"></i>{% trans "İptal" %}
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>{% trans "Rapor Oluştur" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

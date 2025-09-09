@@ -107,12 +107,12 @@
                             </a>
                         </div>
                         <div class="col-md-3">
-                            <a href="/admin/log_verification/logverificationsession/add/" class="btn btn-success btn-block" target="_blank">
+                            <a href="{% url 'log_verification:session_add' company.slug %}" class="btn btn-success btn-block">
                                 <i class="fas fa-plus me-2"></i>{% trans "Yeni Doğrulama" %}
                             </a>
                         </div>
                         <div class="col-md-3">
-                            <a href="/admin/log_verification/logverificationtemplate/add/" class="btn btn-warning btn-block" target="_blank">
+                            <a href="{% url 'log_verification:template_add' company.slug %}" class="btn btn-warning btn-block">
                                 <i class="fas fa-plus me-2"></i>{% trans "Yeni Şablon" %}
                             </a>
                         </div>

@@ -1,0 +1,134 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Arşivleme Politikası Düzenle" %} - {{ policy.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="policy-edit">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-edit me-2"></i>{% trans "Arşivleme Politikası Düzenle" %}
+            <small class="text-muted">- {{ policy.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'archiving_policy:policy_detail' company.slug policy.id %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Politika Düzenleme Formu -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-archive me-2"></i>{% trans "Politika Bilgileri" %}
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Politika Adı" %} <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="name" 
+                                   value="{{ policy.name }}" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Politika Tipi" %} <span class="text-danger">*</span></label>
+                            <select class="form-select" name="policy_type" required>
+                                <option value="">{% trans "Politika tipi seçin" %}</option>
+                                <option value="LOG_RETENTION" {% if policy.policy_type == 'LOG_RETENTION' %}selected{% endif %}>{% trans "Log Saklama" %}</option>
+                                <option value="TRAFFIC_RETENTION" {% if policy.policy_type == 'TRAFFIC_RETENTION' %}selected{% endif %}>{% trans "Trafik Saklama" %}</option>
+                                <option value="SIGNATURE_RETENTION" {% if policy.policy_type == 'SIGNATURE_RETENTION' %}selected{% endif %}>{% trans "İmza Saklama" %}</option>
+                                <option value="REPORT_RETENTION" {% if policy.policy_type == 'REPORT_RETENTION' %}selected{% endif %}>{% trans "Rapor Saklama" %}</option>
+                                <option value="GENERAL_RETENTION" {% if policy.policy_type == 'GENERAL_RETENTION' %}selected{% endif %}>{% trans "Genel Saklama" %}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Saklama Süresi (Yıl)" %}</label>
+                            <input type="number" class="form-control" name="retention_period_years" 
+                                   value="{{ policy.retention_period_years }}" min="0" max="10">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Saklama Süresi (Ay)" %}</label>
+                            <input type="number" class="form-control" name="retention_period_months" 
+                                   value="{{ policy.retention_period_months }}" min="0" max="11">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Saklama Süresi (Gün)" %}</label>
+                            <input type="number" class="form-control" name="retention_period_days" 
+                                   value="{{ policy.retention_period_days }}" min="0" max="30">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Depolama Tipi" %} <span class="text-danger">*</span></label>
+                            <select class="form-select" name="storage_type" required>
+                                <option value="">{% trans "Depolama tipi seçin" %}</option>
+                                <option value="LOCAL" {% if policy.storage_type == 'LOCAL' %}selected{% endif %}>{% trans "Yerel Depolama" %}</option>
+                                <option value="WORM" {% if policy.storage_type == 'WORM' %}selected{% endif %}>{% trans "WORM Disk" %}</option>
+                                <option value="CLOUD" {% if policy.storage_type == 'CLOUD' %}selected{% endif %}>{% trans "Bulut Depolama" %}</option>
+                                <option value="TAPE" {% if policy.storage_type == 'TAPE' %}selected{% endif %}>{% trans "Tape Depolama" %}</option>
+                                <option value="HYBRID" {% if policy.storage_type == 'HYBRID' %}selected{% endif %}>{% trans "Hibrit Depolama" %}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Temizleme Zamanlaması" %}</label>
+                            <select class="form-select" name="cleanup_schedule">
+                                <option value="DAILY" {% if policy.cleanup_schedule == 'DAILY' %}selected{% endif %}>{% trans "Günlük" %}</option>
+                                <option value="WEEKLY" {% if policy.cleanup_schedule == 'WEEKLY' %}selected{% endif %}>{% trans "Haftalık" %}</option>
+                                <option value="MONTHLY" {% if policy.cleanup_schedule == 'MONTHLY' %}selected{% endif %}>{% trans "Aylık" %}</option>
+                                <option value="QUARTERLY" {% if policy.cleanup_schedule == 'QUARTERLY' %}selected{% endif %}>{% trans "Üç Aylık" %}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">{% trans "Açıklama" %}</label>
+                    <textarea class="form-control" name="description" rows="4">{{ policy.description }}</textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="is_active" id="isActive" 
+                               {% if policy.is_active %}checked{% endif %}>
+                        <label class="form-check-label" for="isActive">
+                            {% trans "Politikayı aktif olarak işaretle" %}
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'archiving_policy:policy_detail' company.slug policy.id %}" 
+                       class="btn btn-secondary">
+                        <i class="fas fa-times me-2"></i>{% trans "İptal" %}
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>{% trans "Güncelle" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

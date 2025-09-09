@@ -112,7 +112,7 @@
                             </a>
                         </div>
                         <div class="col-md-3">
-                            <a href="/admin/archiving_policy/archivingpolicy/add/" class="btn btn-success btn-block" target="_blank">
+                            <a href="{% url 'archiving_policy:policy_add' company.slug %}" class="btn btn-success btn-block">
                                 <i class="fas fa-plus me-2"></i>{% trans "Yeni Politika" %}
                             </a>
                         </div>

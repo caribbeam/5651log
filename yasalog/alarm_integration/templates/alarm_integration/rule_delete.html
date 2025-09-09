@@ -1,0 +1,131 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}Kural Sil - {{ rule.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="rule-delete">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-trash me-2"></i>Kural Sil
+            <small class="text-muted">- {{ rule.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'alarm_integration:rule_detail' company.slug rule.id %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Geri
+            </a>
+        </div>
+    </div>
+
+    <!-- Uyarı Kartı -->
+    <div class="card border-danger">
+        <div class="card-header bg-danger text-white">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-exclamation-triangle me-2"></i>Dikkat!
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-danger">
+                <h4 class="alert-heading">
+                    <i class="fas fa-warning me-2"></i>Bu işlem geri alınamaz!
+                </h4>
+                <p>Bu alarm kuralını silmek üzeresiniz. Bu işlem:</p>
+                <ul class="mb-0">
+                    <li>Kuralı kalıcı olarak silecek</li>
+                    <li>Bu kurala ait tüm alarm olaylarını etkileyecek</li>
+                    <li>Gelecekte bu kural tetiklenmeyecek</li>
+                </ul>
+            </div>
+
+            <!-- Kural Bilgileri -->
+            <div class="card bg-light">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Silinecek Kural Bilgileri</h6>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-borderless">
+                        <tbody>
+                            <tr>
+                                <td style="width: 150px;"><strong>Kural Adı:</strong></td>
+                                <td>{{ rule.name }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Alarm Tipi:</strong></td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ rule.get_alarm_type_display }}</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Önem Seviyesi:</strong></td>
+                                <td>
+                                    {% if rule.severity == 'CRITICAL' %}
+                                        <span class="badge bg-danger">Kritik</span>
+                                    {% elif rule.severity == 'HIGH' %}
+                                        <span class="badge bg-warning">Yüksek</span>
+                                    {% elif rule.severity == 'MEDIUM' %}
+                                        <span class="badge bg-info">Orta</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Düşük</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Durum:</strong></td>
+                                <td>
+                                    {% if rule.is_active %}
+                                        <span class="badge bg-success">Aktif</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Pasif</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Tetiklenme Sayısı:</strong></td>
+                                <td>{{ rule.trigger_count }}</td>
+                            </tr>
+                            {% if rule.last_triggered %}
+                            <tr>
+                                <td><strong>Son Tetiklenme:</strong></td>
+                                <td>{{ rule.last_triggered|date:'d.m.Y H:i:s' }}</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Onay Formu -->
+            <form method="post" class="mt-4">
+                {% csrf_token %}
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                    <label class="form-check-label" for="confirmDelete">
+                        <strong>Bu kuralı silmek istediğimi onaylıyorum</strong>
+                    </label>
+                </div>
+                
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'alarm_integration:rule_detail' company.slug rule.id %}" class="btn btn-secondary">
+                        <i class="fas fa-times me-2"></i>İptal
+                    </a>
+                    <button type="submit" class="btn btn-danger" id="deleteButton" disabled>
+                        <i class="fas fa-trash me-2"></i>Kuralı Sil
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmCheckbox = document.getElementById('confirmDelete');
+    const deleteButton = document.getElementById('deleteButton');
+    
+    confirmCheckbox.addEventListener('change', function() {
+        deleteButton.disabled = !this.checked;
+    });
+});
+</script>
+{% endblock %}

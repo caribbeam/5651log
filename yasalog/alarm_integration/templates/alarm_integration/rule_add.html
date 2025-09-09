@@ -1,0 +1,232 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Yeni Alarm Kuralı Oluştur" %} - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="rule-add">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-plus me-2"></i>{% trans "Yeni Alarm Kuralı Oluştur" %}
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'alarm_integration:dashboard' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Kural Oluşturma Formu -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-bell me-2"></i>{% trans "Kural Bilgileri" %}
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Kural Adı" %} <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="name" 
+                                   placeholder="{% trans 'Kural adını girin' %}" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Alarm Tipi" %} <span class="text-danger">*</span></label>
+                            <select class="form-select" name="rule_type" required>
+                                <option value="">{% trans "Alarm tipi seçin" %}</option>
+                                <option value="SIGNING_FAILED">{% trans "İmzalama Başarısız" %}</option>
+                                <option value="DISK_FULL">{% trans "Disk Dolu" %}</option>
+                                <option value="NTP_DRIFT">{% trans "NTP Sapması" %}</option>
+                                <option value="LOG_FLOW_STOPPED">{% trans "Log Akışı Durdu" %}</option>
+                                <option value="DEVICE_OFFLINE">{% trans "Cihaz Çevrimdışı" %}</option>
+                                <option value="HIGH_CPU_USAGE">{% trans "Yüksek CPU Kullanımı" %}</option>
+                                <option value="HIGH_MEMORY_USAGE">{% trans "Yüksek Bellek Kullanımı" %}</option>
+                                <option value="NETWORK_ERROR">{% trans "Ağ Hatası" %}</option>
+                                <option value="SECURITY_THREAT">{% trans "Güvenlik Tehdidi" %}</option>
+                                <option value="COMPLIANCE_VIOLATION">{% trans "Uyumluluk İhlali" %}</option>
+                                <option value="BACKUP_FAILED">{% trans "Yedekleme Başarısız" %}</option>
+                                <option value="CUSTOM">{% trans "Özel" %}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Önem Derecesi" %} <span class="text-danger">*</span></label>
+                            <select class="form-select" name="severity" required>
+                                <option value="">{% trans "Önem derecesi seçin" %}</option>
+                                <option value="LOW">{% trans "Düşük" %}</option>
+                                <option value="MEDIUM">{% trans "Orta" %}</option>
+                                <option value="HIGH">{% trans "Yüksek" %}</option>
+                                <option value="CRITICAL">{% trans "Kritik" %}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Koşul" %}</label>
+                            <input type="text" class="form-control" name="condition" 
+                                   placeholder="{% trans 'Örn: error_count > 10' %}">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Eşik Değeri" %}</label>
+                            <input type="number" class="form-control" name="threshold_value" 
+                                   placeholder="{% trans 'Örn: 100' %}" step="0.1">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Zaman Penceresi (dakika)" %}</label>
+                            <input type="number" class="form-control" name="time_window_minutes" 
+                                   value="5" min="1" max="1440">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">{% trans "Açıklama" %}</label>
+                    <textarea class="form-control" name="description" rows="4" 
+                              placeholder="{% trans 'Kural hakkında detaylı açıklama' %}"></textarea>
+                </div>
+                
+                <!-- Bildirim Ayarları -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">{% trans "Bildirim Ayarları" %}</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="notification_enabled" id="notificationEnabled" checked>
+                                    <label class="form-check-label" for="notificationEnabled">
+                                        <i class="fas fa-envelope me-2"></i>{% trans "E-posta" %}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="notify_sms" id="notifySms">
+                                    <label class="form-check-label" for="notifySms">
+                                        <i class="fas fa-sms me-2"></i>{% trans "SMS" %}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="notify_webhook" id="notifyWebhook">
+                                    <label class="form-check-label" for="notifyWebhook">
+                                        <i class="fas fa-link me-2"></i>{% trans "Webhook" %}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="notify_dashboard" id="notifyDashboard" checked>
+                                    <label class="form-check-label" for="notifyDashboard">
+                                        <i class="fas fa-tachometer-alt me-2"></i>{% trans "Dashboard" %}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">{% trans "E-posta Alıcıları" %}</label>
+                                    <textarea class="form-control" name="notification_recipients" rows="3" 
+                                              placeholder="{% trans 'E-posta adreslerini virgülle ayırarak girin' %}"></textarea>
+                                    <div class="form-text">{% trans "Örn: admin@example.com, user@example.com" %}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">{% trans "SMS Alıcıları" %}</label>
+                                    <textarea class="form-control" name="sms_recipients" rows="3" 
+                                              placeholder="{% trans 'Telefon numaralarını virgülle ayırarak girin' %}"></textarea>
+                                    <div class="form-text">{% trans "Örn: +905551234567, +905559876543" %}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Webhook URL" %}</label>
+                            <input type="url" class="form-control" name="webhook_url" 
+                                   placeholder="{% trans 'https://hooks.slack.com/services/...' %}">
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="repeat_notification" id="repeatNotification" checked>
+                                    <label class="form-check-label" for="repeatNotification">
+                                        <i class="fas fa-redo me-2"></i>{% trans "Tekrar Bildirim" %}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{% trans "Tekrar Aralığı (dakika)" %}</label>
+                                    <input type="number" class="form-control" name="repeat_interval_minutes" 
+                                           value="60" min="1" max="1440">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{% trans "Maksimum Tekrar" %}</label>
+                                    <input type="number" class="form-control" name="max_repeat_count" 
+                                           value="5" min="1" max="100">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="is_active" id="isActive" checked>
+                                    <label class="form-check-label" for="isActive">
+                                        <i class="fas fa-check-circle me-2"></i>{% trans "Kural Aktif" %}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="is_enabled" id="isEnabled" checked>
+                                    <label class="form-check-label" for="isEnabled">
+                                        <i class="fas fa-power-off me-2"></i>{% trans "Kural Etkin" %}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <a href="{% url 'alarm_integration:dashboard' company.slug %}" 
+                       class="btn btn-secondary">
+                        <i class="fas fa-times me-2"></i>{% trans "İptal" %}
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>{% trans "Kural Oluştur" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

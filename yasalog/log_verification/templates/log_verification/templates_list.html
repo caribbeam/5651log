@@ -1,0 +1,109 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Doğrulama Şablonları" %} - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="templates-list">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-file-alt me-2"></i>{% trans "Doğrulama Şablonları" %}
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'log_verification:dashboard' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri" %}
+            </a>
+            <a href="{% url 'log_verification:template_add' company.slug %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>{% trans "Yeni Şablon" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Şablonlar Grid -->
+    <div class="row">
+        {% for template in templates %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-file-alt me-2"></i>{{ template.name }}
+                    </h6>
+                    {% if template.is_active %}
+                        <span class="badge bg-success">{% trans "Aktif" %}</span>
+                    {% else %}
+                        <span class="badge bg-secondary">{% trans "Pasif" %}</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if template.description %}
+                        <p class="card-text text-muted">{{ template.description|truncatechars:100 }}</p>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <small class="text-muted">
+                            <strong>{% trans "Hash Algoritması:" %}</strong> {{ template.get_hash_algorithm_display }}<br>
+                            <strong>{% trans "Rapor Formatı:" %}</strong> {{ template.get_report_format_display }}<br>
+                            <strong>{% trans "Otomatik Rapor:" %}</strong> 
+                            {% if template.auto_generate_report %}
+                                <i class="fas fa-check text-success"></i> {% trans "Evet" %}
+                            {% else %}
+                                <i class="fas fa-times text-danger"></i> {% trans "Hayır" %}
+                            {% endif %}
+                        </small>
+                    </div>
+
+                    {% if template.verification_rules %}
+                    <div class="mb-3">
+                        <small class="text-muted">
+                            <strong>{% trans "Doğrulama Kuralları:" %}</strong><br>
+                            {% for rule, enabled in template.verification_rules.items %}
+                                {% if enabled %}
+                                    <span class="badge bg-info me-1 mb-1">{{ rule|title }}</span>
+                                {% endif %}
+                            {% endfor %}
+                        </small>
+                    </div>
+                    {% endif %}
+
+                    {% if template.required_fields %}
+                    <div class="mb-3">
+                        <small class="text-muted">
+                            <strong>{% trans "Zorunlu Alanlar:" %}</strong><br>
+                            {% for field in template.required_fields %}
+                                <span class="badge bg-warning me-1 mb-1">{{ field }}</span>
+                            {% endfor %}
+                        </small>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <div class="btn-group w-100">
+                        <a href="{% url 'log_verification:template_edit' company.slug template.id %}" 
+                           class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-edit me-1"></i>{% trans "Düzenle" %}
+                        </a>
+                        <a href="{% url 'log_verification:template_delete' company.slug template.id %}" 
+                           class="btn btn-outline-danger btn-sm">
+                            <i class="fas fa-trash me-1"></i>{% trans "Sil" %}
+                        </a>
+                    </div>
+                    <small class="text-muted d-block mt-2">
+                        {% trans "Oluşturulma:" %} {{ template.created_at|date:"d.m.Y H:i" }}
+                    </small>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">{% trans "Henüz doğrulama şablonu bulunmuyor" %}</h5>
+                <p class="text-muted">{% trans "İlk doğrulama şablonunuzu oluşturmak için yukarıdaki butonu kullanın." %}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

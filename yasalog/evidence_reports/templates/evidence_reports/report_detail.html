@@ -1,0 +1,175 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "İbraz Raporu Detayı" %} - {{ report.report_title }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="report-detail">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-gavel me-2"></i>{{ report.report_title }}
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'evidence_reports:reports_list' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri" %}
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Sol Kolon - Rapor Bilgileri -->
+        <div class="col-lg-8">
+            <!-- Rapor Bilgileri -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>{% trans "Rapor Bilgileri" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>{% trans "Talep No:" %}</strong> {{ report.request_number }}</p>
+                            <p><strong>{% trans "Rapor Tipi:" %}</strong> 
+                                <span class="badge bg-info">{{ report.get_report_type_display }}</span>
+                            </p>
+                            <p><strong>{% trans "Durum:" %}</strong> 
+                                {% if report.status == 'DELIVERED' %}
+                                    <span class="badge bg-success">{% trans "Teslim Edildi" %}</span>
+                                {% elif report.status == 'GENERATED' %}
+                                    <span class="badge bg-info">{% trans "Oluşturuldu" %}</span>
+                                {% elif report.status == 'APPROVED' %}
+                                    <span class="badge bg-primary">{% trans "Onaylandı" %}</span>
+                                {% elif report.status == 'PENDING_APPROVAL' %}
+                                    <span class="badge bg-warning">{% trans "Onay Bekliyor" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{% trans "Taslak" %}</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>{% trans "Öncelik:" %}</strong> 
+                                {% if report.priority == 'CRITICAL' %}
+                                    <span class="badge bg-danger">{% trans "Kritik" %}</span>
+                                {% elif report.priority == 'HIGH' %}
+                                    <span class="badge bg-warning">{% trans "Yüksek" %}</span>
+                                {% elif report.priority == 'NORMAL' %}
+                                    <span class="badge bg-info">{% trans "Normal" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{% trans "Düşük" %}</span>
+                                {% endif %}
+                            </p>
+                            <p><strong>{% trans "Oluşturulma:" %}</strong> {{ report.created_at|date:'d.m.Y H:i:s' }}</p>
+                            {% if report.due_date %}
+                                <p><strong>{% trans "Teslim Tarihi:" %}</strong> {{ report.due_date|date:'d.m.Y' }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if report.description %}
+                    <div class="mt-3">
+                        <strong>{% trans "Açıklama:" %}</strong>
+                        <p class="mt-2">{{ report.description }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if report.requested_by %}
+                    <div class="mt-3">
+                        <strong>{% trans "Talep Eden:" %}</strong> {{ report.requested_by }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Rapor İçeriği -->
+            {% if report.generated_content %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-file-alt me-2"></i>{% trans "Rapor İçeriği" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="report-content">
+                        {{ report.generated_content|linebreaks }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sağ Kolon - İşlemler ve Durum -->
+        <div class="col-lg-4">
+            <!-- Durum Kartı -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tasks me-2"></i>{% trans "İşlemler" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if report.status == 'DRAFT' %}
+                            <a href="{% url 'evidence_reports:report_edit' company.slug report.id %}" 
+                               class="btn btn-warning">
+                                <i class="fas fa-edit me-2"></i>{% trans "Düzenle" %}
+                            </a>
+                            <a href="{% url 'evidence_reports:report_generate' company.slug report.id %}" 
+                               class="btn btn-primary">
+                                <i class="fas fa-cog me-2"></i>{% trans "Rapor Oluştur" %}
+                            </a>
+                        {% elif report.status == 'GENERATED' %}
+                            <a href="{% url 'evidence_reports:report_approve' company.slug report.id %}" 
+                               class="btn btn-success">
+                                <i class="fas fa-check me-2"></i>{% trans "Onayla" %}
+                            </a>
+                        {% elif report.status == 'APPROVED' %}
+                            <a href="{% url 'evidence_reports:report_deliver' company.slug report.id %}" 
+                               class="btn btn-info">
+                                <i class="fas fa-paper-plane me-2"></i>{% trans "Teslim Et" %}
+                            </a>
+                        {% endif %}
+                        
+                        {% if report.generated_file %}
+                            <a href="{% url 'evidence_reports:report_download' company.slug report.id %}" 
+                               class="btn btn-outline-success">
+                                <i class="fas fa-download me-2"></i>{% trans "İndir" %}
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dosya Bilgileri -->
+            {% if report.generated_file %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-file me-2"></i>{% trans "Dosya Bilgileri" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>{% trans "Dosya Adı:" %}</strong> {{ report.generated_file.name|slice:"-20:" }}</p>
+                    <p><strong>{% trans "Dosya Boyutu:" %}</strong> {{ report.generated_file.size }} {% trans "bayt" %}</p>
+                    <p><strong>{% trans "Oluşturulma:" %}</strong> {{ report.generated_at|date:'d.m.Y H:i:s' }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Erişim Logları -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-history me-2"></i>{% trans "Son Erişimler" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">{% trans "Erişim logları yakında eklenecek." %}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

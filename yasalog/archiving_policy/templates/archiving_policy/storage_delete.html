@@ -1,0 +1,178 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Depolama Alanı Sil" %} - {{ storage.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="storage-delete">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-trash me-2"></i>{% trans "Depolama Alanı Sil" %}
+            <small class="text-muted">- {{ storage.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'archiving_policy:storage_detail' company.slug storage.id %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Uyarı Kartı -->
+    <div class="card border-danger">
+        <div class="card-header bg-danger text-white">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-exclamation-triangle me-2"></i>{% trans "Dikkat!" %}
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-danger">
+                <h6 class="alert-heading">
+                    <i class="fas fa-warning me-2"></i>{% trans "Bu işlem geri alınamaz!" %}
+                </h6>
+                <p class="mb-0">
+                    {% trans "Bu depolama alanını silmek üzeresiniz. Bu işlem geri alınamaz ve tüm ilgili veriler kalıcı olarak silinecektir." %}
+                </p>
+            </div>
+            
+            <!-- Depolama Bilgileri -->
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>{% trans "Depolama Bilgileri:" %}</h6>
+                    <ul class="list-unstyled">
+                        <li><strong>{% trans "Ad:" %}</strong> {{ storage.name }}</li>
+                        <li><strong>{% trans "Tip:" %}</strong> {{ storage.get_storage_type_display }}</li>
+                        <li><strong>{% trans "Yol:" %}</strong> <code>{{ storage.storage_path }}</code></li>
+                        <li><strong>{% trans "Durum:" %}</strong> 
+                            <span class="badge bg-{% if storage.status == 'ACTIVE' %}success{% elif storage.status == 'FULL' %}warning{% elif storage.status == 'ERROR' %}danger{% else %}secondary{% endif %}">
+                                {{ storage.get_status_display }}
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h6>{% trans "Kapasite Bilgileri:" %}</h6>
+                    <ul class="list-unstyled">
+                        <li><strong>{% trans "Toplam:" %}</strong> {{ storage.total_capacity_gb }} GB</li>
+                        <li><strong>{% trans "Kullanılan:" %}</strong> {{ storage.used_capacity_gb }} GB</li>
+                        <li><strong>{% trans "Kullanılabilir:" %}</strong> {{ storage.available_capacity_gb }} GB</li>
+                        <li><strong>{% trans "Kullanım Oranı:" %}</strong> {{ storage.get_usage_percentage|floatformat:1 }}%</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Özellikler -->
+            <div class="row mt-3">
+                <div class="col-md-4">
+                    <div class="text-center">
+                        <div class="border rounded p-3">
+                            <i class="fas fa-{% if storage.is_encrypted %}lock{% else %}unlock{% endif %} fa-2x text-{% if storage.is_encrypted %}success{% else %}muted{% endif %} mb-2"></i>
+                            <br><strong>{% trans "Şifreleme" %}</strong>
+                            <br><small class="text-muted">{% if storage.is_encrypted %}{% trans "Aktif" %}{% else %}{% trans "Pasif" %}{% endif %}</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-center">
+                        <div class="border rounded p-3">
+                            <i class="fas fa-{% if storage.is_compressed %}compress{% else %}expand{% endif %} fa-2x text-{% if storage.is_compressed %}success{% else %}muted{% endif %} mb-2"></i>
+                            <br><strong>{% trans "Sıkıştırma" %}</strong>
+                            <br><small class="text-muted">{% if storage.is_compressed %}{% trans "Aktif" %}{% else %}{% trans "Pasif" %}{% endif %}</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-center">
+                        <div class="border rounded p-3">
+                            <i class="fas fa-{% if storage.is_worm %}shield-alt{% else %}shield{% endif %} fa-2x text-{% if storage.is_worm %}success{% else %}muted{% endif %} mb-2"></i>
+                            <br><strong>{% trans "WORM Disk" %}</strong>
+                            <br><small class="text-muted">{% if storage.is_worm %}{% trans "Aktif" %}{% else %}{% trans "Pasif" %}{% endif %}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- İstatistikler -->
+            <div class="row mt-4">
+                <div class="col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">{{ storage.total_archives }}</h5>
+                            <p class="card-text">{% trans "Toplam Arşiv" %}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">{{ storage.total_size_bytes|filesizeformat }}</h5>
+                            <p class="card-text">{% trans "Toplam Boyut" %}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">{{ storage.created_at|date:'d.m.Y' }}</h5>
+                            <p class="card-text">{% trans "Oluşturulma" %}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">
+                                {% if storage.last_archive_date %}
+                                    {{ storage.last_archive_date|date:'d.m.Y' }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </h5>
+                            <p class="card-text">{% trans "Son Arşiv" %}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Onay Formu -->
+    <div class="card mt-4">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="confirm_delete" id="confirmDelete" required>
+                        <label class="form-check-label" for="confirmDelete">
+                            <strong>{% trans "Bu depolama alanını kalıcı olarak silmek istediğimi onaylıyorum." %}</strong>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'archiving_policy:storage_detail' company.slug storage.id %}" 
+                       class="btn btn-secondary">
+                        <i class="fas fa-times me-2"></i>{% trans "İptal" %}
+                    </a>
+                    <button type="submit" class="btn btn-danger" id="deleteButton" disabled>
+                        <i class="fas fa-trash me-2"></i>{% trans "Depolamayı Sil" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmCheckbox = document.getElementById('confirmDelete');
+    const deleteButton = document.getElementById('deleteButton');
+    
+    confirmCheckbox.addEventListener('change', function() {
+        deleteButton.disabled = !this.checked;
+    });
+});
+</script>
+{% endblock %}

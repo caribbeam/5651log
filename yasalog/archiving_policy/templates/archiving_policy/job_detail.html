@@ -1,0 +1,204 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Arşivleme İşi Detayı" %} - {{ job.job_name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="job-detail">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-tasks me-2"></i>{{ job.job_name }}
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'archiving_policy:jobs_list' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri" %}
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Sol Kolon - İş Bilgileri -->
+        <div class="col-lg-8">
+            <!-- İş Bilgileri -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>{% trans "İş Bilgileri" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>{% trans "İş Adı:" %}</strong> {{ job.job_name }}</p>
+                            <p><strong>{% trans "Durum:" %}</strong> 
+                                {% if job.status == 'COMPLETED' %}
+                                    <span class="badge bg-success">{% trans "Tamamlandı" %}</span>
+                                {% elif job.status == 'RUNNING' %}
+                                    <span class="badge bg-primary">{% trans "Çalışıyor" %}</span>
+                                {% elif job.status == 'FAILED' %}
+                                    <span class="badge bg-danger">{% trans "Başarısız" %}</span>
+                                {% elif job.status == 'CANCELLED' %}
+                                    <span class="badge bg-warning">{% trans "İptal Edildi" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{% trans "Bekliyor" %}</span>
+                                {% endif %}
+                            </p>
+                            <p><strong>{% trans "Politika:" %}</strong> 
+                                <a href="{% url 'archiving_policy:policy_detail' company.slug job.policy.id %}" 
+                                   class="text-decoration-none">
+                                    {{ job.policy.name }}
+                                </a>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>{% trans "Başlangıç:" %}</strong> {{ job.start_time|date:'d.m.Y H:i:s'|default:"-" }}</p>
+                            <p><strong>{% trans "Bitiş:" %}</strong> {{ job.end_time|date:'d.m.Y H:i:s'|default:"-" }}</p>
+                            <p><strong>{% trans "Süre:" %}</strong> 
+                                {% if job.duration %}
+                                    {{ job.duration }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- İstatistikler -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>{% trans "İstatistikler" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-primary">{{ job.total_records_processed|default:0 }}</h4>
+                                <p class="mb-0">{% trans "Toplam İşlenen" %}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-success">{{ job.records_archived|default:0 }}</h4>
+                                <p class="mb-0">{% trans "Arşivlenen" %}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-warning">{{ job.records_deleted|default:0 }}</h4>
+                                <p class="mb-0">{% trans "Silinen" %}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-danger">{{ job.records_failed|default:0 }}</h4>
+                                <p class="mb-0">{% trans "Başarısız" %}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dosya Bilgileri -->
+            {% if job.archive_file_path %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-file-archive me-2"></i>{% trans "Arşiv Dosyası" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>{% trans "Dosya Yolu:" %}</strong> {{ job.archive_file_path }}</p>
+                            <p><strong>{% trans "Dosya Boyutu:" %}</strong> 
+                                {% if job.archive_file_size %}
+                                    {{ job.archive_file_size|filesizeformat }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>{% trans "Dosya Hash:" %}</strong> 
+                                {% if job.archive_file_hash %}
+                                    <code>{{ job.archive_file_hash|truncatechars:20 }}</code>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Hata Bilgileri -->
+            {% if job.error_message %}
+            <div class="card mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>{% trans "Hata Bilgileri" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <strong>{% trans "Hata Mesajı:" %}</strong>
+                        <p class="mb-0">{{ job.error_message }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sağ Kolon - İşlemler -->
+        <div class="col-lg-4">
+            <!-- İşlemler -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tools me-2"></i>{% trans "İşlemler" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if job.status == 'RUNNING' %}
+                            <a href="{% url 'archiving_policy:job_cancel' company.slug job.id %}" 
+                               class="btn btn-warning">
+                                <i class="fas fa-stop me-2"></i>{% trans "İşi İptal Et" %}
+                            </a>
+                        {% endif %}
+                        
+                        <a href="{% url 'archiving_policy:policy_detail' company.slug job.policy.id %}" 
+                           class="btn btn-outline-primary">
+                            <i class="fas fa-archive me-2"></i>{% trans "Politikayı Görüntüle" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- İş Detayları -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info me-2"></i>{% trans "İş Detayları" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>{% trans "Oluşturulma:" %}</strong> {{ job.created_at|date:'d.m.Y H:i:s' }}</p>
+                    
+                    {% if job.job_details %}
+                        <h6>{% trans "Ek Detaylar:" %}</h6>
+                        <pre class="bg-light p-2 rounded"><code>{{ job.job_details|pprint }}</code></pre>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

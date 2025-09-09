@@ -20,6 +20,7 @@ urlpatterns = [
     
     # Reports
     path('reports/<str:company_slug>/<int:session_id>/', views.reports_list, name='reports_list'),
+    path('report/create/<str:company_slug>/<int:session_id>/', views.report_create, name='report_create'),
     path('report/<str:company_slug>/<int:report_id>/', views.report_detail, name='report_detail'),
     path('report/<str:company_slug>/<int:report_id>/download/', views.report_download, name='report_download'),
     

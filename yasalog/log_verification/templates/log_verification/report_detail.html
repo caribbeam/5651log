@@ -1,0 +1,259 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Rapor Detayı" %} - {{ report.report_title }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="report-detail">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-file-alt me-2"></i>{% trans "Rapor Detayı" %}
+            <small class="text-muted">- {{ report.report_title }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'log_verification:reports_list' company.slug report.session.id %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri" %}
+            </a>
+            <a href="{% url 'log_verification:report_download' company.slug report.id %}" class="btn btn-primary">
+                <i class="fas fa-download me-2"></i>{% trans "İndir" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Rapor Bilgileri -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>{% trans "Rapor Bilgileri" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>{% trans "Rapor Başlığı:" %}</strong></td>
+                            <td>{{ report.report_title }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>{% trans "Rapor Tipi:" %}</strong></td>
+                            <td>
+                                <span class="badge 
+                                    {% if report.report_type == 'SUMMARY' %}bg-info
+                                    {% elif report.report_type == 'DETAILED' %}bg-primary
+                                    {% elif report.report_type == 'COMPLIANCE' %}bg-success
+                                    {% else %}bg-warning{% endif %}">
+                                    {{ report.get_report_type_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>{% trans "Rapor Formatı:" %}</strong></td>
+                            <td><span class="badge bg-secondary">{{ report.get_report_format_display }}</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>{% trans "Oluşturulma:" %}</strong></td>
+                            <td>{{ report.generated_at|date:"d.m.Y H:i:s" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>{% trans "Oturum:" %}</strong></td>
+                            <td>{{ report.session.session_name }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>{% trans "Uyumluluk Durumu" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <h2 class="mb-0 
+                            {% if report.compliance_score >= 95 %}text-success
+                            {% elif report.compliance_score >= 70 %}text-warning
+                            {% else %}text-danger{% endif %}">
+                            {{ report.compliance_score }}%
+                        </h2>
+                        <p class="text-muted">{% trans "Uyumluluk Skoru" %}</p>
+                    </div>
+                    
+                    <div class="progress mb-3" style="height: 20px;">
+                        <div class="progress-bar 
+                            {% if report.compliance_score >= 95 %}bg-success
+                            {% elif report.compliance_score >= 70 %}bg-warning
+                            {% else %}bg-danger{% endif %}" 
+                             style="width: {{ report.compliance_score }}%">
+                            {{ report.compliance_score }}%
+                        </div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <span class="badge 
+                            {% if report.compliance_status == 'COMPLIANT' %}bg-success
+                            {% elif report.compliance_status == 'PARTIALLY_COMPLIANT' %}bg-warning
+                            {% else %}bg-danger{% endif %} fs-6">
+                            {{ report.get_compliance_status_display }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- İstatistikler -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-chart-bar me-2"></i>{% trans "Rapor İstatistikleri" %}
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <h4 class="mb-0">{{ report.total_records_analyzed }}</h4>
+                        <p class="mb-0 text-muted">{% trans "Analiz Edilen Kayıt" %}</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <h4 class="mb-0 text-success">{{ report.valid_records_count }}</h4>
+                        <p class="mb-0 text-muted">{% trans "Geçerli Kayıt" %}</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <h4 class="mb-0 text-warning">{{ report.modified_records_count }}</h4>
+                        <p class="mb-0 text-muted">{% trans "Değiştirilmiş Kayıt" %}</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <h4 class="mb-0 text-danger">{{ report.invalid_records_count }}</h4>
+                        <p class="mb-0 text-muted">{% trans "Geçersiz Kayıt" %}</p>
+                    </div>
+                </div>
+            </div>
+            
+            {% if report.total_records_analyzed > 0 %}
+            <div class="mt-4">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>{% trans "Geçerli" %}</span>
+                                <span>{% widthratio report.valid_records_count report.total_records_analyzed 100 %}%</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-success" style="width: {% widthratio report.valid_records_count report.total_records_analyzed 100 %}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>{% trans "Değiştirilmiş" %}</span>
+                                <span>{% widthratio report.modified_records_count report.total_records_analyzed 100 %}%</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-warning" style="width: {% widthratio report.modified_records_count report.total_records_analyzed 100 %}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>{% trans "Geçersiz" %}</span>
+                                <span>{% widthratio report.invalid_records_count report.total_records_analyzed 100 %}%</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-danger" style="width: {% widthratio report.invalid_records_count report.total_records_analyzed 100 %}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Rapor İçeriği -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-file-text me-2"></i>{% trans "Rapor İçeriği" %}
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if report.report_content %}
+                <div class="bg-light p-3 rounded">
+                    {{ report.report_content|linebreaks }}
+                </div>
+            {% else %}
+                <p class="text-muted">{% trans "Rapor içeriği bulunmuyor." %}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Rapor Verisi -->
+    {% if report.report_data %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-database me-2"></i>{% trans "Rapor Verisi" %}
+            </h5>
+        </div>
+        <div class="card-body">
+            <pre class="bg-light p-3 rounded"><code>{{ report.report_data|pprint }}</code></pre>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Dosya Bilgileri -->
+    {% if report.report_file %}
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-download me-2"></i>{% trans "Dosya Bilgileri" %}
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>{% trans "Dosya Adı:" %}</strong></td>
+                            <td>{{ report.report_file.name|slice:"-20:" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>{% trans "Dosya Boyutu:" %}</strong></td>
+                            <td>{{ report.report_file.size|filesizeformat }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>{% trans "Dosya Formatı:" %}</strong></td>
+                            <td>{{ report.get_report_format_display }}</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-grid gap-2">
+                        <a href="{{ report.report_file.url }}" class="btn btn-success" target="_blank">
+                            <i class="fas fa-download me-2"></i>{% trans "Dosyayı İndir" %}
+                        </a>
+                        <a href="{{ report.report_file.url }}" class="btn btn-outline-primary" target="_blank">
+                            <i class="fas fa-external-link-alt me-2"></i>{% trans "Yeni Sekmede Aç" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

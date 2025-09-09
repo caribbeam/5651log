@@ -73,7 +73,15 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h4 class="mb-0">0</h4>
+                            <h4 class="mb-0">
+                                {% if active_monitors %}
+                                    {% for monitor in active_monitors %}
+                                        {% if forloop.first %}{{ monitor.logs_per_minute }}{% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    0
+                                {% endif %}
+                            </h4>
                             <p class="mb-0">{% trans "Log/Dakika" %}</p>
                         </div>
                         <div class="align-self-center">
@@ -112,7 +120,7 @@
                             </a>
                         </div>
                         <div class="col-md-3">
-                            <a href="/admin/log_flow_monitoring/logflowmonitor/add/" class="btn btn-success btn-block" target="_blank">
+                            <a href="{% url 'log_flow_monitoring:monitor_add' company.slug %}" class="btn btn-success btn-block">
                                 <i class="fas fa-plus me-2"></i>{% trans "Yeni Monitor" %}
                             </a>
                         </div>
@@ -149,23 +157,23 @@
                                     {% for monitor in monitors %}
                                     <tr>
                                         <td>{{ monitor.name }}</td>
-                                        <td><span class="badge badge-info">{{ monitor.get_monitor_type_display }}</span></td>
+                                        <td><span class="badge bg-info">{{ monitor.get_monitor_type_display }}</span></td>
                                         <td>
                                             {% if monitor.status == 'ACTIVE' %}
-                                                <span class="badge badge-success">{% trans "Aktif" %}</span>
+                                                <span class="badge bg-success">{% trans "Aktif" %}</span>
                                             {% elif monitor.status == 'WARNING' %}
-                                                <span class="badge badge-warning">{% trans "Uyarı" %}</span>
+                                                <span class="badge bg-warning">{% trans "Uyarı" %}</span>
                                             {% elif monitor.status == 'ERROR' %}
-                                                <span class="badge badge-danger">{% trans "Hata" %}</span>
+                                                <span class="badge bg-danger">{% trans "Hata" %}</span>
                                             {% else %}
-                                                <span class="badge badge-secondary">{% trans "Pasif" %}</span>
+                                                <span class="badge bg-secondary">{% trans "Pasif" %}</span>
                                             {% endif %}
                                         </td>
                                         <td>
                                             {% if monitor.is_receiving_logs %}
-                                                <span class="badge badge-success">{% trans "Evet" %}</span>
+                                                <span class="badge bg-success">{% trans "Evet" %}</span>
                                             {% else %}
-                                                <span class="badge badge-danger">{% trans "Hayır" %}</span>
+                                                <span class="badge bg-danger">{% trans "Hayır" %}</span>
                                             {% endif %}
                                         </td>
                                         <td>{{ monitor.last_log_received|date:'d.m.Y H:i:s'|default:"-" }}</td>

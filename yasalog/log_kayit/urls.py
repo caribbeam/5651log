@@ -27,6 +27,15 @@ urlpatterns = [
     path('panel/ayarlar/', views.company_settings_panel, name='company_settings_panel'),
     path('panel/', views.company_user_panel, name='company_user_panel'), # Bu en sonda kalmalı
     
+    # Şifre değiştirme
+    path('password-change/<slug:company_slug>/', views.password_change_view, name='password_change'),
+    
+    # Şifre sıfırlama
+    path('password-reset/', views.password_reset_view, name='password_reset'),
+    path('password-reset/done/', views.password_reset_done_view, name='password_reset_done'),
+    path('reset/<uidb64>/<token>/', views.password_reset_confirm_view, name='password_reset_confirm'),
+    path('reset/done/', views.password_reset_complete_view, name='password_reset_complete'),
+    
     # Gelişmiş Kullanıcı Yönetimi URL'leri - Company slug ile entegre
     path('users/dashboard/<slug:company_slug>/', views.user_management_dashboard, name='user_management_dashboard'),
     path('users/add/<slug:company_slug>/', views.add_user, name='add_user'),

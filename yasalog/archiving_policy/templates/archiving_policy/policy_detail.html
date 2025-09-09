@@ -1,0 +1,182 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Arşivleme Politikası Detayı" %} - {{ policy.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="policy-detail">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-archive me-2"></i>{{ policy.name }}
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'archiving_policy:policies_list' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri" %}
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Sol Kolon - Politika Bilgileri -->
+        <div class="col-lg-8">
+            <!-- Politika Bilgileri -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>{% trans "Politika Bilgileri" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>{% trans "Politika Adı:" %}</strong> {{ policy.name }}</p>
+                            <p><strong>{% trans "Politika Tipi:" %}</strong> 
+                                <span class="badge bg-info">{{ policy.get_policy_type_display }}</span>
+                            </p>
+                            <p><strong>{% trans "Durum:" %}</strong> 
+                                {% if policy.is_active %}
+                                    <span class="badge bg-success">{% trans "Aktif" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{% trans "Pasif" %}</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>{% trans "Saklama Süresi:" %}</strong> {{ policy.retention_days }} {% trans "gün" %}</p>
+                            <p><strong>{% trans "Depolama Tipi:" %}</strong> 
+                                <span class="badge bg-secondary">{{ policy.get_storage_type_display }}</span>
+                            </p>
+                            <p><strong>{% trans "Zamanlama:" %}</strong> {{ policy.get_schedule_type_display }}</p>
+                        </div>
+                    </div>
+                    
+                    {% if policy.description %}
+                    <div class="mt-3">
+                        <strong>{% trans "Açıklama:" %}</strong>
+                        <p class="mt-2">{{ policy.description }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mt-3">
+                        <strong>{% trans "Oluşturulma:" %}</strong> {{ policy.created_at|date:'d.m.Y H:i:s' }}
+                        {% if policy.last_execution %}
+                            <br><strong>{% trans "Son Çalıştırma:" %}</strong> {{ policy.last_execution|date:'d.m.Y H:i:s' }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Son İşler -->
+            {% if jobs %}
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tasks me-2"></i>{% trans "Son İşler" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "İş Adı" %}</th>
+                                    <th>{% trans "Durum" %}</th>
+                                    <th>{% trans "Başlangıç" %}</th>
+                                    <th>{% trans "Bitiş" %}</th>
+                                    <th>{% trans "İşlemler" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for job in jobs|slice:":5" %}
+                                <tr>
+                                    <td>{{ job.job_name }}</td>
+                                    <td>
+                                        {% if job.status == 'COMPLETED' %}
+                                            <span class="badge bg-success">{% trans "Tamamlandı" %}</span>
+                                        {% elif job.status == 'RUNNING' %}
+                                            <span class="badge bg-primary">{% trans "Çalışıyor" %}</span>
+                                        {% elif job.status == 'FAILED' %}
+                                            <span class="badge bg-danger">{% trans "Başarısız" %}</span>
+                                        {% elif job.status == 'CANCELLED' %}
+                                            <span class="badge bg-warning">{% trans "İptal Edildi" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{% trans "Bekliyor" %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ job.started_at|date:'d.m.Y H:i'|default:"-" }}</td>
+                                    <td>{{ job.completed_at|date:'d.m.Y H:i'|default:"-" }}</td>
+                                    <td>
+                                        <a href="{% url 'archiving_policy:job_detail' company.slug job.id %}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sağ Kolon - İşlemler -->
+        <div class="col-lg-4">
+            <!-- İşlemler -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tools me-2"></i>{% trans "İşlemler" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'archiving_policy:policy_edit' company.slug policy.id %}" 
+                           class="btn btn-warning">
+                            <i class="fas fa-edit me-2"></i>{% trans "Düzenle" %}
+                        </a>
+                        <a href="{% url 'archiving_policy:policy_execute' company.slug policy.id %}" 
+                           class="btn btn-success">
+                            <i class="fas fa-play me-2"></i>{% trans "Çalıştır" %}
+                        </a>
+                        <a href="{% url 'archiving_policy:policy_delete' company.slug policy.id %}" 
+                           class="btn btn-danger">
+                            <i class="fas fa-trash me-2"></i>{% trans "Sil" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- İstatistikler -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>{% trans "İstatistikler" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h4 class="mb-0">{{ jobs.count }}</h4>
+                            <p class="mb-0 text-muted">{% trans "Toplam İş" %}</p>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="mb-0">
+                                {% for job in jobs %}
+                                    {% if job.status == 'COMPLETED' %}
+                                        {% if forloop.first %}{{ forloop.counter }}{% endif %}
+                                    {% endif %}
+                                {% endfor %}
+                            </h4>
+                            <p class="mb-0 text-muted">{% trans "Başarılı" %}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,270 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Monitör Düzenle" %} - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="monitor-edit">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-edit me-2"></i>{% trans "Monitör Düzenle" %}
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'log_flow_monitoring:monitor_detail' company.slug monitor.id %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Düzenleme Formu -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-cog me-2"></i>{% trans "Monitör Ayarları" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Temel Bilgiler -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-info-circle me-2"></i>{% trans "Temel Bilgiler" %}
+                                </h6>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">{% trans "Monitör Adı" %} <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="name" name="name" value="{{ monitor.name }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="monitor_type" class="form-label">{% trans "Monitor Tipi" %} <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="monitor_type" name="monitor_type" required>
+                                        <option value="SYSLOG" {% if monitor.monitor_type == 'SYSLOG' %}selected{% endif %}>{% trans "Syslog" %}</option>
+                                        <option value="FIREWALL" {% if monitor.monitor_type == 'FIREWALL' %}selected{% endif %}>{% trans "Firewall" %}</option>
+                                        <option value="HOTSPOT" {% if monitor.monitor_type == 'HOTSPOT' %}selected{% endif %}>{% trans "Hotspot" %}</option>
+                                        <option value="MIRROR" {% if monitor.monitor_type == 'MIRROR' %}selected{% endif %}>{% trans "Mirror Traffic" %}</option>
+                                        <option value="TIMESTAMP" {% if monitor.monitor_type == 'TIMESTAMP' %}selected{% endif %}>{% trans "Timestamp" %}</option>
+                                        <option value="GENERAL" {% if monitor.monitor_type == 'GENERAL' %}selected{% endif %}>{% trans "Genel" %}</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- İzleme Ayarları -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-network-wired me-2"></i>{% trans "İzleme Ayarları" %}
+                                </h6>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="source_device" class="form-label">{% trans "Kaynak Cihaz" %}</label>
+                                    <input type="text" class="form-control" id="source_device" name="source_device" value="{{ monitor.source_device }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="source_ip" class="form-label">{% trans "Kaynak IP" %}</label>
+                                    <input type="text" class="form-control" id="source_ip" name="source_ip" value="{{ monitor.source_ip }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="source_port" class="form-label">{% trans "Kaynak Port" %}</label>
+                                    <input type="number" class="form-control" id="source_port" name="source_port" value="{{ monitor.source_port }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Eşik Değerleri -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>{% trans "Eşik Değerleri" %}
+                                </h6>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="warning_threshold_minutes" class="form-label">{% trans "Uyarı Eşiği (dakika)" %}</label>
+                                    <input type="number" class="form-control" id="warning_threshold_minutes" name="warning_threshold_minutes" 
+                                           value="{{ monitor.warning_threshold_minutes }}" min="1" max="60">
+                                    <div class="form-text">{% trans "Bu süre boyunca log gelmezse uyarı ver" %}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="error_threshold_minutes" class="form-label">{% trans "Hata Eşiği (dakika)" %}</label>
+                                    <input type="number" class="form-control" id="error_threshold_minutes" name="error_threshold_minutes" 
+                                           value="{{ monitor.error_threshold_minutes }}" min="1" max="120">
+                                    <div class="form-text">{% trans "Bu süre boyunca log gelmezse hata ver" %}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bildirim Ayarları -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-bell me-2"></i>{% trans "Bildirim Ayarları" %}
+                                </h6>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="notify_on_warning" name="notify_on_warning" 
+                                               {% if monitor.notify_on_warning %}checked{% endif %}>
+                                        <label class="form-check-label" for="notify_on_warning">
+                                            {% trans "Uyarıda Bildir" %}
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="notify_on_error" name="notify_on_error" 
+                                               {% if monitor.notify_on_error %}checked{% endif %}>
+                                        <label class="form-check-label" for="notify_on_error">
+                                            {% trans "Hatada Bildir" %}
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label for="notification_recipients" class="form-label">{% trans "Bildirim Alıcıları" %}</label>
+                                    <textarea class="form-control" id="notification_recipients" name="notification_recipients" rows="3">{{ monitor.notification_recipients }}</textarea>
+                                    <div class="form-text">{% trans "Virgülle ayrılmış e-posta listesi" %}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Durum -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-toggle-on me-2"></i>{% trans "Durum" %}
+                                </h6>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" 
+                                               {% if monitor.is_active %}checked{% endif %}>
+                                        <label class="form-check-label" for="is_active">
+                                            {% trans "Aktif" %}
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="status" class="form-label">{% trans "Durum" %}</label>
+                                    <select class="form-select" id="status" name="status">
+                                        <option value="ACTIVE" {% if monitor.status == 'ACTIVE' %}selected{% endif %}>{% trans "Aktif" %}</option>
+                                        <option value="INACTIVE" {% if monitor.status == 'INACTIVE' %}selected{% endif %}>{% trans "Pasif" %}</option>
+                                        <option value="ERROR" {% if monitor.status == 'ERROR' %}selected{% endif %}>{% trans "Hata" %}</option>
+                                        <option value="WARNING" {% if monitor.status == 'WARNING' %}selected{% endif %}>{% trans "Uyarı" %}</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Butonları -->
+                        <div class="row">
+                            <div class="col-12">
+                                <hr>
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'log_flow_monitoring:monitor_detail' company.slug monitor.id %}" class="btn btn-secondary">
+                                        <i class="fas fa-times me-2"></i>{% trans "İptal" %}
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>{% trans "Kaydet" %}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Mevcut Durum -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>{% trans "Mevcut Durum" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless table-sm">
+                        <tr>
+                            <td><strong>{% trans "Toplam Log" %}:</strong></td>
+                            <td>{{ monitor.total_logs_received|floatformat:0 }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>{% trans "Log/Dakika" %}:</strong></td>
+                            <td>{{ monitor.logs_per_minute }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>{% trans "Ortalama Boyut" %}:</strong></td>
+                            <td>{{ monitor.average_log_size }} B</td>
+                        </tr>
+                        <tr>
+                            <td><strong>{% trans "Son Log" %}:</strong></td>
+                            <td>
+                                {% if monitor.last_log_received %}
+                                    {{ monitor.last_log_received|timesince }} {% trans "önce" %}
+                                {% else %}
+                                    <span class="text-muted">{% trans "Hiç" %}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>{% trans "Son Heartbeat" %}:</strong></td>
+                            <td>
+                                {% if monitor.last_heartbeat %}
+                                    {{ monitor.last_heartbeat|timesince }} {% trans "önce" %}
+                                {% else %}
+                                    <span class="text-muted">{% trans "Hiç" %}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Yardım -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-question-circle me-2"></i>{% trans "Yardım" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6>{% trans "Monitor Tipleri" %}:</h6>
+                    <ul class="list-unstyled small">
+                        <li><strong>Syslog:</strong> {% trans "Syslog sunucuları" %}</li>
+                        <li><strong>Firewall:</strong> {% trans "Güvenlik duvarları" %}</li>
+                        <li><strong>Hotspot:</strong> {% trans "Hotspot sistemleri" %}</li>
+                        <li><strong>Mirror:</strong> {% trans "Ağ trafiği" %}</li>
+                        <li><strong>Timestamp:</strong> {% trans "Zaman damgası servisleri" %}</li>
+                        <li><strong>Genel:</strong> {% trans "Diğer log kaynakları" %}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -72,15 +72,28 @@ def signatures_list(request, company_slug):
     if not (CompanyUser.objects.filter(user=request.user, company=company).exists() or request.user.is_superuser):
         return HttpResponseForbidden("Yetkisiz erişim.")
     
-    # Şimdilik boş liste
-    signatures = []
+    # Gerçek imza listesi
+    signatures = TimestampSignature.objects.filter(company=company).order_by('-created_at')
     
     # Filtreleme
     status = request.GET.get('status')
     authority = request.GET.get('authority')
     search = request.GET.get('search')
     
-    # Sayfalama (şimdilik boş)
+    if status and status != 'all':
+        signatures = signatures.filter(status=status)
+    
+    if authority and authority != 'all':
+        signatures = signatures.filter(authority_id=authority)
+    
+    if search:
+        signatures = signatures.filter(
+            Q(log_entry__ad_soyad__icontains=search) |
+            Q(log_entry__tc_no__icontains=search) |
+            Q(serial_number__icontains=search)
+        )
+    
+    # Sayfalama
     from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
     paginator = Paginator(signatures, 50)
     page_number = request.GET.get('page')

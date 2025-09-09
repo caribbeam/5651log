@@ -1,0 +1,115 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "İbraz Raporları" %} - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="reports-list">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-gavel me-2"></i>{% trans "İbraz Raporları" %}
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'evidence_reports:dashboard' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri" %}
+            </a>
+            <a href="{% url 'evidence_reports:report_add' company.slug %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>{% trans "Yeni Rapor" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Raporlar Tablosu -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-list me-2"></i>{% trans "Tüm Raporlar" %}
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if reports %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Talep No" %}</th>
+                                <th>{% trans "Rapor Başlığı" %}</th>
+                                <th>{% trans "Tip" %}</th>
+                                <th>{% trans "Durum" %}</th>
+                                <th>{% trans "Öncelik" %}</th>
+                                <th>{% trans "Oluşturulma" %}</th>
+                                <th>{% trans "İşlemler" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for report in reports %}
+                            <tr>
+                                <td>{{ report.request_number }}</td>
+                                <td>{{ report.report_title }}</td>
+                                <td><span class="badge bg-info">{{ report.get_report_type_display }}</span></td>
+                                <td>
+                                    {% if report.status == 'DELIVERED' %}
+                                        <span class="badge bg-success">{% trans "Teslim Edildi" %}</span>
+                                    {% elif report.status == 'GENERATED' %}
+                                        <span class="badge bg-info">{% trans "Oluşturuldu" %}</span>
+                                    {% elif report.status == 'APPROVED' %}
+                                        <span class="badge bg-primary">{% trans "Onaylandı" %}</span>
+                                    {% elif report.status == 'PENDING_APPROVAL' %}
+                                        <span class="badge bg-warning">{% trans "Onay Bekliyor" %}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{% trans "Taslak" %}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if report.priority == 'CRITICAL' %}
+                                        <span class="badge bg-danger">{% trans "Kritik" %}</span>
+                                    {% elif report.priority == 'HIGH' %}
+                                        <span class="badge bg-warning">{% trans "Yüksek" %}</span>
+                                    {% elif report.priority == 'NORMAL' %}
+                                        <span class="badge bg-info">{% trans "Normal" %}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{% trans "Düşük" %}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ report.created_at|date:'d.m.Y H:i:s' }}</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a href="{% url 'evidence_reports:report_detail' company.slug report.id %}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% if report.status == 'DRAFT' %}
+                                            <a href="{% url 'evidence_reports:report_edit' company.slug report.id %}" 
+                                               class="btn btn-sm btn-outline-warning">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        {% endif %}
+                                        {% if report.generated_file %}
+                                            <a href="{% url 'evidence_reports:report_download' company.slug report.id %}" 
+                                               class="btn btn-sm btn-outline-success">
+                                                <i class="fas fa-download"></i>
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-gavel fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">{% trans "Henüz ibraz raporu bulunmuyor" %}</h5>
+                    <p class="text-muted">{% trans "İlk ibraz raporunuzu oluşturmak için yukarıdaki butonu kullanın." %}</p>
+                    <a href="{% url 'evidence_reports:report_add' company.slug %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>{% trans "İlk Raporu Oluştur" %}
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

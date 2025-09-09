@@ -1,0 +1,163 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Yeni Depolama Alanı Oluştur" %} - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="storage-add">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-plus me-2"></i>{% trans "Yeni Depolama Alanı Oluştur" %}
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'archiving_policy:storage_list' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Depolama Oluşturma Formu -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-hdd me-2"></i>{% trans "Depolama Bilgileri" %}
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Depolama Adı" %} <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="name" 
+                                   placeholder="{% trans 'Depolama adını girin' %}" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Depolama Tipi" %} <span class="text-danger">*</span></label>
+                            <select class="form-select" name="storage_type" required>
+                                <option value="">{% trans "Depolama tipi seçin" %}</option>
+                                <option value="LOCAL">{% trans "Yerel Depolama" %}</option>
+                                <option value="WORM">{% trans "WORM Disk" %}</option>
+                                <option value="CLOUD">{% trans "Bulut Depolama" %}</option>
+                                <option value="TAPE">{% trans "Tape Depolama" %}</option>
+                                <option value="HYBRID">{% trans "Hibrit Depolama" %}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">{% trans "Depolama Yolu" %} <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="storage_path" 
+                           placeholder="{% trans 'Örn: /var/archive, s3://bucket, //server/path' %}" required>
+                    <div class="form-text">{% trans "Depolama alanının tam yolu" %}</div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Toplam Kapasite (GB)" %} <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="total_capacity_gb" 
+                                   value="1000" min="1" max="100000" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Kullanılan Kapasite (GB)" %}</label>
+                            <input type="number" class="form-control" name="used_capacity_gb" 
+                                   value="0" min="0" max="100000">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Özellikler -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="card-title mb-0">{% trans "Güvenlik Özellikleri" %}</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="is_encrypted" id="isEncrypted" checked>
+                                    <label class="form-check-label" for="isEncrypted">
+                                        <i class="fas fa-lock me-2"></i>{% trans "Şifreleme Aktif" %}
+                                    </label>
+                                    <div class="form-text">{% trans "Depolanan veriler şifrelenecek" %}</div>
+                                </div>
+                                
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="is_compressed" id="isCompressed" checked>
+                                    <label class="form-check-label" for="isCompressed">
+                                        <i class="fas fa-compress me-2"></i>{% trans "Sıkıştırma Aktif" %}
+                                    </label>
+                                    <div class="form-text">{% trans "Veriler sıkıştırılarak depolanacak" %}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="card-title mb-0">{% trans "WORM Disk Özellikleri" %}</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="is_worm" id="isWorm">
+                                    <label class="form-check-label" for="isWorm">
+                                        <i class="fas fa-shield-alt me-2"></i>{% trans "WORM Disk Aktif" %}
+                                    </label>
+                                    <div class="form-text">{% trans "Write Once, Read Many - Sadece bir kez yazılabilir" %}</div>
+                                </div>
+                                
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="worm_append_only" id="wormAppendOnly">
+                                    <label class="form-check-label" for="wormAppendOnly">
+                                        <i class="fas fa-plus-circle me-2"></i>{% trans "Sadece Ekleme" %}
+                                    </label>
+                                    <div class="form-text">{% trans "Mevcut veriler değiştirilemez, sadece yeni veri eklenebilir" %}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <a href="{% url 'archiving_policy:storage_list' company.slug %}" 
+                       class="btn btn-secondary">
+                        <i class="fas fa-times me-2"></i>{% trans "İptal" %}
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>{% trans "Depolama Oluştur" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const wormCheckbox = document.getElementById('isWorm');
+    const appendOnlyCheckbox = document.getElementById('wormAppendOnly');
+    
+    // WORM checkbox değiştiğinde append-only'i kontrol et
+    wormCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            appendOnlyCheckbox.checked = true;
+        }
+        appendOnlyCheckbox.disabled = !this.checked;
+    });
+    
+    // Sayfa yüklendiğinde append-only'i kontrol et
+    appendOnlyCheckbox.disabled = !wormCheckbox.checked;
+});
+</script>
+{% endblock %}

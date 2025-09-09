@@ -1,0 +1,106 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Arşivleme İşleri" %} - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="jobs-list">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-tasks me-2"></i>{% trans "Arşivleme İşleri" %}
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'archiving_policy:dashboard' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- İşler Tablosu -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-list me-2"></i>{% trans "Tüm İşler" %}
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if jobs %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>{% trans "İş Adı" %}</th>
+                                <th>{% trans "Politika" %}</th>
+                                <th>{% trans "Durum" %}</th>
+                                <th>{% trans "Başlangıç" %}</th>
+                                <th>{% trans "Bitiş" %}</th>
+                                <th>{% trans "Süre" %}</th>
+                                <th>{% trans "İşlenen Kayıt" %}</th>
+                                <th>{% trans "İşlemler" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for job in jobs %}
+                            <tr>
+                                <td>{{ job.job_name }}</td>
+                                <td>
+                                    <a href="{% url 'archiving_policy:policy_detail' company.slug job.policy.id %}" 
+                                       class="text-decoration-none">
+                                        {{ job.policy.name }}
+                                    </a>
+                                </td>
+                                <td>
+                                    {% if job.status == 'COMPLETED' %}
+                                        <span class="badge bg-success">{% trans "Tamamlandı" %}</span>
+                                    {% elif job.status == 'RUNNING' %}
+                                        <span class="badge bg-primary">{% trans "Çalışıyor" %}</span>
+                                    {% elif job.status == 'FAILED' %}
+                                        <span class="badge bg-danger">{% trans "Başarısız" %}</span>
+                                    {% elif job.status == 'CANCELLED' %}
+                                        <span class="badge bg-warning">{% trans "İptal Edildi" %}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{% trans "Bekliyor" %}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ job.start_time|date:'d.m.Y H:i'|default:"-" }}</td>
+                                <td>{{ job.end_time|date:'d.m.Y H:i'|default:"-" }}</td>
+                                <td>
+                                    {% if job.duration %}
+                                        {{ job.duration }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>{{ job.total_records_processed|default:0 }}</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a href="{% url 'archiving_policy:job_detail' company.slug job.id %}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% if job.status == 'RUNNING' %}
+                                            <a href="{% url 'archiving_policy:job_cancel' company.slug job.id %}" 
+                                               class="btn btn-sm btn-outline-warning">
+                                                <i class="fas fa-stop"></i>
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-tasks fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">{% trans "Henüz arşivleme işi bulunmuyor" %}</h5>
+                    <p class="text-muted">{% trans "Arşivleme politikaları çalıştırıldığında işler burada görünecek." %}</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

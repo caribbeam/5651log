@@ -1,0 +1,133 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Yeni Arşivleme Politikası Oluştur" %} - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="policy-add">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-plus me-2"></i>{% trans "Yeni Arşivleme Politikası Oluştur" %}
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'archiving_policy:dashboard' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Politika Oluşturma Formu -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-archive me-2"></i>{% trans "Politika Bilgileri" %}
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Politika Adı" %} <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="name" 
+                                   placeholder="{% trans 'Politika adını girin' %}" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Politika Tipi" %} <span class="text-danger">*</span></label>
+                            <select class="form-select" name="policy_type" required>
+                                <option value="">{% trans "Politika tipi seçin" %}</option>
+                                <option value="LOG_RETENTION">{% trans "Log Saklama" %}</option>
+                                <option value="DATA_ARCHIVING">{% trans "Veri Arşivleme" %}</option>
+                                <option value="BACKUP_RETENTION">{% trans "Yedek Saklama" %}</option>
+                                <option value="COMPLIANCE_ARCHIVING">{% trans "Uyumluluk Arşivleme" %}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Saklama Süresi (Yıl)" %}</label>
+                            <input type="number" class="form-control" name="retention_period_years" 
+                                   value="2" min="0" max="10">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Saklama Süresi (Ay)" %}</label>
+                            <input type="number" class="form-control" name="retention_period_months" 
+                                   value="0" min="0" max="11">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Saklama Süresi (Gün)" %}</label>
+                            <input type="number" class="form-control" name="retention_period_days" 
+                                   value="0" min="0" max="30">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Depolama Tipi" %} <span class="text-danger">*</span></label>
+                            <select class="form-select" name="storage_type" required>
+                                <option value="">{% trans "Depolama tipi seçin" %}</option>
+                                <option value="LOCAL">{% trans "Yerel Depolama" %}</option>
+                                <option value="WORM">{% trans "WORM Disk" %}</option>
+                                <option value="CLOUD">{% trans "Bulut Depolama" %}</option>
+                                <option value="TAPE">{% trans "Tape Depolama" %}</option>
+                                <option value="HYBRID">{% trans "Hibrit Depolama" %}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Temizleme Zamanlaması" %}</label>
+                            <select class="form-select" name="cleanup_schedule">
+                                <option value="DAILY">{% trans "Günlük" %}</option>
+                                <option value="WEEKLY" selected>{% trans "Haftalık" %}</option>
+                                <option value="MONTHLY">{% trans "Aylık" %}</option>
+                                <option value="QUARTERLY">{% trans "Üç Aylık" %}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">{% trans "Açıklama" %}</label>
+                    <textarea class="form-control" name="description" rows="4" 
+                              placeholder="{% trans 'Politika hakkında detaylı açıklama' %}"></textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="is_active" id="isActive" checked>
+                        <label class="form-check-label" for="isActive">
+                            {% trans "Politikayı aktif olarak işaretle" %}
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'archiving_policy:dashboard' company.slug %}" 
+                       class="btn btn-secondary">
+                        <i class="fas fa-times me-2"></i>{% trans "İptal" %}
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>{% trans "Politika Oluştur" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

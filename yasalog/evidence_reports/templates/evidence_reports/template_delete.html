@@ -1,0 +1,92 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Şablon Sil" %} - {{ template.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="template-delete">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-trash me-2"></i>{% trans "Şablon Sil" %}
+            <small class="text-muted">- {{ template.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'evidence_reports:templates_list' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Silme Onayı -->
+    <div class="card">
+        <div class="card-header bg-danger text-white">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-exclamation-triangle me-2"></i>{% trans "Şablon Silme Onayı" %}
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>{% trans "Dikkat!" %}</strong> {% trans "Bu işlem geri alınamaz. Şablonu silmek istediğinizden emin misiniz?" %}
+            </div>
+            
+            <!-- Şablon Bilgileri -->
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>{% trans "Şablon Bilgileri" %}</h6>
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>{% trans "Ad:" %}</strong></td>
+                            <td>{{ template.name }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>{% trans "Tip:" %}</strong></td>
+                            <td>{{ template.get_report_type_display }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>{% trans "Durum:" %}</strong></td>
+                            <td>
+                                {% if template.is_active %}
+                                    <span class="badge bg-success">{% trans "Aktif" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{% trans "Pasif" %}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>{% trans "Oluşturulma:" %}</strong></td>
+                            <td>{{ template.created_at|date:"d.m.Y H:i" }}</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    {% if template.description %}
+                    <h6>{% trans "Açıklama" %}</h6>
+                    <p class="text-muted">{{ template.description }}</p>
+                    {% endif %}
+                    
+                    <h6>{% trans "İçerik Önizleme" %}</h6>
+                    <div class="bg-light p-3 rounded" style="max-height: 200px; overflow-y: auto;">
+                        <small class="text-muted">{{ template.template_content|truncatechars:300 }}</small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Silme Formu -->
+            <form method="post" class="mt-4">
+                {% csrf_token %}
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'evidence_reports:templates_list' company.slug %}" 
+                       class="btn btn-secondary">
+                        <i class="fas fa-times me-2"></i>{% trans "İptal" %}
+                    </a>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>{% trans "Evet, Sil" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

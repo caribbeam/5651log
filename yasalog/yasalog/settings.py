@@ -269,3 +269,12 @@ LOGGING = {
         },
     },
 }
+
+# E-posta ayarları
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Development için console'a yazdır
+EMAIL_HOST = 'localhost'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+DEFAULT_FROM_EMAIL = 'noreply@5651log.com'

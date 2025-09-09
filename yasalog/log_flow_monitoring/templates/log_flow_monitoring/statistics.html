@@ -1,0 +1,192 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "İstatistikler" %} - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="statistics">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-chart-bar me-2"></i>{% trans "Log Akış İstatistikleri" %}
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'log_flow_monitoring:dashboard' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- İstatistik Kartları -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ statistics|length }}</h4>
+                            <p class="mb-0">{% trans "Toplam Kayıt" %}</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-database fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">
+                                {% if statistics %}
+                                    {% for stat in statistics|slice:":1" %}
+                                        {{ stat.total_logs|floatformat:0 }}
+                                    {% endfor %}
+                                {% else %}
+                                    0
+                                {% endif %}
+                            </h4>
+                            <p class="mb-0">{% trans "Toplam Log" %}</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-file-alt fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">
+                                {% if statistics %}
+                                    {% for stat in statistics|slice:":1" %}
+                                        {{ stat.total_bytes|filesizeformat }}
+                                    {% endfor %}
+                                {% else %}
+                                    0 B
+                                {% endif %}
+                            </h4>
+                            <p class="mb-0">{% trans "Toplam Boyut" %}</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-hdd fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">
+                                {% if statistics %}
+                                    {% for stat in statistics|slice:":1" %}
+                                        {{ stat.peak_logs_per_minute }}
+                                    {% endfor %}
+                                {% else %}
+                                    0
+                                {% endif %}
+                            </h4>
+                            <p class="mb-0">{% trans "Pik Log/Dakika" %}</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-chart-line fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- İstatistik Tablosu -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-table me-2"></i>{% trans "Detaylı İstatistikler" %}
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if statistics %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Monitör" %}</th>
+                                <th>{% trans "Tarih" %}</th>
+                                <th>{% trans "Saat" %}</th>
+                                <th>{% trans "Toplam Log" %}</th>
+                                <th>{% trans "Toplam Boyut" %}</th>
+                                <th>{% trans "Ortalama Boyut" %}</th>
+                                <th>{% trans "Pik Log/Dakika" %}</th>
+                                <th>{% trans "Uptime" %}</th>
+                                <th>{% trans "Uyarı Sayısı" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stat in statistics|slice:":50" %}
+                            <tr>
+                                <td>
+                                    <span class="badge bg-info">{{ stat.monitor.name }}</span>
+                                </td>
+                                <td>{{ stat.date|date:"d.m.Y" }}</td>
+                                <td>{{ stat.hour }}:00</td>
+                                <td>
+                                    <span class="badge bg-primary">{{ stat.total_logs|floatformat:0 }}</span>
+                                </td>
+                                <td>{{ stat.total_bytes|filesizeformat }}</td>
+                                <td>{{ stat.average_log_size }} B</td>
+                                <td>
+                                    <span class="badge bg-warning">{{ stat.peak_logs_per_minute }}</span>
+                                </td>
+                                <td>
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar bg-success" role="progressbar" 
+                                             style="width: {{ stat.uptime_minutes }}%"
+                                             aria-valuenow="{{ stat.uptime_minutes }}" 
+                                             aria-valuemin="0" aria-valuemax="60">
+                                            {{ stat.uptime_minutes }}m
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if stat.alert_count > 0 %}
+                                        <span class="badge bg-danger">{{ stat.alert_count }}</span>
+                                    {% else %}
+                                        <span class="badge bg-success">0</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {% if statistics|length > 50 %}
+                    <div class="text-center mt-3">
+                        <p class="text-muted">
+                            {% trans "İlk 50 kayıt gösteriliyor. Tüm kayıtları görmek için filtreleme kullanın." %}
+                        </p>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">{% trans "Henüz istatistik bulunmuyor" %}</h5>
+                    <p class="text-muted">{% trans "Monitörler çalışmaya başladığında istatistikler burada görünecek." %}</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

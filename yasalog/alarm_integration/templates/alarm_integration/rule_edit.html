@@ -1,0 +1,226 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}Kural Düzenle - {{ rule.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="rule-edit">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-edit me-2"></i>Kural Düzenle
+            <small class="text-muted">- {{ rule.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'alarm_integration:rule_detail' company.slug rule.id %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Geri
+            </a>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-cogs me-2"></i>Kural Bilgileri
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Kural Adı" %} <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="name" 
+                                   value="{{ rule.name }}" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Alarm Tipi" %} <span class="text-danger">*</span></label>
+                            <select class="form-select" name="rule_type" required>
+                                <option value="">{% trans "Alarm tipi seçin" %}</option>
+                                <option value="SIGNING_FAILED" {% if rule.alarm_type == 'SIGNING_FAILED' %}selected{% endif %}>{% trans "İmzalama Başarısız" %}</option>
+                                <option value="DISK_FULL" {% if rule.alarm_type == 'DISK_FULL' %}selected{% endif %}>{% trans "Disk Dolu" %}</option>
+                                <option value="NTP_DRIFT" {% if rule.alarm_type == 'NTP_DRIFT' %}selected{% endif %}>{% trans "NTP Sapması" %}</option>
+                                <option value="LOG_FLOW_STOPPED" {% if rule.alarm_type == 'LOG_FLOW_STOPPED' %}selected{% endif %}>{% trans "Log Akışı Durdu" %}</option>
+                                <option value="DEVICE_OFFLINE" {% if rule.alarm_type == 'DEVICE_OFFLINE' %}selected{% endif %}>{% trans "Cihaz Çevrimdışı" %}</option>
+                                <option value="HIGH_CPU_USAGE" {% if rule.alarm_type == 'HIGH_CPU_USAGE' %}selected{% endif %}>{% trans "Yüksek CPU Kullanımı" %}</option>
+                                <option value="HIGH_MEMORY_USAGE" {% if rule.alarm_type == 'HIGH_MEMORY_USAGE' %}selected{% endif %}>{% trans "Yüksek Bellek Kullanımı" %}</option>
+                                <option value="NETWORK_ERROR" {% if rule.alarm_type == 'NETWORK_ERROR' %}selected{% endif %}>{% trans "Ağ Hatası" %}</option>
+                                <option value="SECURITY_THREAT" {% if rule.alarm_type == 'SECURITY_THREAT' %}selected{% endif %}>{% trans "Güvenlik Tehdidi" %}</option>
+                                <option value="COMPLIANCE_VIOLATION" {% if rule.alarm_type == 'COMPLIANCE_VIOLATION' %}selected{% endif %}>{% trans "Uyumluluk İhlali" %}</option>
+                                <option value="BACKUP_FAILED" {% if rule.alarm_type == 'BACKUP_FAILED' %}selected{% endif %}>{% trans "Yedekleme Başarısız" %}</option>
+                                <option value="CUSTOM" {% if rule.alarm_type == 'CUSTOM' %}selected{% endif %}>{% trans "Özel" %}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Önem Seviyesi" %} <span class="text-danger">*</span></label>
+                            <select class="form-select" name="severity" required>
+                                <option value="">{% trans "Önem seviyesi seçin" %}</option>
+                                <option value="LOW" {% if rule.severity == 'LOW' %}selected{% endif %}>{% trans "Düşük" %}</option>
+                                <option value="MEDIUM" {% if rule.severity == 'MEDIUM' %}selected{% endif %}>{% trans "Orta" %}</option>
+                                <option value="HIGH" {% if rule.severity == 'HIGH' %}selected{% endif %}>{% trans "Yüksek" %}</option>
+                                <option value="CRITICAL" {% if rule.severity == 'CRITICAL' %}selected{% endif %}>{% trans "Kritik" %}</option>
+                                <option value="EMERGENCY" {% if rule.severity == 'EMERGENCY' %}selected{% endif %}>{% trans "Acil" %}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Koşul" %} <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="condition" 
+                                   value="{{ rule.condition }}" placeholder="{% trans 'Örn: error_count > 10' %}" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Eşik Değeri" %}</label>
+                            <input type="number" class="form-control" name="threshold_value" 
+                                   value="{{ rule.threshold_value|default:'' }}" step="0.1">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Zaman Penceresi (dakika)" %}</label>
+                            <input type="number" class="form-control" name="time_window_minutes" 
+                                   value="{{ rule.time_window_minutes }}" min="1" max="1440">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">{% trans "Açıklama" %}</label>
+                    <textarea class="form-control" name="description" rows="4">{{ rule.description }}</textarea>
+                </div>
+
+                <!-- Bildirim Ayarları -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">{% trans "Bildirim Ayarları" %}</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="notification_enabled" id="notificationEnabled" {% if rule.notify_email %}checked{% endif %}>
+                                    <label class="form-check-label" for="notificationEnabled">
+                                        <i class="fas fa-envelope me-2"></i>{% trans "E-posta" %}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="notify_sms" id="notifySms" {% if rule.notify_sms %}checked{% endif %}>
+                                    <label class="form-check-label" for="notifySms">
+                                        <i class="fas fa-sms me-2"></i>{% trans "SMS" %}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="notify_webhook" id="notifyWebhook" {% if rule.notify_webhook %}checked{% endif %}>
+                                    <label class="form-check-label" for="notifyWebhook">
+                                        <i class="fas fa-link me-2"></i>{% trans "Webhook" %}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="notify_dashboard" id="notifyDashboard" {% if rule.notify_dashboard %}checked{% endif %}>
+                                    <label class="form-check-label" for="notifyDashboard">
+                                        <i class="fas fa-tachometer-alt me-2"></i>{% trans "Dashboard" %}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">{% trans "E-posta Alıcıları" %}</label>
+                                    <textarea class="form-control" name="notification_recipients" rows="3">{{ rule.email_recipients }}</textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">{% trans "SMS Alıcıları" %}</label>
+                                    <textarea class="form-control" name="sms_recipients" rows="3">{{ rule.sms_recipients }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Webhook URL" %}</label>
+                            <input type="url" class="form-control" name="webhook_url" value="{{ rule.webhook_url }}">
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="repeat_notification" id="repeatNotification" {% if rule.repeat_notification %}checked{% endif %}>
+                                    <label class="form-check-label" for="repeatNotification">
+                                        <i class="fas fa-redo me-2"></i>{% trans "Tekrar Bildirim" %}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{% trans "Tekrar Aralığı (dakika)" %}</label>
+                                    <input type="number" class="form-control" name="repeat_interval_minutes" 
+                                           value="{{ rule.repeat_interval_minutes }}" min="1" max="1440">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{% trans "Maksimum Tekrar" %}</label>
+                                    <input type="number" class="form-control" name="max_repeat_count" 
+                                           value="{{ rule.max_repeat_count }}" min="1" max="100">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="is_active" id="isActive" {% if rule.is_active %}checked{% endif %}>
+                                    <label class="form-check-label" for="isActive">
+                                        <i class="fas fa-check-circle me-2"></i>{% trans "Kural Aktif" %}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="is_enabled" id="isEnabled" {% if rule.is_enabled %}checked{% endif %}>
+                                    <label class="form-check-label" for="isEnabled">
+                                        <i class="fas fa-power-off me-2"></i>{% trans "Kural Etkin" %}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <a href="{% url 'alarm_integration:rule_detail' company.slug rule.id %}" class="btn btn-secondary">
+                        <i class="fas fa-times me-2"></i>{% trans "İptal" %}
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>{% trans "Güncelle" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

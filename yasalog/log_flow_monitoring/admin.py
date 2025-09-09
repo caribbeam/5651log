@@ -11,7 +11,7 @@ class LogFlowMonitorAdmin(admin.ModelAdmin):
     
     fieldsets = (
         ('Temel Bilgiler', {
-            'fields': ('company', 'name', 'monitor_type', 'description')
+            'fields': ('company', 'name', 'monitor_type')
         }),
         ('İzleme Ayarları', {
             'fields': ('source_device', 'source_ip', 'source_port')

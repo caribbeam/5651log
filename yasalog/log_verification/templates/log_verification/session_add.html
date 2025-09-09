@@ -1,0 +1,209 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Yeni Doğrulama Oturumu" %} - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="session-add">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-plus me-2"></i>{% trans "Yeni Doğrulama Oturumu" %}
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'log_verification:sessions_list' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-clipboard-list me-2"></i>{% trans "Oturum Bilgileri" %}
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data" id="sessionForm">
+                {% csrf_token %}
+                
+                <!-- Temel Bilgiler -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label">{% trans "Oturum Adı" %} <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="session_name" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">{% trans "Doğrulama Tipi" %}</label>
+                        <select class="form-select" name="verification_type">
+                            <option value="COMPLETE_VERIFICATION" selected>{% trans "Tam Doğrulama" %}</option>
+                            <option value="HASH_VERIFICATION">{% trans "Hash Doğrulama" %}</option>
+                            <option value="SIGNATURE_VERIFICATION">{% trans "İmza Doğrulama" %}</option>
+                            <option value="INTEGRITY_CHECK">{% trans "Bütünlük Kontrolü" %}</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">{% trans "Açıklama" %}</label>
+                    <textarea class="form-control" name="description" rows="3" placeholder="{% trans 'Oturum açıklaması...' %}"></textarea>
+                </div>
+
+                <!-- Dosya Yükleme -->
+                <div class="mb-4">
+                    <h6>{% trans "Log Dosyası" %}</h6>
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Dosya Seç" %} <span class="text-danger">*</span></label>
+                        <input type="file" class="form-control" name="uploaded_file" accept=".log,.csv,.txt" required>
+                        <div class="form-text">{% trans "Desteklenen formatlar: .log, .csv, .txt" %}</div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>{% trans "Dosya Formatı:" %}</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>{% trans "Her satır bir log kaydı olmalıdır" %}</li>
+                            <li>{% trans "CSV formatında başlık satırı opsiyoneldir" %}</li>
+                            <li>{% trans "Maksimum dosya boyutu: 100MB" %}</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Doğrulama Ayarları -->
+                <div class="mb-4">
+                    <h6>{% trans "Doğrulama Ayarları" %}</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="auto_start" id="auto_start">
+                                <label class="form-check-label" for="auto_start">
+                                    {% trans "Otomatik Başlat" %}
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="generate_report" id="generate_report" checked>
+                                <label class="form-check-label" for="generate_report">
+                                    {% trans "Otomatik Rapor Oluştur" %}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="notify_completion" id="notify_completion">
+                                <label class="form-check-label" for="notify_completion">
+                                    {% trans "Tamamlandığında Bildir" %}
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="save_results" id="save_results" checked>
+                                <label class="form-check-label" for="save_results">
+                                    {% trans "Sonuçları Kaydet" %}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rapor Ayarları -->
+                <div class="mb-4">
+                    <h6>{% trans "Rapor Ayarları" %}</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Rapor Formatı" %}</label>
+                            <select class="form-select" name="report_format">
+                                <option value="PDF" selected>PDF</option>
+                                <option value="CSV">CSV</option>
+                                <option value="JSON">JSON</option>
+                                <option value="XML">XML</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Rapor Tipi" %}</label>
+                            <select class="form-select" name="report_type">
+                                <option value="SUMMARY" selected>{% trans "Özet Rapor" %}</option>
+                                <option value="DETAILED">{% trans "Detaylı Rapor" %}</option>
+                                <option value="COMPLIANCE">{% trans "Uyumluluk Raporu" %}</option>
+                                <option value="EVIDENCE">{% trans "İbraz Raporu" %}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bildirim Ayarları -->
+                <div class="mb-4">
+                    <h6>{% trans "Bildirim Ayarları" %}</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "E-posta Adresleri" %}</label>
+                            <textarea class="form-control" name="notification_emails" rows="2" 
+                                      placeholder="{% trans 'email1@example.com, email2@example.com' %}"></textarea>
+                            <div class="form-text">{% trans "Virgülle ayırarak birden fazla e-posta girebilirsiniz" %}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Bildirim Seviyesi" %}</label>
+                            <select class="form-select" name="notification_level">
+                                <option value="ALL" selected>{% trans "Tüm Durumlar" %}</option>
+                                <option value="ERRORS">{% trans "Sadece Hatalar" %}</option>
+                                <option value="COMPLETION">{% trans "Sadece Tamamlanma" %}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Butonlar -->
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'log_verification:sessions_list' company.slug %}" class="btn btn-secondary">
+                        <i class="fas fa-times me-2"></i>{% trans "İptal" %}
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>{% trans "Oluştur" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('sessionForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const fileInput = formData.get('uploaded_file');
+    
+    // Dosya boyutu kontrolü (100MB)
+    if (fileInput && fileInput.size > 100 * 1024 * 1024) {
+        alert('{% trans "Dosya boyutu 100MB\'dan büyük olamaz." %}');
+        return;
+    }
+    
+    // AJAX ile gönder
+    fetch('{% url "log_verification:session_add" company.slug %}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (response.ok) {
+            window.location.href = '{% url "log_verification:sessions_list" company.slug %}';
+        } else {
+            alert('{% trans "Hata oluştu. Lütfen tekrar deneyin." %}');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('{% trans "Hata oluştu. Lütfen tekrar deneyin." %}');
+    });
+});
+
+// Dosya seçildiğinde bilgi göster
+document.querySelector('input[name="uploaded_file"]').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const fileSize = (file.size / 1024 / 1024).toFixed(2);
+        console.log(`Seçilen dosya: ${file.name}, Boyut: ${fileSize}MB`);
+    }
+});
+</script>
+{% endblock %}

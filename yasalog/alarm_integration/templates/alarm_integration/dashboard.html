@@ -112,7 +112,7 @@
                             </a>
                         </div>
                         <div class="col-md-3">
-                            <a href="/admin/alarm_integration/alarmrule/add/" class="btn btn-success btn-block" target="_blank">
+                            <a href="{% url 'alarm_integration:rule_add' company.slug %}" class="btn btn-success btn-block">
                                 <i class="fas fa-plus me-2"></i>{% trans "Yeni Kural" %}
                             </a>
                         </div>

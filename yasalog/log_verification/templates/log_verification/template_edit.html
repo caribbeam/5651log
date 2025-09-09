@@ -1,0 +1,248 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Şablon Düzenle" %} - {{ template.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="template-edit">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-edit me-2"></i>{% trans "Şablon Düzenle" %}
+            <small class="text-muted">- {{ template.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'log_verification:templates_list' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-file-alt me-2"></i>{% trans "Şablon Bilgileri" %}
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="post" id="templateForm">
+                {% csrf_token %}
+                
+                <!-- Temel Bilgiler -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label">{% trans "Şablon Adı" %} <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="name" value="{{ template.name }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">{% trans "Hash Algoritması" %}</label>
+                        <select class="form-select" name="hash_algorithm">
+                            <option value="MD5" {% if template.hash_algorithm == 'MD5' %}selected{% endif %}>MD5</option>
+                            <option value="SHA1" {% if template.hash_algorithm == 'SHA1' %}selected{% endif %}>SHA1</option>
+                            <option value="SHA256" {% if template.hash_algorithm == 'SHA256' %}selected{% endif %}>SHA256</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">{% trans "Açıklama" %}</label>
+                    <textarea class="form-control" name="description" rows="3" placeholder="{% trans 'Şablon açıklaması...' %}">{{ template.description }}</textarea>
+                </div>
+
+                <!-- Doğrulama Kuralları -->
+                <div class="mb-4">
+                    <h6>{% trans "Doğrulama Kuralları" %}</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="hash_verification" id="hash_verification" 
+                                       {% if template.verification_rules.hash_verification %}checked{% endif %}>
+                                <label class="form-check-label" for="hash_verification">
+                                    {% trans "Hash Doğrulama" %}
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="signature_verification" id="signature_verification"
+                                       {% if template.verification_rules.signature_verification %}checked{% endif %}>
+                                <label class="form-check-label" for="signature_verification">
+                                    {% trans "İmza Doğrulama" %}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="integrity_check" id="integrity_check"
+                                       {% if template.verification_rules.integrity_check %}checked{% endif %}>
+                                <label class="form-check-label" for="integrity_check">
+                                    {% trans "Bütünlük Kontrolü" %}
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="timestamp_validation" id="timestamp_validation"
+                                       {% if template.verification_rules.timestamp_validation %}checked{% endif %}>
+                                <label class="form-check-label" for="timestamp_validation">
+                                    {% trans "Zaman Damgası Doğrulama" %}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Zorunlu Alanlar -->
+                <div class="mb-4">
+                    <h6>{% trans "Zorunlu Alanlar" %}</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="required_timestamp" id="required_timestamp"
+                                       {% if 'timestamp' in template.required_fields %}checked{% endif %}>
+                                <label class="form-check-label" for="required_timestamp">
+                                    {% trans "Zaman Damgası (timestamp)" %}
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="required_user_id" id="required_user_id"
+                                       {% if 'user_id' in template.required_fields %}checked{% endif %}>
+                                <label class="form-check-label" for="required_user_id">
+                                    {% trans "Kullanıcı ID (user_id)" %}
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="required_action" id="required_action"
+                                       {% if 'action' in template.required_fields %}checked{% endif %}>
+                                <label class="form-check-label" for="required_action">
+                                    {% trans "İşlem (action)" %}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="required_ip_address" id="required_ip_address"
+                                       {% if 'ip_address' in template.required_fields %}checked{% endif %}>
+                                <label class="form-check-label" for="required_ip_address">
+                                    {% trans "IP Adresi (ip_address)" %}
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="required_result" id="required_result"
+                                       {% if 'result' in template.required_fields %}checked{% endif %}>
+                                <label class="form-check-label" for="required_result">
+                                    {% trans "Sonuç (result)" %}
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="required_details" id="required_details"
+                                       {% if 'details' in template.required_fields %}checked{% endif %}>
+                                <label class="form-check-label" for="required_details">
+                                    {% trans "Detaylar (details)" %}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rapor Ayarları -->
+                <div class="mb-4">
+                    <h6>{% trans "Rapor Ayarları" %}</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="auto_generate_report" id="auto_generate_report"
+                                       {% if template.auto_generate_report %}checked{% endif %}>
+                                <label class="form-check-label" for="auto_generate_report">
+                                    {% trans "Otomatik Rapor Oluştur" %}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Rapor Formatı" %}</label>
+                            <select class="form-select" name="report_format">
+                                <option value="PDF" {% if template.report_format == 'PDF' %}selected{% endif %}>PDF</option>
+                                <option value="CSV" {% if template.report_format == 'CSV' %}selected{% endif %}>CSV</option>
+                                <option value="JSON" {% if template.report_format == 'JSON' %}selected{% endif %}>JSON</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Durum -->
+                <div class="mb-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="is_active" id="is_active"
+                               {% if template.is_active %}checked{% endif %}>
+                        <label class="form-check-label" for="is_active">
+                            {% trans "Aktif" %}
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Butonlar -->
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'log_verification:templates_list' company.slug %}" class="btn btn-secondary">
+                        <i class="fas fa-times me-2"></i>{% trans "İptal" %}
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>{% trans "Güncelle" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('templateForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Form verilerini topla
+    const formData = new FormData(this);
+    
+    // Doğrulama kurallarını JSON olarak hazırla
+    const verificationRules = {
+        hash_verification: formData.get('hash_verification') === 'on',
+        signature_verification: formData.get('signature_verification') === 'on',
+        integrity_check: formData.get('integrity_check') === 'on',
+        timestamp_validation: formData.get('timestamp_validation') === 'on'
+    };
+    
+    // Zorunlu alanları array olarak hazırla
+    const requiredFields = [];
+    if (formData.get('required_timestamp') === 'on') requiredFields.push('timestamp');
+    if (formData.get('required_user_id') === 'on') requiredFields.push('user_id');
+    if (formData.get('required_action') === 'on') requiredFields.push('action');
+    if (formData.get('required_ip_address') === 'on') requiredFields.push('ip_address');
+    if (formData.get('required_result') === 'on') requiredFields.push('result');
+    if (formData.get('required_details') === 'on') requiredFields.push('details');
+    
+    // Yeni form data oluştur
+    const newFormData = new FormData();
+    newFormData.append('csrfmiddlewaretoken', formData.get('csrfmiddlewaretoken'));
+    newFormData.append('name', formData.get('name'));
+    newFormData.append('description', formData.get('description'));
+    newFormData.append('hash_algorithm', formData.get('hash_algorithm'));
+    newFormData.append('verification_rules', JSON.stringify(verificationRules));
+    newFormData.append('required_fields', JSON.stringify(requiredFields));
+    newFormData.append('auto_generate_report', formData.get('auto_generate_report') === 'on');
+    newFormData.append('report_format', formData.get('report_format'));
+    newFormData.append('is_active', formData.get('is_active') === 'on');
+    
+    // AJAX ile gönder
+    fetch('{% url "log_verification:template_edit" company.slug template.id %}', {
+        method: 'POST',
+        body: newFormData
+    })
+    .then(response => {
+        if (response.ok) {
+            window.location.href = '{% url "log_verification:templates_list" company.slug %}';
+        } else {
+            alert('{% trans "Hata oluştu. Lütfen tekrar deneyin." %}');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('{% trans "Hata oluştu. Lütfen tekrar deneyin." %}');
+    });
+});
+</script>
+{% endblock %}

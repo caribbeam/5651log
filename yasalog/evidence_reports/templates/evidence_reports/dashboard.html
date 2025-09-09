@@ -107,12 +107,12 @@
                             </a>
                         </div>
                         <div class="col-md-3">
-                            <a href="/admin/evidence_reports/evidencereport/add/" class="btn btn-success btn-block" target="_blank">
+                            <a href="{% url 'evidence_reports:report_add' company.slug %}" class="btn btn-success btn-block">
                                 <i class="fas fa-plus me-2"></i>{% trans "Yeni Rapor" %}
                             </a>
                         </div>
                         <div class="col-md-3">
-                            <a href="/admin/evidence_reports/evidencereporttemplate/add/" class="btn btn-warning btn-block" target="_blank">
+                            <a href="{% url 'evidence_reports:template_add' company.slug %}" class="btn btn-warning btn-block">
                                 <i class="fas fa-plus me-2"></i>{% trans "Yeni Şablon" %}
                             </a>
                         </div>

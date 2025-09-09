@@ -1,0 +1,253 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{{ monitor.name }} - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="monitor-detail">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-desktop me-2"></i>{{ monitor.name }}
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'log_flow_monitoring:monitors_list' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri" %}
+            </a>
+            <a href="{% url 'log_flow_monitoring:monitor_edit' company.slug monitor.id %}" class="btn btn-primary">
+                <i class="fas fa-edit me-2"></i>{% trans "Düzenle" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Monitör Bilgileri -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>{% trans "Monitör Bilgileri" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>{% trans "Monitör Adı" %}:</strong></td>
+                                    <td>{{ monitor.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{% trans "Tip" %}:</strong></td>
+                                    <td><span class="badge bg-info">{{ monitor.get_monitor_type_display }}</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{% trans "Durum" %}:</strong></td>
+                                    <td>
+                                        {% if monitor.status == 'ACTIVE' %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle me-1"></i>{% trans "Aktif" %}
+                                            </span>
+                                        {% elif monitor.status == 'WARNING' %}
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-exclamation-triangle me-1"></i>{% trans "Uyarı" %}
+                                            </span>
+                                        {% elif monitor.status == 'ERROR' %}
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-times-circle me-1"></i>{% trans "Hata" %}
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-pause-circle me-1"></i>{% trans "Pasif" %}
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{% trans "Aktif" %}:</strong></td>
+                                    <td>
+                                        {% if monitor.is_active %}
+                                            <span class="badge bg-success">{% trans "Evet" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{% trans "Hayır" %}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>{% trans "Kaynak Cihaz" %}:</strong></td>
+                                    <td>{{ monitor.source_device|default:"-" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{% trans "Kaynak IP" %}:</strong></td>
+                                    <td>
+                                        {% if monitor.source_ip %}
+                                            <code>{{ monitor.source_ip }}{% if monitor.source_port %}:{{ monitor.source_port }}{% endif %}</code>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{% trans "Log Alıyor" %}:</strong></td>
+                                    <td>
+                                        {% if monitor.is_receiving_logs %}
+                                            <span class="badge bg-success">{% trans "Evet" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">{% trans "Hayır" %}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{% trans "Oluşturulma" %}:</strong></td>
+                                    <td>{{ monitor.created_at|date:"d.m.Y H:i" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-line me-2"></i>{% trans "İstatistikler" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <h4 class="text-primary">{{ monitor.total_logs_received|floatformat:0 }}</h4>
+                            <small class="text-muted">{% trans "Toplam Log" %}</small>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <h4 class="text-success">{{ monitor.logs_per_minute }}</h4>
+                            <small class="text-muted">{% trans "Log/Dakika" %}</small>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <h4 class="text-info">{{ monitor.average_log_size }} B</h4>
+                            <small class="text-muted">{% trans "Ortalama Boyut" %}</small>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <h4 class="text-warning">{{ monitor.warning_threshold_minutes }}m</h4>
+                            <small class="text-muted">{% trans "Uyarı Eşiği" %}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Zaman Bilgileri -->
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-clock me-2"></i>{% trans "Zaman Bilgileri" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <td><strong>{% trans "Son Log Alınma" %}:</strong></td>
+                            <td>
+                                {% if monitor.last_log_received %}
+                                    {{ monitor.last_log_received|date:"d.m.Y H:i:s" }}
+                                    <br><small class="text-muted">{{ monitor.last_log_received|timesince }} {% trans "önce" %}</small>
+                                {% else %}
+                                    <span class="text-muted">{% trans "Hiç" %}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>{% trans "Son Heartbeat" %}:</strong></td>
+                            <td>
+                                {% if monitor.last_heartbeat %}
+                                    {{ monitor.last_heartbeat|date:"d.m.Y H:i:s" }}
+                                    <br><small class="text-muted">{{ monitor.last_heartbeat|timesince }} {% trans "önce" %}</small>
+                                {% else %}
+                                    <span class="text-muted">{% trans "Hiç" %}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>{% trans "Son Güncelleme" %}:</strong></td>
+                            <td>
+                                {{ monitor.updated_at|date:"d.m.Y H:i:s" }}
+                                <br><small class="text-muted">{{ monitor.updated_at|timesince }} {% trans "önce" %}</small>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-cog me-2"></i>{% trans "Konfigürasyon" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <td><strong>{% trans "Uyarı Eşiği" %}:</strong></td>
+                            <td>{{ monitor.warning_threshold_minutes }} {% trans "dakika" %}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>{% trans "Hata Eşiği" %}:</strong></td>
+                            <td>{{ monitor.error_threshold_minutes }} {% trans "dakika" %}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>{% trans "Uyarıda Bildir" %}:</strong></td>
+                            <td>
+                                {% if monitor.notify_on_warning %}
+                                    <span class="badge bg-success">{% trans "Evet" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{% trans "Hayır" %}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>{% trans "Hatada Bildir" %}:</strong></td>
+                            <td>
+                                {% if monitor.notify_on_error %}
+                                    <span class="badge bg-success">{% trans "Evet" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{% trans "Hayır" %}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bildirim Alıcıları -->
+    {% if monitor.notification_recipients %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-envelope me-2"></i>{% trans "Bildirim Alıcıları" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">{{ monitor.notification_recipients }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

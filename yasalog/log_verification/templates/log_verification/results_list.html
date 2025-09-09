@@ -1,0 +1,284 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Doğrulama Sonuçları" %} - {{ session.session_name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="results-list">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-clipboard-check me-2"></i>{% trans "Doğrulama Sonuçları" %}
+            <small class="text-muted">- {{ session.session_name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'log_verification:session_detail' company.slug session.id %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri" %}
+            </a>
+            <button class="btn btn-primary" onclick="exportResults()">
+                <i class="fas fa-download me-2"></i>{% trans "Dışa Aktar" %}
+            </button>
+        </div>
+    </div>
+
+    <!-- Oturum Özeti -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-info-circle me-2"></i>{% trans "Oturum Özeti" %}
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <h4 class="mb-0">{{ session.total_records }}</h4>
+                        <p class="mb-0 text-muted">{% trans "Toplam Kayıt" %}</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <h4 class="mb-0 text-success">{{ session.verified_records }}</h4>
+                        <p class="mb-0 text-muted">{% trans "Doğrulanan" %}</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <h4 class="mb-0 text-warning">{{ session.modified_records }}</h4>
+                        <p class="mb-0 text-muted">{% trans "Değiştirilmiş" %}</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <h4 class="mb-0 text-danger">{{ session.failed_records }}</h4>
+                        <p class="mb-0 text-muted">{% trans "Başarısız" %}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtreler -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-filter me-2"></i>{% trans "Filtreler" %}
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <select class="form-select" id="resultTypeFilter">
+                        <option value="">{% trans "Tüm Sonuçlar" %}</option>
+                        <option value="VALID">{% trans "Geçerli" %}</option>
+                        <option value="MODIFIED">{% trans "Değiştirilmiş" %}</option>
+                        <option value="INVALID">{% trans "Geçersiz" %}</option>
+                        <option value="MISSING">{% trans "Eksik" %}</option>
+                        <option value="ERROR">{% trans "Hata" %}</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="sourceFilter">
+                        <option value="">{% trans "Tüm Kaynaklar" %}</option>
+                        <option value="firewall">{% trans "Firewall" %}</option>
+                        <option value="hotspot">{% trans "Hotspot" %}</option>
+                        <option value="system">{% trans "Sistem" %}</option>
+                        <option value="application">{% trans "Uygulama" %}</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <input type="text" class="form-control" id="logIdFilter" placeholder="{% trans 'Log ID Ara' %}">
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-outline-primary w-100" onclick="applyFilters()">
+                        <i class="fas fa-search me-2"></i>{% trans "Filtrele" %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sonuçlar Tablosu -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-list me-2"></i>{% trans "Doğrulama Sonuçları" %}
+                <span class="badge bg-primary ms-2" id="resultCount">{{ results|length }}</span>
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if results %}
+                <div class="table-responsive">
+                    <table class="table table-hover" id="resultsTable">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Log ID" %}</th>
+                                <th>{% trans "Zaman" %}</th>
+                                <th>{% trans "Kaynak" %}</th>
+                                <th>{% trans "Sonuç" %}</th>
+                                <th>{% trans "Hash" %}</th>
+                                <th>{% trans "İmza" %}</th>
+                                <th>{% trans "İşlemler" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for result in results %}
+                            <tr data-result-type="{{ result.result_type }}" data-source="{{ result.log_source }}" data-log-id="{{ result.log_id }}">
+                                <td>
+                                    <code>{{ result.log_id }}</code>
+                                </td>
+                                <td>
+                                    <small class="text-muted">
+                                        {{ result.log_timestamp|date:"d.m.Y H:i:s" }}
+                                    </small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ result.log_source|title }}</span>
+                                </td>
+                                <td>
+                                    {% if result.result_type == 'VALID' %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check-circle me-1"></i>{% trans "Geçerli" %}
+                                        </span>
+                                    {% elif result.result_type == 'MODIFIED' %}
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>{% trans "Değiştirilmiş" %}
+                                        </span>
+                                    {% elif result.result_type == 'INVALID' %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-times-circle me-1"></i>{% trans "Geçersiz" %}
+                                        </span>
+                                    {% elif result.result_type == 'MISSING' %}
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-question-circle me-1"></i>{% trans "Eksik" %}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-dark">
+                                            <i class="fas fa-bug me-1"></i>{% trans "Hata" %}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if result.hash_match %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check me-1"></i>{% trans "Eşleşiyor" %}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-times me-1"></i>{% trans "Eşleşmiyor" %}
+                                        </span>
+                                    {% endif %}
+                                    <br><small class="text-muted">{{ result.calculated_hash|truncatechars:12 }}</small>
+                                </td>
+                                <td>
+                                    {% if result.has_signature %}
+                                        {% if result.signature_valid %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check me-1"></i>{% trans "Geçerli" %}
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-times me-1"></i>{% trans "Geçersiz" %}
+                                            </span>
+                                        {% endif %}
+                                        <br><small class="text-muted">{{ result.signature_authority }}</small>
+                                    {% else %}
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-minus me-1"></i>{% trans "Yok" %}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'log_verification:result_detail' company.slug result.id %}" 
+                                           class="btn btn-outline-primary" title="{% trans 'Detay' %}">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% if result.error_message %}
+                                            <button class="btn btn-outline-danger" 
+                                                    title="{% trans 'Hata Detayı' %}"
+                                                    onclick="showError('{{ result.error_message|escapejs }}')">
+                                                <i class="fas fa-exclamation-triangle"></i>
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-clipboard-check fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">{% trans "Henüz doğrulama sonucu bulunmuyor" %}</h5>
+                    <p class="text-muted">{% trans "Doğrulama işlemi tamamlandığında sonuçlar burada görünecek." %}</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Hata Detayı Modal -->
+<div class="modal fade" id="errorModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>{% trans "Hata Detayı" %}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="errorMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Kapat" %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function applyFilters() {
+    const resultType = document.getElementById('resultTypeFilter').value;
+    const source = document.getElementById('sourceFilter').value;
+    const logId = document.getElementById('logIdFilter').value.toLowerCase();
+    
+    const rows = document.querySelectorAll('#resultsTable tbody tr');
+    let visibleCount = 0;
+    
+    rows.forEach(row => {
+        const rowResultType = row.getAttribute('data-result-type');
+        const rowSource = row.getAttribute('data-source');
+        const rowLogId = row.getAttribute('data-log-id').toLowerCase();
+        
+        let show = true;
+        
+        if (resultType && rowResultType !== resultType) show = false;
+        if (source && rowSource !== source) show = false;
+        if (logId && !rowLogId.includes(logId)) show = false;
+        
+        row.style.display = show ? '' : 'none';
+        if (show) visibleCount++;
+    });
+    
+    document.getElementById('resultCount').textContent = visibleCount;
+}
+
+function showError(message) {
+    document.getElementById('errorMessage').textContent = message;
+    new bootstrap.Modal(document.getElementById('errorModal')).show();
+}
+
+function exportResults() {
+    // Dışa aktarma işlemi
+    alert('{% trans "Dışa aktarma özelliği yakında eklenecek." %}');
+}
+
+// Sayfa yüklendiğinde filtreleri uygula
+document.addEventListener('DOMContentLoaded', function() {
+    applyFilters();
+});
+</script>
+{% endblock %}

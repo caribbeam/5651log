@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import api_views
 
 app_name = 'timestamp_signing'
 
@@ -21,4 +22,8 @@ urlpatterns = [
     
     # API endpoints
     path('api/stats/<str:company_slug>/', views.api_signature_stats, name='api_signature_stats'),
+    
+    # TSA API endpoints
+    path('api/timestamp/', api_views.TSAAPIView.as_view(), name='tsa_api'),
+    path('api/verify/', api_views.verify_timestamp, name='tsa_verify'),
 ]

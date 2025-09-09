@@ -1,0 +1,139 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Rapor Düzenle" %} - {{ report.report_title }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="report-edit">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-edit me-2"></i>{% trans "Rapor Düzenle" %}
+            <small class="text-muted">- {{ report.report_title }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'evidence_reports:report_detail' company.slug report.id %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Rapor Düzenleme Formu -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-gavel me-2"></i>{% trans "Rapor Bilgileri" %}
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Rapor Başlığı" %} <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="report_title" 
+                                   value="{{ report.report_title }}" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Rapor Tipi" %} <span class="text-danger">*</span></label>
+                            <select class="form-select" name="report_type" required>
+                                <option value="">{% trans "Rapor tipi seçin" %}</option>
+                                <option value="COURT_ORDER" {% if report.report_type == 'COURT_ORDER' %}selected{% endif %}>{% trans "Mahkeme Kararı" %}</option>
+                                <option value="BTK_REQUEST" {% if report.report_type == 'BTK_REQUEST' %}selected{% endif %}>{% trans "BTK Talebi" %}</option>
+                                <option value="LEGAL_REQUEST" {% if report.report_type == 'LEGAL_REQUEST' %}selected{% endif %}>{% trans "Yasal Talep" %}</option>
+                                <option value="AUDIT_REQUEST" {% if report.report_type == 'AUDIT_REQUEST' %}selected{% endif %}>{% trans "Denetim Talebi" %}</option>
+                                <option value="COMPLIANCE_CHECK" {% if report.report_type == 'COMPLIANCE_CHECK' %}selected{% endif %}>{% trans "Uyumluluk Kontrolü" %}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Öncelik" %} <span class="text-danger">*</span></label>
+                            <select class="form-select" name="priority" required>
+                                <option value="">{% trans "Öncelik seçin" %}</option>
+                                <option value="LOW" {% if report.priority == 'LOW' %}selected{% endif %}>{% trans "Düşük" %}</option>
+                                <option value="NORMAL" {% if report.priority == 'NORMAL' %}selected{% endif %}>{% trans "Normal" %}</option>
+                                <option value="HIGH" {% if report.priority == 'HIGH' %}selected{% endif %}>{% trans "Yüksek" %}</option>
+                                <option value="URGENT" {% if report.priority == 'URGENT' %}selected{% endif %}>{% trans "Acil" %}</option>
+                                <option value="CRITICAL" {% if report.priority == 'CRITICAL' %}selected{% endif %}>{% trans "Kritik" %}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Teslim Tarihi" %}</label>
+                            <input type="date" class="form-control" name="due_date" 
+                                   value="{% if report.deadline %}{{ report.deadline|date:'Y-m-d' }}{% endif %}">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Talep Eden" %}</label>
+                            <input type="text" class="form-control" name="requested_by" 
+                                   value="{{ report.requester_name }}">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Talep Eden Kurum" %}</label>
+                            <input type="text" class="form-control" name="requester_authority" 
+                                   value="{{ report.requester_authority }}">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">{% trans "Talep Edilen Veri Dönemi" %}</label>
+                    <input type="text" class="form-control" name="requested_data_period" 
+                           value="{{ report.requested_data_period }}">
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">{% trans "Açıklama" %}</label>
+                    <textarea class="form-control" name="description" rows="4" 
+                              placeholder="{% trans 'Rapor hakkında detaylı açıklama' %}">{{ report.report_description }}</textarea>
+                </div>
+                
+                <!-- Mevcut Durum Bilgisi -->
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>{% trans "Mevcut Durum:" %}</strong> 
+                    {% if report.status == 'DRAFT' %}
+                        <span class="badge bg-secondary">{% trans "Taslak" %}</span>
+                    {% elif report.status == 'PENDING_APPROVAL' %}
+                        <span class="badge bg-warning">{% trans "Onay Bekliyor" %}</span>
+                    {% elif report.status == 'APPROVED' %}
+                        <span class="badge bg-primary">{% trans "Onaylandı" %}</span>
+                    {% elif report.status == 'GENERATED' %}
+                        <span class="badge bg-info">{% trans "Oluşturuldu" %}</span>
+                    {% elif report.status == 'DELIVERED' %}
+                        <span class="badge bg-success">{% trans "Teslim Edildi" %}</span>
+                    {% endif %}
+                    <br>
+                    <strong>{% trans "Talep No:" %}</strong> {{ report.request_number }}
+                </div>
+                
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'evidence_reports:report_detail' company.slug report.id %}" 
+                       class="btn btn-secondary">
+                        <i class="fas fa-times me-2"></i>{% trans "İptal" %}
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>{% trans "Güncelle" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

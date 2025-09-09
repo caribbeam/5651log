@@ -1,0 +1,93 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Şablon Düzenle" %} - {{ template.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="template-edit">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-edit me-2"></i>{% trans "Şablon Düzenle" %}
+            <small class="text-muted">- {{ template.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'evidence_reports:templates_list' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Şablon Düzenleme Formu -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-file-code me-2"></i>{% trans "Şablon Bilgileri" %}
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Şablon Adı" %} <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="template_name" 
+                                   value="{{ template.name }}" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Rapor Tipi" %} <span class="text-danger">*</span></label>
+                            <select class="form-select" name="report_type" required>
+                                <option value="">{% trans "Rapor tipi seçin" %}</option>
+                                <option value="COURT_ORDER" {% if template.report_type == 'COURT_ORDER' %}selected{% endif %}>{% trans "Mahkeme Kararı" %}</option>
+                                <option value="BTK_REQUEST" {% if template.report_type == 'BTK_REQUEST' %}selected{% endif %}>{% trans "BTK Talebi" %}</option>
+                                <option value="LEGAL_REQUEST" {% if template.report_type == 'LEGAL_REQUEST' %}selected{% endif %}>{% trans "Yasal Talep" %}</option>
+                                <option value="AUDIT_REQUEST" {% if template.report_type == 'AUDIT_REQUEST' %}selected{% endif %}>{% trans "Denetim Talebi" %}</option>
+                                <option value="COMPLIANCE_CHECK" {% if template.report_type == 'COMPLIANCE_CHECK' %}selected{% endif %}>{% trans "Uyumluluk Kontrolü" %}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">{% trans "Açıklama" %}</label>
+                    <textarea class="form-control" name="description" rows="3" 
+                              placeholder="{% trans 'Şablon hakkında açıklama' %}">{{ template.description }}</textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">{% trans "Şablon İçeriği" %} <span class="text-danger">*</span></label>
+                    <textarea class="form-control" name="template_content" rows="10" 
+                              placeholder="{% trans 'Şablon içeriğini girin' %}" required>{{ template.template_content }}</textarea>
+                    <div class="form-text">
+                        {% trans "Şablon içeriğinde {company_name}, {report_title}, {date} gibi değişkenler kullanabilirsiniz." %}
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="is_active" id="isActive" 
+                               {% if template.is_active %}checked{% endif %}>
+                        <label class="form-check-label" for="isActive">
+                            {% trans "Şablonu aktif olarak işaretle" %}
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'evidence_reports:templates_list' company.slug %}" 
+                       class="btn btn-secondary">
+                        <i class="fas fa-times me-2"></i>{% trans "İptal" %}
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>{% trans "Güncelle" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

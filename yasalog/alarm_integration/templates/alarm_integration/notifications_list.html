@@ -1,0 +1,256 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}Bildirimler - {{ company.name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="notifications-list">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-envelope me-2"></i>Bildirimler
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'alarm_integration:dashboard' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtreler -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-filter me-2"></i>Filtreler
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Durum</label>
+                    <select class="form-select" name="status">
+                        <option value="">Tümü</option>
+                        <option value="PENDING" {% if request.GET.status == 'PENDING' %}selected{% endif %}>Beklemede</option>
+                        <option value="SENT" {% if request.GET.status == 'SENT' %}selected{% endif %}>Gönderildi</option>
+                        <option value="DELIVERED" {% if request.GET.status == 'DELIVERED' %}selected{% endif %}>Teslim Edildi</option>
+                        <option value="FAILED" {% if request.GET.status == 'FAILED' %}selected{% endif %}>Başarısız</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Bildirim Tipi</label>
+                    <select class="form-select" name="notification_type">
+                        <option value="">Tümü</option>
+                        <option value="EMAIL" {% if request.GET.notification_type == 'EMAIL' %}selected{% endif %}>E-posta</option>
+                        <option value="SMS" {% if request.GET.notification_type == 'SMS' %}selected{% endif %}>SMS</option>
+                        <option value="WEBHOOK" {% if request.GET.notification_type == 'WEBHOOK' %}selected{% endif %}>Webhook</option>
+                        <option value="DASHBOARD" {% if request.GET.notification_type == 'DASHBOARD' %}selected{% endif %}>Dashboard</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Tarih Aralığı</label>
+                    <select class="form-select" name="date_range">
+                        <option value="">Tümü</option>
+                        <option value="today" {% if request.GET.date_range == 'today' %}selected{% endif %}>Bugün</option>
+                        <option value="week" {% if request.GET.date_range == 'week' %}selected{% endif %}>Bu Hafta</option>
+                        <option value="month" {% if request.GET.date_range == 'month' %}selected{% endif %}>Bu Ay</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search me-2"></i>Filtrele
+                        </button>
+                        <a href="{% url 'alarm_integration:notifications_list' company.slug %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Temizle
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- İstatistikler -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ notifications|length }}</h4>
+                            <p class="mb-0">Toplam Bildirim</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-envelope fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ notifications|length }}</h4>
+                            <p class="mb-0">Başarılı</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-check-circle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ notifications|length }}</h4>
+                            <p class="mb-0">Başarısız</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-exclamation-triangle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ notifications|length }}</h4>
+                            <p class="mb-0">Beklemede</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-clock fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bildirimler Listesi -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-list me-2"></i>Bildirimler
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if notifications %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Alarm</th>
+                                <th>Tip</th>
+                                <th>Alıcı</th>
+                                <th>Konu</th>
+                                <th>Durum</th>
+                                <th>Gönderilme</th>
+                                <th>Teslim</th>
+                                <th>Deneme</th>
+                                <th>İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for notification in notifications %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'alarm_integration:event_detail' company.slug notification.event.id %}">
+                                        {{ notification.event.title }}
+                                    </a>
+                                    <br><small class="text-muted">{{ notification.event.get_severity_display }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ notification.get_notification_type_display }}</span>
+                                </td>
+                                <td>
+                                    {{ notification.recipient }}
+                                </td>
+                                <td>
+                                    {{ notification.subject|default:"-" }}
+                                </td>
+                                <td>
+                                    {% if notification.status == 'SENT' %}
+                                        <span class="badge bg-success">Gönderildi</span>
+                                    {% elif notification.status == 'DELIVERED' %}
+                                        <span class="badge bg-primary">Teslim Edildi</span>
+                                    {% elif notification.status == 'FAILED' %}
+                                        <span class="badge bg-danger">Başarısız</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Beklemede</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if notification.sent_at %}
+                                        {{ notification.sent_at|date:'d.m.Y H:i:s' }}
+                                        <br><small class="text-muted">{{ notification.sent_at|timesince }} önce</small>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if notification.delivered_at %}
+                                        {{ notification.delivered_at|date:'d.m.Y H:i:s' }}
+                                        <br><small class="text-muted">{{ notification.delivered_at|timesince }} önce</small>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ notification.retry_count }}</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'alarm_integration:notification_detail' company.slug notification.id %}" 
+                                           class="btn btn-sm btn-outline-primary" title="Detay">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% if notification.status == 'FAILED' %}
+                                            <a href="{% url 'alarm_integration:notification_resend' company.slug notification.id %}" 
+                                               class="btn btn-sm btn-outline-warning" title="Tekrar Gönder">
+                                                <i class="fas fa-redo"></i>
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-envelope fa-4x text-muted mb-4"></i>
+                    <h4 class="text-muted">Henüz bildirim bulunmuyor</h4>
+                    <p class="text-muted">Alarm kuralları tetiklendiğinde bildirimler burada görünecek.</p>
+                    <a href="{% url 'alarm_integration:rule_add' company.slug %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>İlk Alarm Kuralını Oluştur
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Filtre formunu otomatik submit et
+    const filterForm = document.querySelector('form[method="get"]');
+    const selects = filterForm.querySelectorAll('select');
+    
+    selects.forEach(select => {
+        select.addEventListener('change', function() {
+            filterForm.submit();
+        });
+    });
+});
+</script>
+{% endblock %}

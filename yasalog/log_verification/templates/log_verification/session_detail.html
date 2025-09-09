@@ -1,0 +1,258 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Oturum Detayı" %} - {{ session.session_name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="session-detail">
+    <!-- Sayfa Başlığı -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-clipboard-check me-2"></i>{{ session.session_name }}
+            <small class="text-muted">- {{ company.name }}</small>
+        </h1>
+        <div>
+            <a href="{% url 'log_verification:sessions_list' company.slug %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri" %}
+            </a>
+            {% if session.status == 'PENDING' %}
+                <a href="{% url 'log_verification:session_start' company.slug session.id %}" class="btn btn-success">
+                    <i class="fas fa-play me-2"></i>{% trans "Başlat" %}
+                </a>
+            {% elif session.status == 'PROCESSING' %}
+                <a href="{% url 'log_verification:session_cancel' company.slug session.id %}" class="btn btn-danger">
+                    <i class="fas fa-stop me-2"></i>{% trans "İptal Et" %}
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Durum Kartları -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h4 class="mb-0">{{ session.total_records }}</h4>
+                    <p class="mb-0">{% trans "Toplam Kayıt" %}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h4 class="mb-0 text-success">{{ session.verified_records }}</h4>
+                    <p class="mb-0">{% trans "Doğrulanan" %}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h4 class="mb-0 text-warning">{{ session.modified_records }}</h4>
+                    <p class="mb-0">{% trans "Değiştirilmiş" %}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h4 class="mb-0 text-danger">{{ session.failed_records }}</h4>
+                    <p class="mb-0">{% trans "Başarısız" %}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- İlerleme Çubuğu -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-tasks me-2"></i>{% trans "İlerleme Durumu" %}
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="progress mb-3" style="height: 30px;">
+                <div class="progress-bar 
+                    {% if session.status == 'COMPLETED' %}bg-success
+                    {% elif session.status == 'PROCESSING' %}bg-warning
+                    {% elif session.status == 'FAILED' %}bg-danger
+                    {% else %}bg-info{% endif %}" 
+                     role="progressbar" 
+                     style="width: {{ session.progress_percentage }}%"
+                     aria-valuenow="{{ session.progress_percentage }}" 
+                     aria-valuemin="0" aria-valuemax="100">
+                    {{ session.progress_percentage }}%
+                </div>
+            </div>
+            <div class="d-flex justify-content-between">
+                <span class="badge 
+                    {% if session.status == 'COMPLETED' %}bg-success
+                    {% elif session.status == 'PROCESSING' %}bg-warning
+                    {% elif session.status == 'FAILED' %}bg-danger
+                    {% elif session.status == 'CANCELLED' %}bg-secondary
+                    {% else %}bg-info{% endif %}">
+                    {% if session.status == 'COMPLETED' %}
+                        <i class="fas fa-check-circle me-1"></i>{% trans "Tamamlandı" %}
+                    {% elif session.status == 'PROCESSING' %}
+                        <i class="fas fa-spinner fa-spin me-1"></i>{% trans "İşleniyor" %}
+                    {% elif session.status == 'FAILED' %}
+                        <i class="fas fa-times-circle me-1"></i>{% trans "Başarısız" %}
+                    {% elif session.status == 'CANCELLED' %}
+                        <i class="fas fa-ban me-1"></i>{% trans "İptal Edildi" %}
+                    {% else %}
+                        <i class="fas fa-clock me-1"></i>{% trans "Beklemede" %}
+                    {% endif %}
+                </span>
+                <small class="text-muted">
+                    {% trans "Doğrulama Tipi:" %} {{ session.get_verification_type_display }}
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Oturum Bilgileri -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>{% trans "Oturum Bilgileri" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>{% trans "Oturum Adı:" %}</strong></td>
+                            <td>{{ session.session_name }}</td>
+                        </tr>
+                        {% if session.description %}
+                        <tr>
+                            <td><strong>{% trans "Açıklama:" %}</strong></td>
+                            <td>{{ session.description }}</td>
+                        </tr>
+                        {% endif %}
+                        <tr>
+                            <td><strong>{% trans "Dosya Adı:" %}</strong></td>
+                            <td>{{ session.file_name }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>{% trans "Dosya Boyutu:" %}</strong></td>
+                            <td>{{ session.file_size|filesizeformat }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>{% trans "Dosya Hash:" %}</strong></td>
+                            <td><code>{{ session.file_hash }}</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>{% trans "Oluşturulma:" %}</strong></td>
+                            <td>{{ session.created_at|date:"d.m.Y H:i:s" }}</td>
+                        </tr>
+                        {% if session.started_at %}
+                        <tr>
+                            <td><strong>{% trans "Başlama:" %}</strong></td>
+                            <td>{{ session.started_at|date:"d.m.Y H:i:s" }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if session.completed_at %}
+                        <tr>
+                            <td><strong>{% trans "Tamamlanma:" %}</strong></td>
+                            <td>{{ session.completed_at|date:"d.m.Y H:i:s" }}</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>{% trans "Sonuç Özeti" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if session.total_records > 0 %}
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>{% trans "Doğrulanan" %}</span>
+                                <span>{{ session.verified_records }} ({% widthratio session.verified_records session.total_records 100 %}%)</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-success" style="width: {% widthratio session.verified_records session.total_records 100 %}%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>{% trans "Değiştirilmiş" %}</span>
+                                <span>{{ session.modified_records }} ({% widthratio session.modified_records session.total_records 100 %}%)</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-warning" style="width: {% widthratio session.modified_records session.total_records 100 %}%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>{% trans "Başarısız" %}</span>
+                                <span>{{ session.failed_records }} ({% widthratio session.failed_records session.total_records 100 %}%)</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-danger" style="width: {% widthratio session.failed_records session.total_records 100 %}%"></div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">{% trans "Henüz kayıt işlenmedi." %}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hata Mesajı -->
+    {% if session.error_message %}
+    <div class="card mt-4">
+        <div class="card-header bg-danger text-white">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-exclamation-triangle me-2"></i>{% trans "Hata Mesajı" %}
+            </h5>
+        </div>
+        <div class="card-body">
+            <p class="text-danger">{{ session.error_message }}</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- İşlem Butonları -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-cogs me-2"></i>{% trans "İşlemler" %}
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="btn-group">
+                <a href="{% url 'log_verification:results_list' company.slug session.id %}" class="btn btn-outline-primary">
+                    <i class="fas fa-list me-2"></i>{% trans "Sonuçları Görüntüle" %}
+                </a>
+                <a href="{% url 'log_verification:reports_list' company.slug session.id %}" class="btn btn-outline-info">
+                    <i class="fas fa-file-alt me-2"></i>{% trans "Raporları Görüntüle" %}
+                </a>
+                {% if session.status == 'COMPLETED' %}
+                    <button class="btn btn-outline-success" onclick="downloadReport()">
+                        <i class="fas fa-download me-2"></i>{% trans "Rapor İndir" %}
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function downloadReport() {
+    // Rapor indirme işlemi
+    alert('{% trans "Rapor indirme özelliği yakında eklenecek." %}');
+}
+</script>
+{% endblock %}

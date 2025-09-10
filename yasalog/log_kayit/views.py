@@ -18,6 +18,7 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 from django.utils.translation import gettext as _
 from django.contrib.auth import update_session_auth_hash
+from django.core.cache import cache
 from django.contrib.auth.forms import PasswordChangeForm
 
 # Import user management views
@@ -186,8 +187,30 @@ def company_dashboard(request, company_id=None, company_slug=None):
     if not (CompanyUser.objects.filter(user=request.user, company=company).exists() or request.user.is_superuser):
         return HttpResponseForbidden(_("You are not authorized to access this company's dashboard."))
 
-    # İstatistikler için tüm logları al (filtresiz) ve ilişkili verileri önceden çek
-    all_logs = LogKayit.objects.filter(company=company).select_related('company')
+    # Cache key oluştur
+    cache_key = f'dashboard_stats_{company.id}_{request.user.id}'
+    
+    # Cache'den istatistikleri al
+    cached_stats = cache.get(cache_key)
+    if cached_stats:
+        all_logs = cached_stats['all_logs']
+        stats = cached_stats['stats']
+    else:
+        # İstatistikler için tüm logları al (filtresiz) ve ilişkili verileri önceden çek
+        all_logs = LogKayit.objects.filter(company=company).select_related('company')
+        
+        # İstatistikleri hesapla
+        stats = {
+            'total_logs': all_logs.count(),
+            'today_logs': all_logs.filter(created_at__date=timezone.now().date()).count(),
+            'suspicious_logs': all_logs.filter(suspicious=True).count(),
+        }
+        
+        # Cache'e kaydet (5 dakika)
+        cache.set(cache_key, {
+            'all_logs': all_logs,
+            'stats': stats
+        }, 300)
 
     # Filtreleme için kullanılacak temel log seti
     logs_to_filter = LogKayit.objects.filter(company=company)

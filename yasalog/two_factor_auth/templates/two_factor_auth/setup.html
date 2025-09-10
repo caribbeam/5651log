@@ -1,0 +1,225 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "2FA Kurulumu" %} - {{ company.name }}{% endblock %}
+
+{% block content %}
+<div class="two-factor-setup">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-shield-alt me-2"></i>{% trans "İki Faktörlü Kimlik Doğrulama" %}
+        </h1>
+        <div>
+            <a href="{% url 'log_kayit:company_dashboard_slug' company.slug %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Geri Dön" %}
+            </a>
+        </div>
+    </div>
+
+    {% if not two_factor.is_enabled %}
+    <!-- 2FA Kurulum -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-qrcode me-2"></i>{% trans "QR Kod ile Kurulum" %}
+                    </h3>
+                </div>
+                <div class="card-body text-center">
+                    <p class="text-muted mb-3">
+                        {% trans "Aşağıdaki QR kodu Google Authenticator veya benzeri bir uygulama ile tarayın:" %}
+                    </p>
+                    
+                    <div class="qr-code-container mb-3">
+                        <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code" class="img-fluid" style="max-width: 200px;">
+                    </div>
+                    
+                    <div class="secret-key-container">
+                        <label class="form-label">{% trans "Secret Key:" %}</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" value="{{ secret_key }}" readonly id="secretKey">
+                            <button class="btn btn-outline-secondary" type="button" onclick="copySecretKey()">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-key me-2"></i>{% trans "Token Doğrulama" %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="enable">
+                        
+                        <div class="mb-3">
+                            <label for="token" class="form-label">{% trans "6 Haneli Token:" %}</label>
+                            <input type="text" class="form-control" id="token" name="token" 
+                                   placeholder="123456" maxlength="6" required>
+                            <div class="form-text">
+                                {% trans "Authenticator uygulamanızdan 6 haneli kodu girin." %}
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success btn-block">
+                            <i class="fas fa-check me-2"></i>{% trans "2FA'yı Aktif Et" %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% else %}
+    <!-- 2FA Yönetimi -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-shield-check me-2"></i>{% trans "2FA Aktif" %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle me-2"></i>
+                        {% trans "İki faktörlü kimlik doğrulama aktif durumda." %}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>{% trans "Yedek Tokenlar" %}</h5>
+                            <p class="text-muted">
+                                {% trans "Yedek tokenlarınızı güvenli bir yerde saklayın. Her biri sadece bir kez kullanılabilir." %}
+                            </p>
+                            <button class="btn btn-warning" onclick="regenerateBackupTokens()">
+                                <i class="fas fa-refresh me-2"></i>{% trans "Yeni Yedek Tokenlar Oluştur" %}
+                            </button>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h5>{% trans "2FA'yı Deaktif Et" %}</h5>
+                            <p class="text-muted">
+                                {% trans "Güvenlik nedeniyle şifrenizi girmeniz gerekiyor." %}
+                            </p>
+                            <button class="btn btn-danger" onclick="disable2FA()">
+                                <i class="fas fa-times me-2"></i>{% trans "2FA'yı Deaktif Et" %}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-info-circle me-2"></i>{% trans "Bilgi" %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success me-2"></i>{% trans "2FA Aktif" %}</li>
+                        <li><i class="fas fa-calendar me-2"></i>{% trans "Kurulum:" %} {{ two_factor.created_at|date:"d.m.Y H:i" }}</li>
+                        <li><i class="fas fa-clock me-2"></i>{% trans "Son Güncelleme:" %} {{ two_factor.updated_at|date:"d.m.Y H:i" }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Deaktif Etme Modal -->
+<div class="modal fade" id="disableModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{% trans "2FA'yı Deaktif Et" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="disable">
+                <div class="modal-body">
+                    <p>{% trans "2FA'yı deaktif etmek için şifrenizi girin:" %}</p>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">{% trans "Şifre:" %}</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "İptal" %}</button>
+                    <button type="submit" class="btn btn-danger">{% trans "Deaktif Et" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Yedek Token Oluşturma Modal -->
+<div class="modal fade" id="backupModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{% trans "Yeni Yedek Tokenlar" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="regenerate_backup">
+                <div class="modal-body">
+                    <p>{% trans "Yeni yedek tokenlar oluşturmak istediğinizden emin misiniz? Mevcut yedek tokenlar geçersiz olacak." %}</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "İptal" %}</button>
+                    <button type="submit" class="btn btn-warning">{% trans "Oluştur" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function copySecretKey() {
+    const secretKey = document.getElementById('secretKey');
+    secretKey.select();
+    secretKey.setSelectionRange(0, 99999);
+    document.execCommand('copy');
+    
+    // Toast notification
+    const toast = document.createElement('div');
+    toast.className = 'toast align-items-center text-white bg-success border-0';
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                Secret key kopyalandı!
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    document.body.appendChild(toast);
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+}
+
+function disable2FA() {
+    const modal = new bootstrap.Modal(document.getElementById('disableModal'));
+    modal.show();
+}
+
+function regenerateBackupTokens() {
+    const modal = new bootstrap.Modal(document.getElementById('backupModal'));
+    modal.show();
+}
+</script>
+{% endblock %}

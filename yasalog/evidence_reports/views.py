@@ -6,14 +6,14 @@ from log_kayit.models import Company, CompanyUser
 from .models import EvidenceReport, EvidenceReportTemplate, EvidenceReportAccess
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def dashboard(request, company_slug):
     """İbraz raporları dashboard"""
     company = get_object_or_404(Company, slug=company_slug)
     
-    # Yetki kontrolü (geçici olarak kapatıldı)
-    # if not (CompanyUser.objects.filter(user=request.user, company=company).exists() or request.user.is_superuser):
-    #     return HttpResponseForbidden("Yetkisiz erişim.")
+    # Yetki kontrolü
+    if not (CompanyUser.objects.filter(user=request.user, company=company).exists() or request.user.is_superuser):
+        return HttpResponseForbidden("Yetkisiz erişim.")
     
     # İstatistikler
     reports = EvidenceReport.objects.filter(company=company)
@@ -132,7 +132,7 @@ def api_report_status(request, company_slug, report_id):
 
 
 # Eksik view'lar
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def report_add(request, company_slug):
     """Report ekleme"""
     company = get_object_or_404(Company, slug=company_slug)
@@ -185,7 +185,7 @@ def report_add(request, company_slug):
     return render(request, 'evidence_reports/report_add.html', context)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def report_edit(request, company_slug, report_id):
     """Report düzenleme"""
     company = get_object_or_404(Company, slug=company_slug)
@@ -277,7 +277,7 @@ def report_deliver(request, company_slug, report_id):
     return redirect('evidence_reports:report_detail', company.slug, report.id)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def template_add(request, company_slug):
     """Template ekleme"""
     company = get_object_or_404(Company, slug=company_slug)
@@ -314,7 +314,7 @@ def template_add(request, company_slug):
     return render(request, 'evidence_reports/template_add.html', context)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def template_edit(request, company_slug, template_id):
     """Template düzenleme"""
     company = get_object_or_404(Company, slug=company_slug)
@@ -351,7 +351,7 @@ def template_edit(request, company_slug, template_id):
     return render(request, 'evidence_reports/template_edit.html', context)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def template_delete(request, company_slug, template_id):
     """Template silme"""
     company = get_object_or_404(Company, slug=company_slug)

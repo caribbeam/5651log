@@ -1,0 +1,116 @@
+{% extends 'log_kayit/base_simple.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "2FA Doğrulama" %}{% endblock %}
+
+{% block content %}
+<div class="two-factor-verify">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-shield-alt fa-3x text-primary mb-3"></i>
+                        <h2 class="h4 mb-0">{% trans "İki Faktörlü Kimlik Doğrulama" %}</h2>
+                        <p class="text-muted mt-2">{% trans "Güvenliğiniz için ek doğrulama gerekli" %}</p>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="username" class="form-label">{% trans "Kullanıcı Adı:" %}</label>
+                            <input type="text" class="form-control" id="username" name="username" 
+                                   value="{{ request.POST.username|default:'' }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="password" class="form-label">{% trans "Şifre:" %}</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="token" class="form-label">{% trans "6 Haneli Token:" %}</label>
+                            <input type="text" class="form-control text-center" id="token" name="token" 
+                                   placeholder="123456" maxlength="6" pattern="[0-9]{6}" required>
+                            <div class="form-text">
+                                {% trans "Authenticator uygulamanızdan 6 haneli kodu girin." %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="text-center">
+                                <span class="text-muted">{% trans "veya" %}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="backup_token" class="form-label">{% trans "Yedek Token:" %}</label>
+                            <input type="text" class="form-control text-center" id="backup_token" name="backup_token" 
+                                   placeholder="A1B2C3D4" maxlength="8">
+                            <div class="form-text">
+                                {% trans "Authenticator uygulamanıza erişemiyorsanız yedek token kullanın." %}
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="fas fa-sign-in-alt me-2"></i>{% trans "Giriş Yap" %}
+                        </button>
+                    </form>
+                    
+                    <div class="text-center mt-4">
+                        <a href="{% url 'log_kayit:yonetici_login' %}" class="text-decoration-none">
+                            <i class="fas fa-arrow-left me-2"></i>{% trans "Giriş Sayfasına Dön" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Yardım Kartı -->
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="fas fa-question-circle me-2"></i>{% trans "Yardım" %}
+                    </h6>
+                    <ul class="list-unstyled mb-0 small">
+                        <li><i class="fas fa-mobile-alt me-2"></i>{% trans "Google Authenticator, Authy veya Microsoft Authenticator kullanın" %}</li>
+                        <li><i class="fas fa-clock me-2"></i>{% trans "Token'lar 30 saniyede bir değişir" %}</li>
+                        <li><i class="fas fa-key me-2"></i>{% trans "Yedek tokenlarınızı güvenli bir yerde saklayın" %}</li>
+                        <li><i class="fas fa-exclamation-triangle me-2"></i>{% trans "Sorun yaşıyorsanız sistem yöneticisine başvurun" %}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Token input'u otomatik formatla
+document.getElementById('token').addEventListener('input', function(e) {
+    this.value = this.value.replace(/[^0-9]/g, '');
+});
+
+// Backup token input'u otomatik formatla
+document.getElementById('backup_token').addEventListener('input', function(e) {
+    this.value = this.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+});
+
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const token = document.getElementById('token').value;
+    const backupToken = document.getElementById('backup_token').value;
+    
+    if (!token && !backupToken) {
+        e.preventDefault();
+        alert('{% trans "Lütfen token veya yedek token girin." %}');
+        return;
+    }
+    
+    if (token && token.length !== 6) {
+        e.preventDefault();
+        alert('{% trans "Token 6 haneli olmalıdır." %}');
+        return;
+    }
+});
+</script>
+{% endblock %}

@@ -677,6 +677,12 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a href="{% url 'audit_logging:dashboard' company.slug %}" class="nav-link {% if 'audit_logging' in request.resolver_match.namespace %}active{% endif %}">
+                                <i class="nav-icon fas fa-shield-alt"></i>
+                                <span class="nav-text">Audit Logging</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a href="{% url 'device_integrations:device_dashboard' company.slug %}" class="nav-link {% if 'device_integrations' in request.resolver_match.namespace %}active{% endif %}">
                                 <i class="nav-icon fas fa-server"></i>
                                 <span class="nav-text">Device Management</span>

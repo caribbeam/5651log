@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 from django.core.validators import RegexValidator
 import uuid
+from .encryption import encrypt_tc_no, decrypt_tc_no, encrypt_ip_address, decrypt_ip_address, encrypt_mac_address, decrypt_mac_address
 
 
 class Company(models.Model):
@@ -71,6 +72,53 @@ class LogKayit(models.Model):
 
     def __str__(self):
         return f"{self.tc_no or self.pasaport_no} - {self.ad_soyad} - {self.giris_zamani}"
+    
+    # Encryption properties
+    @property
+    def tc_no_decrypted(self):
+        """Şifrelenmiş TC kimlik numarasını çöz"""
+        if not self.tc_no:
+            return self.tc_no
+        try:
+            return decrypt_tc_no(self.tc_no)
+        except:
+            return self.tc_no  # Şifreli değilse olduğu gibi döndür
+    
+    @property
+    def ip_adresi_decrypted(self):
+        """Şifrelenmiş IP adresini çöz"""
+        if not self.ip_adresi:
+            return self.ip_adresi
+        try:
+            return decrypt_ip_address(self.ip_adresi)
+        except:
+            return self.ip_adresi  # Şifreli değilse olduğu gibi döndür
+    
+    @property
+    def mac_adresi_decrypted(self):
+        """Şifrelenmiş MAC adresini çöz"""
+        if not self.mac_adresi:
+            return self.mac_adresi
+        try:
+            return decrypt_mac_address(self.mac_adresi)
+        except:
+            return self.mac_adresi  # Şifreli değilse olduğu gibi döndür
+    
+    def save(self, *args, **kwargs):
+        """Kaydetmeden önce hassas verileri şifrele"""
+        # TC kimlik numarasını şifrele
+        if self.tc_no and getattr(settings, 'ENCRYPT_TC_NUMBERS', True):
+            self.tc_no = encrypt_tc_no(self.tc_no)
+        
+        # IP adresini şifrele
+        if self.ip_adresi and getattr(settings, 'ENCRYPT_IP_ADDRESSES', True):
+            self.ip_adresi = encrypt_ip_address(self.ip_adresi)
+        
+        # MAC adresini şifrele
+        if self.mac_adresi and getattr(settings, 'ENCRYPT_MAC_ADDRESSES', True):
+            self.mac_adresi = encrypt_mac_address(self.mac_adresi)
+        
+        super().save(*args, **kwargs)
 
 
 class CompanyUser(models.Model):

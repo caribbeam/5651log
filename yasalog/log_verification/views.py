@@ -7,14 +7,14 @@ from log_kayit.models import Company, CompanyUser
 from .models import LogVerificationSession, LogVerificationResult, LogIntegrityReport, LogVerificationTemplate
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def dashboard(request, company_slug):
     """Log doğrulama dashboard"""
     company = get_object_or_404(Company, slug=company_slug)
     
-    # Yetki kontrolü (geçici olarak kapatıldı)
-    # if not (CompanyUser.objects.filter(user=request.user, company=company).exists() or request.user.is_superuser):
-    #     return HttpResponseForbidden("Yetkisiz erişim.")
+    # Yetki kontrolü
+    if not (CompanyUser.objects.filter(user=request.user, company=company).exists() or request.user.is_superuser):
+        return HttpResponseForbidden("Yetkisiz erişim.")
     
     # İstatistikler
     sessions = LogVerificationSession.objects.filter(company=company)
@@ -29,14 +29,14 @@ def dashboard(request, company_slug):
     return render(request, 'log_verification/dashboard.html', context)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def sessions_list(request, company_slug):
     """Verification session listesi"""
     company = get_object_or_404(Company, slug=company_slug)
     
-    # Yetki kontrolü (geçici olarak kapatıldı)
-    # if not (CompanyUser.objects.filter(user=request.user, company=company).exists() or request.user.is_superuser):
-    #     return HttpResponseForbidden("Yetkisiz erişim.")
+    # Yetki kontrolü
+    if not (CompanyUser.objects.filter(user=request.user, company=company).exists() or request.user.is_superuser):
+        return HttpResponseForbidden("Yetkisiz erişim.")
     
     sessions = LogVerificationSession.objects.filter(company=company)
     
@@ -48,14 +48,14 @@ def sessions_list(request, company_slug):
     return render(request, 'log_verification/sessions_list.html', context)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def session_detail(request, company_slug, session_id):
     """Session detayı"""
     company = get_object_or_404(Company, slug=company_slug)
     
-    # Yetki kontrolü (geçici olarak kapatıldı)
-    # if not (CompanyUser.objects.filter(user=request.user, company=company).exists() or request.user.is_superuser):
-    #     return HttpResponseForbidden("Yetkisiz erişim.")
+    # Yetki kontrolü
+    if not (CompanyUser.objects.filter(user=request.user, company=company).exists() or request.user.is_superuser):
+        return HttpResponseForbidden("Yetkisiz erişim.")
     
     session = get_object_or_404(LogVerificationSession, id=session_id, company=company)
     results = LogVerificationResult.objects.filter(session=session)
@@ -69,14 +69,14 @@ def session_detail(request, company_slug, session_id):
     return render(request, 'log_verification/session_detail.html', context)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def results_list(request, company_slug, session_id):
     """Verification results listesi"""
     company = get_object_or_404(Company, slug=company_slug)
     
-    # Yetki kontrolü (geçici olarak kapatıldı)
-    # if not (CompanyUser.objects.filter(user=request.user, company=company).exists() or request.user.is_superuser):
-    #     return HttpResponseForbidden("Yetkisiz erişim.")
+    # Yetki kontrolü
+    if not (CompanyUser.objects.filter(user=request.user, company=company).exists() or request.user.is_superuser):
+        return HttpResponseForbidden("Yetkisiz erişim.")
     
     session = get_object_or_404(LogVerificationSession, id=session_id, company=company)
     results = LogVerificationResult.objects.filter(session=session)
@@ -90,14 +90,14 @@ def results_list(request, company_slug, session_id):
     return render(request, 'log_verification/results_list.html', context)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def reports_list(request, company_slug, session_id):
     """Reports listesi"""
     company = get_object_or_404(Company, slug=company_slug)
     
-    # Yetki kontrolü (geçici olarak kapatıldı)
-    # if not (CompanyUser.objects.filter(user=request.user, company=company).exists() or request.user.is_superuser):
-    #     return HttpResponseForbidden("Yetkisiz erişim.")
+    # Yetki kontrolü
+    if not (CompanyUser.objects.filter(user=request.user, company=company).exists() or request.user.is_superuser):
+        return HttpResponseForbidden("Yetkisiz erişim.")
     
     session = get_object_or_404(LogVerificationSession, id=session_id, company=company)
     reports = LogIntegrityReport.objects.filter(session=session)
@@ -111,14 +111,14 @@ def reports_list(request, company_slug, session_id):
     return render(request, 'log_verification/reports_list.html', context)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def templates_list(request, company_slug):
     """Templates listesi"""
     company = get_object_or_404(Company, slug=company_slug)
     
-    # Yetki kontrolü (geçici olarak kapatıldı)
-    # if not (CompanyUser.objects.filter(user=request.user, company=company).exists() or request.user.is_superuser):
-    #     return HttpResponseForbidden("Yetkisiz erişim.")
+    # Yetki kontrolü
+    if not (CompanyUser.objects.filter(user=request.user, company=company).exists() or request.user.is_superuser):
+        return HttpResponseForbidden("Yetkisiz erişim.")
     
     templates = LogVerificationTemplate.objects.filter(company=company)
     
@@ -155,7 +155,7 @@ def api_progress(request, company_slug, session_id):
     })
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def session_add(request, company_slug):
     """Session ekleme"""
     company = get_object_or_404(Company, slug=company_slug)
@@ -225,7 +225,7 @@ def session_cancel(request, company_slug, session_id):
     return redirect('log_verification:session_detail', company.slug, session.id)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def result_detail(request, company_slug, result_id):
     """Result detayı"""
     company = get_object_or_404(Company, slug=company_slug)
@@ -239,7 +239,7 @@ def result_detail(request, company_slug, result_id):
     return render(request, 'log_verification/result_detail.html', context)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def report_create(request, company_slug, session_id):
     """Rapor oluştur"""
     company = get_object_or_404(Company, slug=company_slug)
@@ -324,7 +324,7 @@ Doğrulama işlemi başarıyla tamamlanmıştır.
     return render(request, 'log_verification/report_create.html', context)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def report_detail(request, company_slug, report_id):
     """Report detayı"""
     company = get_object_or_404(Company, slug=company_slug)
@@ -338,7 +338,7 @@ def report_detail(request, company_slug, report_id):
     return render(request, 'log_verification/report_detail.html', context)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def report_download(request, company_slug, report_id):
     """Report indir"""
     from django.http import HttpResponse
@@ -372,7 +372,7 @@ def report_download(request, company_slug, report_id):
         return redirect('log_verification:report_detail', company.slug, report.id)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def template_add(request, company_slug):
     """Template ekleme"""
     company = get_object_or_404(Company, slug=company_slug)
@@ -438,7 +438,7 @@ def template_add(request, company_slug):
     return render(request, 'log_verification/template_add.html', context)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def template_edit(request, company_slug, template_id):
     """Template düzenleme"""
     company = get_object_or_404(Company, slug=company_slug)
@@ -497,7 +497,7 @@ def template_edit(request, company_slug, template_id):
     return render(request, 'log_verification/template_edit.html', context)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def template_delete(request, company_slug, template_id):
     """Template silme"""
     company = get_object_or_404(Company, slug=company_slug)

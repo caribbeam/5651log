@@ -6,14 +6,14 @@ from log_kayit.models import Company, CompanyUser
 from .models import AlarmRule, AlarmEvent, AlarmNotification, AlarmSuppression, AlarmStatistics
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def dashboard(request, company_slug):
     """Alarm entegrasyonu dashboard"""
     company = get_object_or_404(Company, slug=company_slug)
     
-    # Yetki kontrolü (geçici olarak kapatıldı)
-    # if not (CompanyUser.objects.filter(user=request.user, company=company).exists() or request.user.is_superuser):
-    #     return HttpResponseForbidden("Yetkisiz erişim.")
+    # Yetki kontrolü
+    if not (CompanyUser.objects.filter(user=request.user, company=company).exists() or request.user.is_superuser):
+        return HttpResponseForbidden("Yetkisiz erişim.")
     
     # İstatistikler
     rules = AlarmRule.objects.filter(company=company)
@@ -32,14 +32,14 @@ def dashboard(request, company_slug):
     return render(request, 'alarm_integration/dashboard.html', context)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def rules_list(request, company_slug):
     """Rules listesi"""
     company = get_object_or_404(Company, slug=company_slug)
     
-    # Yetki kontrolü (geçici olarak kapatıldı)
-    # if not (CompanyUser.objects.filter(user=request.user, company=company).exists() or request.user.is_superuser):
-    #     return HttpResponseForbidden("Yetkisiz erişim.")
+    # Yetki kontrolü
+    if not (CompanyUser.objects.filter(user=request.user, company=company).exists() or request.user.is_superuser):
+        return HttpResponseForbidden("Yetkisiz erişim.")
     
     rules = AlarmRule.objects.filter(company=company)
     
@@ -51,14 +51,14 @@ def rules_list(request, company_slug):
     return render(request, 'alarm_integration/rules_list.html', context)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def rule_detail(request, company_slug, rule_id):
     """Rule detayı"""
     company = get_object_or_404(Company, slug=company_slug)
     
-    # Yetki kontrolü (geçici olarak kapatıldı)
-    # if not (CompanyUser.objects.filter(user=request.user, company=company).exists() or request.user.is_superuser):
-    #     return HttpResponseForbidden("Yetkisiz erişim.")
+    # Yetki kontrolü
+    if not (CompanyUser.objects.filter(user=request.user, company=company).exists() or request.user.is_superuser):
+        return HttpResponseForbidden("Yetkisiz erişim.")
     
     rule = get_object_or_404(AlarmRule, id=rule_id, company=company)
     events = AlarmEvent.objects.filter(rule=rule)
@@ -72,14 +72,14 @@ def rule_detail(request, company_slug, rule_id):
     return render(request, 'alarm_integration/rule_detail.html', context)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def events_list(request, company_slug):
     """Events listesi"""
     company = get_object_or_404(Company, slug=company_slug)
     
-    # Yetki kontrolü (geçici olarak kapatıldı)
-    # if not (CompanyUser.objects.filter(user=request.user, company=company).exists() or request.user.is_superuser):
-    #     return HttpResponseForbidden("Yetkisiz erişim.")
+    # Yetki kontrolü
+    if not (CompanyUser.objects.filter(user=request.user, company=company).exists() or request.user.is_superuser):
+        return HttpResponseForbidden("Yetkisiz erişim.")
     
     events = AlarmEvent.objects.filter(company=company)
     
@@ -91,14 +91,14 @@ def events_list(request, company_slug):
     return render(request, 'alarm_integration/events_list.html', context)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def event_detail(request, company_slug, event_id):
     """Event detayı"""
     company = get_object_or_404(Company, slug=company_slug)
     
-    # Yetki kontrolü (geçici olarak kapatıldı)
-    # if not (CompanyUser.objects.filter(user=request.user, company=company).exists() or request.user.is_superuser):
-    #     return HttpResponseForbidden("Yetkisiz erişim.")
+    # Yetki kontrolü
+    if not (CompanyUser.objects.filter(user=request.user, company=company).exists() or request.user.is_superuser):
+        return HttpResponseForbidden("Yetkisiz erişim.")
     
     event = get_object_or_404(AlarmEvent, id=event_id, company=company)
     notifications = AlarmNotification.objects.filter(event=event)
@@ -112,14 +112,14 @@ def event_detail(request, company_slug, event_id):
     return render(request, 'alarm_integration/event_detail.html', context)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def notifications_list(request, company_slug):
     """Notifications listesi"""
     company = get_object_or_404(Company, slug=company_slug)
     
-    # Yetki kontrolü (geçici olarak kapatıldı)
-    # if not (CompanyUser.objects.filter(user=request.user, company=company).exists() or request.user.is_superuser):
-    #     return HttpResponseForbidden("Yetkisiz erişim.")
+    # Yetki kontrolü
+    if not (CompanyUser.objects.filter(user=request.user, company=company).exists() or request.user.is_superuser):
+        return HttpResponseForbidden("Yetkisiz erişim.")
     
     notifications = AlarmNotification.objects.filter(event__company=company)
     
@@ -213,7 +213,7 @@ def api_send_notifications(request, company_slug, event_id):
 
 
 # Eksik view'lar
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def rule_add(request, company_slug):
     """Rule ekleme"""
     company = get_object_or_404(Company, slug=company_slug)
@@ -287,7 +287,7 @@ def rule_add(request, company_slug):
     return render(request, 'alarm_integration/rule_add.html', context)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def rule_edit(request, company_slug, rule_id):
     """Rule düzenleme"""
     company = get_object_or_404(Company, slug=company_slug)
@@ -340,7 +340,7 @@ def rule_edit(request, company_slug, rule_id):
     return render(request, 'alarm_integration/rule_edit.html', context)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def rule_delete(request, company_slug, rule_id):
     """Rule silme"""
     company = get_object_or_404(Company, slug=company_slug)
@@ -363,7 +363,7 @@ def rule_delete(request, company_slug, rule_id):
     return render(request, 'alarm_integration/rule_delete.html', context)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def rule_test(request, company_slug, rule_id):
     """Rule test et"""
     company = get_object_or_404(Company, slug=company_slug)
@@ -376,7 +376,7 @@ def rule_test(request, company_slug, rule_id):
     return redirect('alarm_integration:rule_detail', company.slug, rule.id)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def event_acknowledge(request, company_slug, event_id):
     """Event kabul et"""
     company = get_object_or_404(Company, slug=company_slug)
@@ -388,7 +388,7 @@ def event_acknowledge(request, company_slug, event_id):
     return redirect('alarm_integration:event_detail', company.slug, event.id)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def event_resolve(request, company_slug, event_id):
     """Event çöz"""
     company = get_object_or_404(Company, slug=company_slug)
@@ -400,7 +400,7 @@ def event_resolve(request, company_slug, event_id):
     return redirect('alarm_integration:event_detail', company.slug, event.id)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def notification_detail(request, company_slug, notification_id):
     """Notification detayı"""
     company = get_object_or_404(Company, slug=company_slug)
@@ -414,7 +414,7 @@ def notification_detail(request, company_slug, notification_id):
     return render(request, 'alarm_integration/notification_detail.html', context)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def notification_resend(request, company_slug, notification_id):
     """Notification tekrar gönder"""
     company = get_object_or_404(Company, slug=company_slug)

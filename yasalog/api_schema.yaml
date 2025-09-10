@@ -1,0 +1,684 @@
+openapi: 3.0.3
+info:
+  title: 5651 Log Sistemi API
+  version: 1.0.0
+  description: 5651 sayılı Kanun gereği Wi-Fi loglama ve Network Management System
+    API dokümantasyonu
+paths:
+  /api/v1/companies/:
+    get:
+      operationId: companies_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - companies
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCompanyList'
+          description: ''
+  /api/v1/companies/{company_slug}/logs/:
+    get:
+      operationId: companies_logs_list
+      parameters:
+      - in: path
+        name: company_slug
+        schema:
+          type: string
+        required: true
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - companies
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedLogKayitList'
+          description: ''
+    post:
+      operationId: companies_logs_create
+      parameters:
+      - in: path
+        name: company_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - companies
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogKayitRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LogKayitRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LogKayitRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogKayit'
+          description: ''
+  /api/v1/companies/{company_slug}/logs/statistics/:
+    get:
+      operationId: companies_logs_statistics_retrieve
+      description: Şirket için istatistikler
+      parameters:
+      - in: path
+        name: company_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - companies
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogKayit'
+          description: ''
+  /api/v1/companies/{company_slug}/users/:
+    get:
+      operationId: companies_users_list
+      parameters:
+      - in: path
+        name: company_slug
+        schema:
+          type: string
+        required: true
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - companies
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCompanyUserList'
+          description: ''
+  /api/v1/companies/{id}/:
+    get:
+      operationId: companies_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - companies
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+          description: ''
+  /api/v1/logs/:
+    get:
+      operationId: logs_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - logs
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedLogKayitList'
+          description: ''
+    post:
+      operationId: logs_create
+      tags:
+      - logs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogKayitRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LogKayitRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LogKayitRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogKayit'
+          description: ''
+  /api/v1/logs/{id}/:
+    get:
+      operationId: logs_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Log Kayıt.
+        required: true
+      tags:
+      - logs
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogKayit'
+          description: ''
+    put:
+      operationId: logs_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Log Kayıt.
+        required: true
+      tags:
+      - logs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogKayitRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LogKayitRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LogKayitRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogKayit'
+          description: ''
+    patch:
+      operationId: logs_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Log Kayıt.
+        required: true
+      tags:
+      - logs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedLogKayitRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedLogKayitRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedLogKayitRequest'
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogKayit'
+          description: ''
+    delete:
+      operationId: logs_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Log Kayıt.
+        required: true
+      tags:
+      - logs
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/logs/statistics/:
+    get:
+      operationId: logs_statistics_retrieve
+      description: Şirket için istatistikler
+      tags:
+      - logs
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogKayit'
+          description: ''
+  /api/v1/users/:
+    get:
+      operationId: users_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - users
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCompanyUserList'
+          description: ''
+  /api/v1/users/{id}/:
+    get:
+      operationId: users_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Firma Kullanıcısı.
+        required: true
+      tags:
+      - users
+      security:
+      - cookieAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyUser'
+          description: ''
+components:
+  schemas:
+    Company:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: Şirket Adı
+          maxLength: 100
+        slug:
+          type: string
+          title: URL Kodu
+          maxLength: 50
+          pattern: ^[-a-zA-Z0-9_]+$
+        address:
+          type: string
+          title: Adres
+          maxLength: 255
+        contact_person:
+          type: string
+          title: Yetkili Kişi
+          maxLength: 100
+        phone:
+          type: string
+          title: Telefon
+          maxLength: 20
+        logo:
+          type: string
+          format: uri
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        theme_color:
+          type: string
+          title: Tema Rengi
+          maxLength: 7
+      required:
+      - created_at
+      - id
+      - name
+    CompanyUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          readOnly: true
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          title: Rol
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - email
+      - id
+      - username
+    KimlikTuruEnum:
+      enum:
+      - tc
+      - pasaport
+      type: string
+      description: |-
+        * `tc` - T.C. Kimlik
+        * `pasaport` - Pasaport
+    LogKayit:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        company:
+          type: integer
+          title: Firma
+        company_name:
+          type: string
+          readOnly: true
+        tc_no:
+          type: string
+          title: T.C. Kimlik No
+          pattern: ^\d{11}$
+          maxLength: 11
+        kimlik_turu:
+          allOf:
+          - $ref: '#/components/schemas/KimlikTuruEnum'
+          title: Kimlik Türü
+        pasaport_no:
+          type: string
+          maxLength: 20
+        pasaport_ulkesi:
+          type: string
+          title: Pasaport Ülkesi
+          maxLength: 50
+        ad_soyad:
+          type: string
+          maxLength: 100
+        telefon:
+          type: string
+          maxLength: 20
+        ip_adresi:
+          type: string
+        mac_adresi:
+          type: string
+          maxLength: 17
+        giris_zamani:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Giriş Zamanı
+        is_suspicious:
+          type: boolean
+          title: Şüpheli
+      required:
+      - ad_soyad
+      - company_name
+      - giris_zamani
+      - id
+      - ip_adresi
+    LogKayitRequest:
+      type: object
+      properties:
+        company:
+          type: integer
+          title: Firma
+        tc_no:
+          type: string
+          title: T.C. Kimlik No
+          pattern: ^\d{11}$
+          maxLength: 11
+        kimlik_turu:
+          allOf:
+          - $ref: '#/components/schemas/KimlikTuruEnum'
+          title: Kimlik Türü
+        pasaport_no:
+          type: string
+          maxLength: 20
+        pasaport_ulkesi:
+          type: string
+          title: Pasaport Ülkesi
+          maxLength: 50
+        ad_soyad:
+          type: string
+          minLength: 1
+          maxLength: 100
+        telefon:
+          type: string
+          maxLength: 20
+        ip_adresi:
+          type: string
+          minLength: 1
+        mac_adresi:
+          type: string
+          maxLength: 17
+        is_suspicious:
+          type: boolean
+          title: Şüpheli
+      required:
+      - ad_soyad
+      - ip_adresi
+    PaginatedCompanyList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Company'
+    PaginatedCompanyUserList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CompanyUser'
+    PaginatedLogKayitList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/LogKayit'
+    PatchedLogKayitRequest:
+      type: object
+      properties:
+        company:
+          type: integer
+          title: Firma
+        tc_no:
+          type: string
+          title: T.C. Kimlik No
+          pattern: ^\d{11}$
+          maxLength: 11
+        kimlik_turu:
+          allOf:
+          - $ref: '#/components/schemas/KimlikTuruEnum'
+          title: Kimlik Türü
+        pasaport_no:
+          type: string
+          maxLength: 20
+        pasaport_ulkesi:
+          type: string
+          title: Pasaport Ülkesi
+          maxLength: 50
+        ad_soyad:
+          type: string
+          minLength: 1
+          maxLength: 100
+        telefon:
+          type: string
+          maxLength: 20
+        ip_adresi:
+          type: string
+          minLength: 1
+        mac_adresi:
+          type: string
+          maxLength: 17
+        is_suspicious:
+          type: boolean
+          title: Şüpheli
+    RoleEnum:
+      enum:
+      - admin
+      - staff
+      - viewer
+      type: string
+      description: |-
+        * `admin` - Firma Yöneticisi
+        * `staff` - Personel
+        * `viewer` - Sadece Görüntüleyici
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
+    tokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Token-based authentication with required prefix "Token"
+tags:
+- name: Authentication
+  description: Kullanıcı kimlik doğrulama
+- name: Companies
+  description: Şirket yönetimi
+- name: Logs
+  description: Log kayıtları
+- name: Dashboard
+  description: Dashboard istatistikleri
+- name: Reports
+  description: Raporlar
+- name: Network Monitoring
+  description: Ağ izleme
+- name: Security
+  description: Güvenlik

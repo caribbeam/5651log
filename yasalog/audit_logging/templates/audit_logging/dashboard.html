@@ -1,0 +1,167 @@
+{% extends 'log_kayit/partials/base_dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Audit Dashboard" %} - {{ company.name }}{% endblock %}
+
+{% block content %}
+<div class="audit-dashboard">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-shield-alt me-2"></i>{% trans "Audit Dashboard" %}
+        </h1>
+        <div>
+            <a href="{% url 'audit_logging:logs_list' company.slug %}" class="btn btn-primary">
+                <i class="fas fa-list me-2"></i>{% trans "Tüm Loglar" %}
+            </a>
+            <a href="{% url 'audit_logging:config' company.slug %}" class="btn btn-secondary">
+                <i class="fas fa-cog me-2"></i>{% trans "Ayarlar" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- İstatistik Kartları -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-info">
+                <div class="inner">
+                    <h3>{{ total_logs|floatformat:0 }}</h3>
+                    <p>{% trans "Toplam Log" %}</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-list"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-success">
+                <div class="inner">
+                    <h3>{{ today_logs|floatformat:0 }}</h3>
+                    <p>{% trans "Bugünkü Loglar" %}</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-calendar-day"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-danger">
+                <div class="inner">
+                    <h3>{{ critical_logs|floatformat:0 }}</h3>
+                    <p>{% trans "Kritik Loglar" %}</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-warning">
+                <div class="inner">
+                    <h3>{{ failed_logs|floatformat:0 }}</h3>
+                    <p>{% trans "Başarısız Loglar" %}</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Son Loglar -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-clock me-2"></i>{% trans "Son Loglar" %}
+                    </h3>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Zaman" %}</th>
+                                    <th>{% trans "Kullanıcı" %}</th>
+                                    <th>{% trans "İşlem" %}</th>
+                                    <th>{% trans "Kaynak" %}</th>
+                                    <th>{% trans "Önem" %}</th>
+                                    <th>{% trans "Durum" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in recent_logs %}
+                                <tr>
+                                    <td>{{ log.timestamp|date:"H:i:s" }}</td>
+                                    <td>{{ log.user.username|default:"Sistem" }}</td>
+                                    <td>{{ log.get_action_display }}</td>
+                                    <td>{{ log.resource_name|truncatechars:30 }}</td>
+                                    <td>
+                                        <span class="badge badge-{{ log.get_severity_color }}">
+                                            {{ log.get_severity_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if log.success %}
+                                            <span class="badge badge-success">{% trans "Başarılı" %}</span>
+                                        {% else %}
+                                            <span class="badge badge-danger">{% trans "Başarısız" %}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">
+                                        {% trans "Henüz audit log bulunmuyor." %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- İstatistikler -->
+        <div class="col-md-4">
+            <!-- Action Dağılımı -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-chart-pie me-2"></i>{% trans "İşlem Dağılımı" %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {% for stat in action_stats %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>{{ stat.action }}</span>
+                        <span class="badge badge-primary">{{ stat.count }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Severity Dağılımı -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-chart-bar me-2"></i>{% trans "Önem Dağılımı" %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {% for stat in severity_stats %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>{{ stat.severity }}</span>
+                        <span class="badge badge-secondary">{{ stat.count }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

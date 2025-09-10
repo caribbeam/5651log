@@ -30,14 +30,14 @@ def dashboard(request, company_slug):
     return render(request, 'log_flow_monitoring/dashboard.html', context)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def monitors_list(request, company_slug):
     """Monitor listesi"""
     company = get_object_or_404(Company, slug=company_slug)
     
-    # Yetki kontrolü (geçici olarak kapatıldı)
-    # if not (CompanyUser.objects.filter(user=request.user, company=company).exists() or request.user.is_superuser):
-    #     return HttpResponseForbidden("Yetkisiz erişim.")
+    # Yetki kontrolü
+    if not (CompanyUser.objects.filter(user=request.user, company=company).exists() or request.user.is_superuser):
+        return HttpResponseForbidden("Yetkisiz erişim.")
     
     monitors = LogFlowMonitor.objects.filter(company=company)
     

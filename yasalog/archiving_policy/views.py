@@ -6,14 +6,14 @@ from log_kayit.models import Company, CompanyUser
 from .models import ArchivingPolicy, ArchivingJob, ArchivingStorage, ArchivingLog
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def dashboard(request, company_slug):
     """Arşivleme politikası dashboard"""
     company = get_object_or_404(Company, slug=company_slug)
     
-    # Yetki kontrolü (geçici olarak kapatıldı)
-    # if not (CompanyUser.objects.filter(user=request.user, company=company).exists() or request.user.is_superuser):
-    #     return HttpResponseForbidden("Yetkisiz erişim.")
+    # Yetki kontrolü
+    if not (CompanyUser.objects.filter(user=request.user, company=company).exists() or request.user.is_superuser):
+        return HttpResponseForbidden("Yetkisiz erişim.")
     
     # İstatistikler
     policies = ArchivingPolicy.objects.filter(company=company)
@@ -174,7 +174,7 @@ def api_storage_capacity(request, company_slug, storage_id):
 
 
 # Eksik view'lar
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def policy_add(request, company_slug):
     """Policy ekleme"""
     company = get_object_or_404(Company, slug=company_slug)
@@ -219,7 +219,7 @@ def policy_add(request, company_slug):
     return render(request, 'archiving_policy/policy_add.html', context)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def policy_edit(request, company_slug, policy_id):
     """Policy düzenleme"""
     company = get_object_or_404(Company, slug=company_slug)
@@ -264,7 +264,7 @@ def policy_edit(request, company_slug, policy_id):
     return render(request, 'archiving_policy/policy_edit.html', context)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def policy_delete(request, company_slug, policy_id):
     """Policy silme"""
     company = get_object_or_404(Company, slug=company_slug)
@@ -331,7 +331,7 @@ def job_cancel(request, company_slug, job_id):
     return redirect('archiving_policy:job_detail', company.slug, job.id)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def storage_add(request, company_slug):
     """Storage ekleme"""
     company = get_object_or_404(Company, slug=company_slug)
@@ -394,7 +394,7 @@ def storage_detail(request, company_slug, storage_id):
     return render(request, 'archiving_policy/storage_detail.html', context)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def storage_edit(request, company_slug, storage_id):
     """Storage düzenleme"""
     company = get_object_or_404(Company, slug=company_slug)
@@ -443,7 +443,7 @@ def storage_edit(request, company_slug, storage_id):
     return render(request, 'archiving_policy/storage_edit.html', context)
 
 
-# @login_required  # Geçici olarak kapatıldı
+@login_required
 def storage_delete(request, company_slug, storage_id):
     """Storage silme"""
     company = get_object_or_404(Company, slug=company_slug)

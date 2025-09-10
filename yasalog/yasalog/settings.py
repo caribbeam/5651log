@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     'widget_tweaks',
     'django_crontab',  # Cron job yönetimi için
+    'csp',  # Content Security Policy
+    'drf_spectacular',  # API Documentation
     
     # New Modules
     'network_monitoring',
@@ -67,11 +69,14 @@ INSTALLED_APPS = [
     'evidence_reports',  # İbraz raporları
     'archiving_policy',  # Arşivleme politikası
     'alarm_integration',  # Alarm entegrasyonu
+    'audit_logging',  # Audit logging sistemi
+    'two_factor_auth',  # Two Factor Authentication
     
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'csp.middleware.CSPMiddleware',  # Content Security Policy
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -278,3 +283,105 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = ''
 EMAIL_HOST_PASSWORD = ''
 DEFAULT_FROM_EMAIL = 'noreply@5651log.com'
+
+# Güvenlik ayarları
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_HSTS_SECONDS = 31536000  # 1 yıl
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_SSL_REDIRECT = False  # Development için False, production'da True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+
+# CSRF ayarları
+CSRF_COOKIE_SECURE = False  # Development için False, production'da True
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'Strict'
+
+# Session ayarları
+SESSION_COOKIE_SECURE = False  # Development için False, production'da True
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Strict'
+SESSION_COOKIE_AGE = 3600  # 1 saat
+
+# Content Security Policy (CSP) - Yeni format
+CONTENT_SECURITY_POLICY = {
+    'DIRECTIVES': {
+        'default-src': ("'self'",),
+        'script-src': ("'self'", "'unsafe-inline'", "cdn.jsdelivr.net", "cdnjs.cloudflare.com"),
+        'style-src': ("'self'", "'unsafe-inline'", "cdn.jsdelivr.net", "cdnjs.cloudflare.com"),
+        'img-src': ("'self'", "data:", "https:"),
+        'font-src': ("'self'", "cdnjs.cloudflare.com"),
+        'connect-src': ("'self'",),
+        'frame-ancestors': ("'none'",),
+    }
+}
+
+# Django REST Framework ayarları
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}
+
+# API Dokümantasyon ayarları
+SPECTACULAR_SETTINGS = {
+    'TITLE': '5651 Log Sistemi API',
+    'DESCRIPTION': '5651 sayılı Kanun gereği Wi-Fi loglama ve Network Management System API dokümantasyonu',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SCHEMA_PATH_PREFIX': '/api/v1/',
+    'TAGS': [
+        {'name': 'Authentication', 'description': 'Kullanıcı kimlik doğrulama'},
+        {'name': 'Companies', 'description': 'Şirket yönetimi'},
+        {'name': 'Logs', 'description': 'Log kayıtları'},
+        {'name': 'Dashboard', 'description': 'Dashboard istatistikleri'},
+        {'name': 'Reports', 'description': 'Raporlar'},
+        {'name': 'Network Monitoring', 'description': 'Ağ izleme'},
+        {'name': 'Security', 'description': 'Güvenlik'},
+    ],
+}
+
+# Cache ayarları - Development için local memory cache kullan
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+        'TIMEOUT': 300,  # 5 dakika
+    },
+    'sessions': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake-sessions',
+        'TIMEOUT': 3600,  # 1 saat
+    },
+    'api': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake-api',
+        'TIMEOUT': 600,  # 10 dakika
+    },
+}
+
+# Session cache backend
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS = 'sessions'
+
+# Encryption ayarları
+# Production'da bu anahtarı environment variable olarak ayarlayın
+# ENCRYPTION_KEY = 'your-32-byte-base64-encoded-key-here'
+ENCRYPTION_KEY = None  # Development için None, production'da güvenli anahtar
+
+# Şifreleme ayarları
+ENCRYPT_SENSITIVE_DATA = True  # Hassas verileri şifrele
+ENCRYPT_TC_NUMBERS = True      # TC kimlik numaralarını şifrele
+ENCRYPT_IP_ADDRESSES = True    # IP adreslerini şifrele
+ENCRYPT_MAC_ADDRESSES = True   # MAC adreslerini şifrele

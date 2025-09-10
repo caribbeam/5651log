@@ -21,6 +21,7 @@ from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from django.conf.urls.i18n import i18n_patterns
 from django.views.i18n import set_language
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
 urlpatterns = [
     path('set_language/', set_language, name='set_language'),
@@ -34,6 +35,11 @@ urlpatterns += i18n_patterns(
     
     # API URL'leri
     path('api/', include('api.urls')),
+    
+    # API Dokümantasyon
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
     
     # Network Monitoring modülü URL'leri
     path('network/', include('network_monitoring.urls')),
@@ -93,6 +99,12 @@ urlpatterns += i18n_patterns(
     
     # Alarm Integration modülü URL'leri
     path('alarms/', include('alarm_integration.urls')),
+    
+    # Audit Logging modülü URL'leri
+    path('audit/', include('audit_logging.urls')),
+    
+    # Two Factor Auth modülü URL'leri
+    path('2fa/', include('two_factor_auth.urls')),
     
     # Şifre sıfırlama ve belirleme (frontend'e taşındı)
     # path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
